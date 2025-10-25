@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QGridLayout, 
     QLineEdit, QPushButton, QComboBox, QTableWidget, QTabWidget,
-    QTableWidgetItem, QMessageBox, QGroupBox, QHeaderView
+    QTableWidgetItem, QMessageBox, QGroupBox, QHeaderView, QDoubleSpinBox, QHBoxLayout
 )
 
 import model.model as model
@@ -34,6 +34,8 @@ class IngredientsTab(QWidget):
 
         self.setLayout(add_layout)
 
+        self.update_ingredients_table()
+
     def add_ingredient(self):        
 
         if not self.name_input.text().strip():
@@ -41,23 +43,121 @@ class IngredientsTab(QWidget):
             return
         
         self.model.add_ingredient(self.name_input.text().strip(), self.unit_combo.currentIndex())
-        data = self.model.get_ingredients()
-        self.table.clearContents()
-        self.table.setRowCount(len(data))
-        i = 0
-        for row in data:            
-            self.table.setItem(i, 0, QTableWidgetItem(row['name']))
-            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row['unit']]))
-            i = i + 1
-        
-
-        
+        self.update_ingredients_table()
 
         # Очистить поля ввода
         self.name_input.clear()
         self.unit_combo.setCurrentIndex(0)
 
+    def update_ingredients_table(self):
+        data = self.model.get_ingredients()
+        self.table.clearContents()
+        self.table.setRowCount(len(data))
+
+        for i, row in enumerate(data):            
+            self.table.setItem(i, 0, QTableWidgetItem(row['name']))
+            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row['unit']]))
+
+
 class ProductsTab(QWidget):
+    def __init__(self, model):
+        super().__init__()
+
+        self.model = model
+        add_layout = QGridLayout()
+
+        self.name_input = QLineEdit()
+        self.price_input = QDoubleSpinBox()        
+        self.price_input.setRange(0.0, 1000.0)
+        self.price_input.setDecimals(2)
+        self.price_input.setSingleStep(0.1)
+
+        self.add_button = QPushButton("Добавить")
+        self.add_button.clicked.connect(self.add_product)
+
+        ing_layout = QHBoxLayout()
+        self.ingredient_combo = QComboBox()
+        self.ingredient_combo.addItems(model.get_ingredients_names())
+        self.ing_quantity = QDoubleSpinBox()
+        self.ing_quantity.setRange(0.0, 10.0)
+        self.ing_quantity.setDecimals(2)
+        self.ing_quantity.setSingleStep(0.1)
+        self.add_ingredient_button = QPushButton("+")
+        self.add_ingredient_button.clicked.connect(self.add_ingredient)
+        
+        self.ing_table = QTableWidget()
+        self.ing_table.setColumnCount(3)
+        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
+        self.ing_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+
+        ing_layout.addWidget(QLabel("Ингредиент:"))
+        ing_layout.addWidget(self.ingredient_combo)
+        ing_layout.addWidget(self.ing_quantity)
+        ing_layout.addWidget(self.add_ingredient_button)
+
+        layout = QVBoxLayout()
+        layout.addLayout(ing_layout)
+        layout.addWidget(self.ing_table) 
+
+        self.products_tabel = QTableWidget()
+        self.products_tabel.setColumnCount(2)
+        self.products_tabel.setHorizontalHeaderLabels(["Назавание", "Цена"])
+        self.products_tabel.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+
+        add_layout.addWidget(QLabel("Название:"), 0, 0)
+        add_layout.addWidget(self.name_input, 0, 1)
+        add_layout.addWidget(QLabel("Цена:"), 1, 0)
+        add_layout.addWidget(self.price_input, 1, 1)                
+        add_layout.addLayout(layout, 2, 0, 1, 2)
+        add_layout.addWidget(self.add_button, 3, 0, 1, 3)  
+        add_layout.addWidget(self.products_tabel, 4, 0, 1, 3)  
+    
+        self.setLayout(add_layout)
+
+        self.update_products_table()
+
+    def add_product(self):
+        product_name = self.name_input.text().strip()
+        product_price = self.price_input.value()
+        if not product_name or not product_price:
+            QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
+            return
+
+        ingredients = []
+        for row in range(self.ing_table.rowCount()):
+            ing_name = self.ing_table.item(row, 0).text()
+            quantity = float(self.ing_table.item(row, 1).text())
+            ingredients.append({'name': ing_name, 'quantity': quantity})
+
+        self.model.add_product(product_name, float(product_price), ingredients) 
+
+        self.update_products_table()
+
+        self.name_input.clear()
+        self.price_input.clear()        
+
+    def add_ingredient(self):
+        ingredient_name = self.ingredient_combo.currentText()
+        quantity = self.ing_quantity.value()
+        
+        ing = self.model.get_ingredient(ingredient_name)
+
+        row_position = self.ing_table.rowCount()
+        self.ing_table.insertRow(row_position)
+        self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
+        self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(quantity)))
+        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing['unit']]))
+
+    def update_products_table(self):
+        data = self.model.get_products()
+        self.products_tabel.clearContents()
+        self.products_tabel.setRowCount(len(data))
+
+        for i, row in enumerate(data):            
+            self.products_tabel.setItem(i, 0, QTableWidgetItem(row['name']))
+            self.products_tabel.setItem(i, 1, QTableWidgetItem(str(row['price'])))  
+
+class ProductsWidget(QWidget):
     
     def __init__(self, model):
         super().__init__()        
@@ -65,12 +165,11 @@ class ProductsTab(QWidget):
         main_layout = QVBoxLayout()
         
         self.tab_widget = QTabWidget()
-        main_layout.addWidget(self.tab_widget)        
-
-        # 1. Форма для добавления нового ингредиента
-       
         self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")
-        
+        self.tab_widget.addTab(ProductsTab(model), "Продукция") 
+
+        main_layout.addWidget(self.tab_widget)
+
         ## 2. Форма для добавления новой продукции
         #add_product_group = QGroupBox("2. Добавить новую продукцию")
         #add_layout = QGridLayout()
@@ -118,9 +217,7 @@ class ProductsTab(QWidget):
         #recipe_group.setLayout(recipe_layout)
         #main_layout.addWidget(recipe_group)
 #
-        self.setLayout(main_layout)        
-    
-
+        self.setLayout(main_layout)
 
     def add_new_product(self):
         pass  # Логика добавления нового продукта в БД

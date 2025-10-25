@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bakery>
+  <ingredients>
+    <ingredient>
+      <name>Мука</name>
+      <unit>0</unit>
+    </ingredient>
+    <ingredient>
+      <name>Молоко</name>
+      <unit>2</unit>
+    </ingredient>
+    <ingredient>
+      <name>Соль</name>
+      <unit>0</unit>
+    </ingredient>
+  </ingredients>
+  <products>
+    <product>
+      <name>Хлеб</name>
+      <price>100.0</price>
+      <ingredients>
+        <ingredient>
+          <name>Мука</name>
+          <quantity>1.0</quantity>
+        </ingredient>
+      </ingredients>
+    </product>
+    <product>
+      <name>слойка</name>
+      <price>122.0</price>
+      <ingredients>
+        <ingredient>
+          <name>Мука</name>
+          <quantity>0.0</quantity>
+        </ingredient>
+      </ingredients>
+    </product>
+  </products>
+</bakery>

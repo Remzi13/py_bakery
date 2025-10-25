@@ -1,17 +1,10 @@
 # main_app.py
 import sys
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QTabWidget, 
-    QWidget, QVBoxLayout, QLabel, QGridLayout, 
-    QLineEdit, QPushButton, QComboBox, QTableWidget, 
-    QTableWidgetItem, QMessageBox, QGroupBox, QHBoxLayout,
-    QHeaderView
-)
-from PyQt6.QtCore import Qt
-from db_connector import DBConnector # Импортируем наш класс для работы с БД
-from datetime import datetime
+from PyQt6.QtWidgets import ( QApplication, QMainWindow, QTabWidget )
 
-from gui.products import ProductsTab
+from db_connector import DBConnector # Импортируем наш класс для работы с БД
+
+from gui.products import ProductsWidget
 
 from model import model
 
@@ -33,10 +26,11 @@ class BakeryApp(QMainWindow):
         self.setCentralWidget(self.tab_widget)
 
         # 3. Добавление вкладок        
-        self.tab_widget.addTab(ProductsTab(self.model), "2. Продукция (Рецепты)")
+        self.tab_widget.addTab(ProductsWidget(self.model), "2. Продукция ")
 
     def closeEvent(self, event):
         """Обработка закрытия приложения для отключения от БД."""
+        self.model.save_to_xml()
         self.db.disconnect()
         super().closeEvent(event)
 
