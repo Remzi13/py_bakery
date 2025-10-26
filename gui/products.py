@@ -169,7 +169,7 @@ class AddProductDialog(QDialog):
         
         self.ing_table = QTableWidget()
         self.ing_table.setColumnCount(3)
-        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])        
+        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
 
         ing_layout.addWidget(QLabel("Ингредиент:"))
         ing_layout.addWidget(self.ingredient_combo)
@@ -345,8 +345,8 @@ class ProductsWidget(QWidget):
         main_layout = QVBoxLayout()
         
         self.tab_widget = QTabWidget()
-        self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")
         self.tab_widget.addTab(ProductsTab(model), "Продукция") 
+        self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")       
 
         main_layout.addWidget(self.tab_widget)
 

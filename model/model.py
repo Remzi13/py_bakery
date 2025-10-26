@@ -47,10 +47,38 @@ class Model:
         def ingredients(self):
             return self._ingredients
 
+    class Purchase:
+
+        def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID | None = None):        
+            self._id = id or uuid.uuid4()  # если id не передан → генерируем новый
+            self._name = name
+            self._data = ""
+            self._price = price
+            self._quantity = quantity  # Список ингредиентов с их количеством
+
+        def __repr__(self):
+            return f"Purchase(id={self._id}, name='{self.name}', price={self.price}, quantity={self.quantity})"
+        
+        def id(self):
+            return self._id
+        
+        def name(self):
+            return self._name
+        
+        def price(self):
+            return self._price
+        
+        def quantity(self):
+            return self._quantity
+        
+        def data(self):
+            return self._data
 
     def __init__(self):
         self.ingredients = []  # Список ингредиентов
         self.products = []     # Список продуктов
+        self._purchase = []
+
         self.load_from_xml()
 
     def get_units(self):
@@ -78,13 +106,22 @@ class Model:
                 prdoduct = new_product
                 return
         self.products.append(new_product)
+
+    def get_products(self):
+        return self.products
+    
+    def get_product_names(self):
+        return [product.name() for product in self.products]
     
     def delete_product(self, name):
         self.products = [product for product in self.products if product.name() != name]
     
-    def get_products(self):
-        return self.products
-    
+    def add_purchase(self, name, price, quantity):
+        self._purchase.append(Model.Purchase(name, price, quantity))
+
+    def get_purchases(self):
+        return self._purchase        
+
     def save_to_xml(self):
         root = ET.Element("bakery")
 
