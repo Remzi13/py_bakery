@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QGridLayout, 
     QLineEdit, QPushButton, QComboBox, QTableWidget, QTabWidget,
-    QTableWidgetItem, QMessageBox, QGroupBox, QHeaderView, QDoubleSpinBox, QHBoxLayout
+    QTableWidgetItem, QMessageBox, QGroupBox, QHeaderView, QDoubleSpinBox, QHBoxLayout,
+    QDialog
 )
 
 import model.model as model
@@ -23,6 +24,10 @@ class IngredientsTab(QWidget):
         self.table.setColumnCount(2)
         self.table.setHorizontalHeaderLabels(["Название", "Ед. изм."])
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)  # выделение строк
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.itemSelectionChanged.connect(self.on_selection_changed)
 
         add_layout.addWidget(QLabel("Название:"), 0, 0)
         add_layout.addWidget(self.name_input, 0, 1)
@@ -35,6 +40,14 @@ class IngredientsTab(QWidget):
         self.setLayout(add_layout)
 
         self.update_ingredients_table()
+
+    def on_selection_changed(self):
+        selected_rows = self.table.selectionModel().selectedRows()
+        if selected_rows:
+            selected_row = selected_rows[0].row()
+            ingredient_name = self.table.item(selected_row, 0).text()
+            # Здесь можно добавить логику для обработки выбранного ингредиента
+            print(f"Выбран ингредиент: {ingredient_name}")
 
     def add_ingredient(self):        
 
@@ -55,25 +68,21 @@ class IngredientsTab(QWidget):
         self.table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.table.setItem(i, 0, QTableWidgetItem(row['name']))
-            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row['unit']]))
+            self.table.setItem(i, 0, QTableWidgetItem(row.name()))
+            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row.unit()]))
 
-
-class ProductsTab(QWidget):
+class AddProductDialog(QDialog):
     def __init__(self, model):
         super().__init__()
-
+        self.setWindowTitle("Добавить Продукт")
         self.model = model
-        add_layout = QGridLayout()
+        layout =  QGridLayout()
 
         self.name_input = QLineEdit()
         self.price_input = QDoubleSpinBox()        
         self.price_input.setRange(0.0, 1000.0)
         self.price_input.setDecimals(2)
         self.price_input.setSingleStep(0.1)
-
-        self.add_button = QPushButton("Добавить")
-        self.add_button.clicked.connect(self.add_product)
 
         ing_layout = QHBoxLayout()
         self.ingredient_combo = QComboBox()
@@ -87,54 +96,28 @@ class ProductsTab(QWidget):
         
         self.ing_table = QTableWidget()
         self.ing_table.setColumnCount(3)
-        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
-        self.ing_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])        
 
         ing_layout.addWidget(QLabel("Ингредиент:"))
         ing_layout.addWidget(self.ingredient_combo)
         ing_layout.addWidget(self.ing_quantity)
         ing_layout.addWidget(self.add_ingredient_button)
 
-        layout = QVBoxLayout()
-        layout.addLayout(ing_layout)
-        layout.addWidget(self.ing_table) 
+        add = QPushButton("Добавить")
+        add.clicked.connect(self.accept)
 
-        self.products_tabel = QTableWidget()
-        self.products_tabel.setColumnCount(2)
-        self.products_tabel.setHorizontalHeaderLabels(["Назавание", "Цена"])
-        self.products_tabel.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        add_layout = QVBoxLayout()
+        add_layout.addLayout(ing_layout)
+        add_layout.addWidget(self.ing_table) 
 
-        add_layout.addWidget(QLabel("Название:"), 0, 0)
-        add_layout.addWidget(self.name_input, 0, 1)
-        add_layout.addWidget(QLabel("Цена:"), 1, 0)
-        add_layout.addWidget(self.price_input, 1, 1)                
-        add_layout.addLayout(layout, 2, 0, 1, 2)
-        add_layout.addWidget(self.add_button, 3, 0, 1, 3)  
-        add_layout.addWidget(self.products_tabel, 4, 0, 1, 3)  
-    
-        self.setLayout(add_layout)
+        layout.addWidget(QLabel("Название:"), 0, 0)
+        layout.addWidget(self.name_input, 0, 1)
+        layout.addWidget(QLabel("Цена:"), 1, 0)
+        layout.addWidget(self.price_input, 1, 1)
+        layout.addLayout(add_layout, 2, 0, 1, 2)
+        layout.addWidget(add, 3, 0, 1, 2)
 
-        self.update_products_table()
-
-    def add_product(self):
-        product_name = self.name_input.text().strip()
-        product_price = self.price_input.value()
-        if not product_name or not product_price:
-            QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
-            return
-
-        ingredients = []
-        for row in range(self.ing_table.rowCount()):
-            ing_name = self.ing_table.item(row, 0).text()
-            quantity = float(self.ing_table.item(row, 1).text())
-            ingredients.append({'name': ing_name, 'quantity': quantity})
-
-        self.model.add_product(product_name, float(product_price), ingredients) 
-
-        self.update_products_table()
-
-        self.name_input.clear()
-        self.price_input.clear()        
+        self.setLayout(layout)
 
     def add_ingredient(self):
         ingredient_name = self.ingredient_combo.currentText()
@@ -146,7 +129,84 @@ class ProductsTab(QWidget):
         self.ing_table.insertRow(row_position)
         self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
         self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(quantity)))
-        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing['unit']]))
+        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing.unit()]))
+
+    def accept(self):
+        if not self.name_input.text().strip() or not self.price_input.value():
+            QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
+            return
+        ingredients = []
+        for row in range(self.ing_table.rowCount()):
+            ing_name = self.ing_table.item(row, 0).text()
+            quantity = float(self.ing_table.item(row, 1).text())
+            ingredients.append({'name': ing_name, 'quantity': quantity})
+
+        self.model.add_product(self.name_input.text().strip(), float(self.price_input.value()), ingredients)
+
+        return super().accept()
+
+class ProductsTab(QWidget):
+    def __init__(self, model):
+        super().__init__()
+
+        self.model = model
+
+        add_layout = QGridLayout()
+
+        self.add_button = QPushButton("Добавить")
+        self.add_button.clicked.connect(self.add_product)
+        self.del_button = QPushButton("Удалить")
+        self.del_button.clicked.connect(self.delete_product)
+        
+        self.products_tabel = QTableWidget()
+        self.products_tabel.setColumnCount(2)
+        self.products_tabel.setHorizontalHeaderLabels(["Назавание", "Цена"])
+        self.products_tabel.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.products_tabel.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)  # выделение строк
+        self.products_tabel.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.products_tabel.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.products_tabel.itemSelectionChanged.connect(self.on_selection_changed)
+
+        add_layout.addWidget(self.add_button, 1, 0)  
+        add_layout.addWidget(self.products_tabel, 2, 0)  
+    
+        self.setLayout(add_layout)
+
+        self.update_products_table()
+
+    def on_selection_changed(self):
+        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        if selected_rows:
+            selected_row = selected_rows[0].row()
+            product_name = self.products_tabel.item(selected_row, 0).text()
+            # Здесь можно добавить логику для обработки выбранного продукта
+            print(f"Выбран продукт: {product_name}")    
+
+    def add_product(self):
+        dialog = AddProductDialog(self.model)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return          
+
+        self.update_products_table()
+
+    def delete_product(self):
+        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "Ошибка", "Выберите продукт для удаления.")
+            return
+
+        selected_row = selected_rows[0].row()
+        product_name = self.products_tabel.item(selected_row, 0).text()
+
+        confirm = QMessageBox.question(
+            self, "Подтверждение удаления",
+            f"Вы уверены, что хотите удалить продукт '{product_name}'?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if confirm == QMessageBox.StandardButton.Yes:
+            self.model.delete_product(product_name)
+            self.update_products_table()
 
     def update_products_table(self):
         data = self.model.get_products()
@@ -154,8 +214,8 @@ class ProductsTab(QWidget):
         self.products_tabel.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.products_tabel.setItem(i, 0, QTableWidgetItem(row['name']))
-            self.products_tabel.setItem(i, 1, QTableWidgetItem(str(row['price'])))  
+            self.products_tabel.setItem(i, 0, QTableWidgetItem(row.name()))
+            self.products_tabel.setItem(i, 1, QTableWidgetItem(str(row.price())))  
 
 class ProductsWidget(QWidget):
     

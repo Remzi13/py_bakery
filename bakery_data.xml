@@ -4,34 +4,34 @@
     <ingredient>
       <name>Мука</name>
       <unit>0</unit>
-    </ingredient>
-    <ingredient>
-      <name>Молоко</name>
-      <unit>2</unit>
+      <id>a49168d5-98eb-44ae-9e39-617c0c9329f6</id>
     </ingredient>
     <ingredient>
       <name>Соль</name>
       <unit>0</unit>
+      <id>8ca3df39-be6a-423e-9824-1249fb0e5019</id>
+    </ingredient>
+    <ingredient>
+      <name>Молоко</name>
+      <unit>2</unit>
+      <id>0a3a2675-db03-44ed-bb24-6b0ebd2b499a</id>
     </ingredient>
   </ingredients>
   <products>
     <product>
+      <id>bd64fa11-dd0f-4efd-ad5d-59687ea6f456</id>
       <name>Хлеб</name>
-      <price>100.0</price>
+      <price>0.4</price>
       <ingredients>
         <ingredient>
-          <name>Мука</name>
-          <quantity>1.0</quantity>
+          <ing_id>8ca3df39-be6a-423e-9824-1249fb0e5019</ing_id>
+          <name>Соль</name>
+          <quantity>0.6</quantity>
         </ingredient>
-      </ingredients>
-    </product>
-    <product>
-      <name>слойка</name>
-      <price>122.0</price>
-      <ingredients>
         <ingredient>
-          <name>Мука</name>
-          <quantity>0.0</quantity>
+          <ing_id>0a3a2675-db03-44ed-bb24-6b0ebd2b499a</ing_id>
+          <name>Молоко</name>
+          <quantity>0.5</quantity>
         </ingredient>
       </ingredients>
     </product>
