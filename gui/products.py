@@ -103,8 +103,8 @@ class AddProductDialog(QDialog):
         ing_layout.addWidget(self.ing_quantity)
         ing_layout.addWidget(self.add_ingredient_button)
 
-        add = QPushButton("Добавить")
-        add.clicked.connect(self.accept)
+        save_button = QPushButton("Сохранить")
+        save_button.clicked.connect(self.accept)
 
         add_layout = QVBoxLayout()
         add_layout.addLayout(ing_layout)
@@ -115,7 +115,7 @@ class AddProductDialog(QDialog):
         layout.addWidget(QLabel("Цена:"), 1, 0)
         layout.addWidget(self.price_input, 1, 1)
         layout.addLayout(add_layout, 2, 0, 1, 2)
-        layout.addWidget(add, 3, 0, 1, 2)
+        layout.addWidget(save_button, 3, 0, 1, 2)
 
         self.setLayout(layout)
 
@@ -157,7 +157,9 @@ class ProductsTab(QWidget):
         self.add_button.clicked.connect(self.add_product)
         self.del_button = QPushButton("Удалить")
         self.del_button.clicked.connect(self.delete_product)
-        
+        self.edit_button = QPushButton("Редактировать")
+        self.edit_button.clicked.connect(self.edit_product)
+
         self.products_tabel = QTableWidget()
         self.products_tabel.setColumnCount(2)
         self.products_tabel.setHorizontalHeaderLabels(["Назавание", "Цена"])
@@ -168,7 +170,9 @@ class ProductsTab(QWidget):
         self.products_tabel.itemSelectionChanged.connect(self.on_selection_changed)
 
         add_layout.addWidget(self.add_button, 1, 0)  
-        add_layout.addWidget(self.products_tabel, 2, 0)  
+        add_layout.addWidget(self.edit_button, 1, 1) 
+        add_layout.addWidget(self.del_button, 1, 2) 
+        add_layout.addWidget(self.products_tabel, 2, 0, 1, 3)  
     
         self.setLayout(add_layout)
 
@@ -185,9 +189,52 @@ class ProductsTab(QWidget):
     def add_product(self):
         dialog = AddProductDialog(self.model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.update_products_table()
+
+    def edit_product(self):
+        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "Ошибка", "Выберите продукт для редактирования.")
+            return
+
+        selected_row = selected_rows[0].row()
+        product_name = self.products_tabel.item(selected_row, 0).text()
+        product = None
+        for prod in self.model.get_products():
+            if prod.name() == product_name:
+                product = prod
+                break
+
+        if not product:
+            QMessageBox.warning(self, "Ошибка", "Продукт не найден.")
+            return
+
+        dialog = AddProductDialog(self.model)
+        dialog.name_input.setText(product.name())
+        dialog.price_input.setValue(product.price())
+        for ing in product.ingredients():
+            row_position = dialog.ing_table.rowCount()
+            dialog.ing_table.insertRow(row_position)
+            dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name']))
+            dialog.ing_table.setItem(row_position, 1, QTableWidgetItem(str(ing['quantity'])))
+            ing_obj = self.model.get_ingredient(ing['name'])
+            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing_obj.unit()]))
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
             return          
 
-        self.update_products_table()
+        # Удаляем старый продукт и добавляем новый с обновленными данными
+        self.model.delete_product(product.name())
+        ingredients = []
+        for row in range(dialog.ing_table.rowCount()):
+            ing_name = dialog.ing_table.item(row, 0).text()
+            quantity = float(dialog.ing_table.item(row, 1).text())
+            ingredients.append({'name': ing_name, 'quantity': quantity})
+
+        self.model.add_product(dialog.name_input.text().strip(), float(dialog.price_input.value()), ingredients)
+
+        self.update_products_table()    
 
     def delete_product(self):
         selected_rows = self.products_tabel.selectionModel().selectedRows()

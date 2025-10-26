@@ -19,9 +19,9 @@
   </ingredients>
   <products>
     <product>
-      <id>bd64fa11-dd0f-4efd-ad5d-59687ea6f456</id>
+      <id>d942a19b-de11-4e6e-93e2-78b482b62ca8</id>
       <name>Хлеб</name>
-      <price>0.4</price>
+      <price>0.7</price>
       <ingredients>
         <ingredient>
           <ing_id>8ca3df39-be6a-423e-9824-1249fb0e5019</ing_id>
@@ -32,6 +32,11 @@
           <ing_id>0a3a2675-db03-44ed-bb24-6b0ebd2b499a</ing_id>
           <name>Молоко</name>
           <quantity>0.5</quantity>
+        </ingredient>
+        <ingredient>
+          <ing_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</ing_id>
+          <name>Мука</name>
+          <quantity>0.30000000000000004</quantity>
         </ingredient>
       </ingredients>
     </product>

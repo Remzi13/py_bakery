@@ -71,8 +71,13 @@ class Model:
     def get_ingredients(self):
         return self.ingredients
     
-    def add_product(self, name, price, ingredients):        
-        self.products.append(Model.Product(name, price, ingredients))
+    def add_product(self, name, price, ingredients):
+        new_product = Model.Product(name, price, ingredients)
+        for prdoduct in self.products:
+            if prdoduct.name() == name:
+                prdoduct = new_product
+                return
+        self.products.append(new_product)
     
     def delete_product(self, name):
         self.products = [product for product in self.products if product.name() != name]
