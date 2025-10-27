@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import ( QApplication, QMainWindow, QTabWidget )
 from db_connector import DBConnector
 
 from gui.products import ProductsWidget
-from gui.storage import StorageWidget
+from gui.storage_tab import StorageWidget
 from gui.main_tab import MainWidget
 
 from model import model

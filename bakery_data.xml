@@ -7,14 +7,14 @@
       <id>a49168d5-98eb-44ae-9e39-617c0c9329f6</id>
     </ingredient>
     <ingredient>
-      <name>Соль</name>
-      <unit>0</unit>
-      <id>8ca3df39-be6a-423e-9824-1249fb0e5019</id>
-    </ingredient>
-    <ingredient>
       <name>Молоко</name>
       <unit>2</unit>
-      <id>0a3a2675-db03-44ed-bb24-6b0ebd2b499a</id>
+      <id>72b2ee8d-1148-4e7a-9473-7016996588d5</id>
+    </ingredient>
+    <ingredient>
+      <name>Соль</name>
+      <unit>1</unit>
+      <id>12421f9f-cb3a-4150-ba3a-e382c935697e</id>
     </ingredient>
   </ingredients>
   <products>
@@ -24,12 +24,12 @@
       <price>0.7</price>
       <ingredients>
         <ingredient>
-          <ing_id>8ca3df39-be6a-423e-9824-1249fb0e5019</ing_id>
+          <ing_id>12421f9f-cb3a-4150-ba3a-e382c935697e</ing_id>
           <name>Соль</name>
           <quantity>0.6</quantity>
         </ingredient>
         <ingredient>
-          <ing_id>0a3a2675-db03-44ed-bb24-6b0ebd2b499a</ing_id>
+          <ing_id>72b2ee8d-1148-4e7a-9473-7016996588d5</ing_id>
           <name>Молоко</name>
           <quantity>0.5</quantity>
         </ingredient>
@@ -40,5 +40,72 @@
         </ingredient>
       </ingredients>
     </product>
+    <product>
+      <id>08b8dc09-0b47-4e9a-b86e-8a5e81fdc234</id>
+      <name>Пирог</name>
+      <price>100.0</price>
+      <ingredients>
+        <ingredient>
+          <ing_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</ing_id>
+          <name>Мука</name>
+          <quantity>0.0</quantity>
+        </ingredient>
+        <ingredient>
+          <ing_id>72b2ee8d-1148-4e7a-9473-7016996588d5</ing_id>
+          <name>Молоко</name>
+          <quantity>0.30000000000000004</quantity>
+        </ingredient>
+      </ingredients>
+    </product>
   </products>
+  <purchases>
+    <purchase>
+      <id>f792e791-3f18-4558-aa20-500dbee1bd68</id>
+      <name>Мука</name>
+      <price>0.5</price>
+      <quantity>1</quantity>
+      <data>2025-10-27 21:47</data>
+    </purchase>
+    <purchase>
+      <id>32ae3d9d-fcaf-49e2-9705-c0dfe1f41620</id>
+      <name>Мука</name>
+      <price>0.7999999999999999</price>
+      <quantity>1</quantity>
+      <data>2025-10-27 21:47</data>
+    </purchase>
+    <purchase>
+      <id>77fa7014-4908-441b-9bd2-57e35c896f0d</id>
+      <name>Мука</name>
+      <price>0.6</price>
+      <quantity>3</quantity>
+      <data>2025-10-27 21:47</data>
+    </purchase>
+    <purchase>
+      <id>5c9c7635-5ae1-4ad0-b69c-46ad6861262a</id>
+      <name>Мука</name>
+      <price>0.5</price>
+      <quantity>5</quantity>
+      <data>2025-10-27 21:47</data>
+    </purchase>
+  </purchases>
+  <stock>
+    <item>
+      <id>a49168d5-98eb-44ae-9e39-617c0c9329f6</id>
+      <name>Мука</name>
+      <category>1</category>
+      <quantity>8</quantity>
+    </item>
+    <item>
+      <id>72b2ee8d-1148-4e7a-9473-7016996588d5</id>
+      <name>Молоко</name>
+      <category>1</category>
+      <quantity>0</quantity>
+    </item>
+    <item>
+      <id>12421f9f-cb3a-4150-ba3a-e382c935697e</id>
+      <name>Соль</name>
+      <category>1</category>
+      <quantity>0</quantity>
+    </item>
+  </stock>
 </bakery>

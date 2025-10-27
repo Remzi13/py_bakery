@@ -82,11 +82,7 @@ class IngredientsTab(QWidget):
         dialog = AddIngredientsDialog(self.model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
-
-        if not self.name_input.text().strip():
-            QMessageBox.warning(self, "Ошибка", "Введите название ингредиента.")
-            return
-                
+        
         self.update_ingredients_table()
 
     def edit_ingredient(self):
