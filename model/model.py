@@ -7,8 +7,6 @@ class Model:
     
     UNITS_NAME = ['кг', 'грамм', 'литр', 'штуки']
 
-    
-
     class Ingredient:
         
         def __init__(self, name: str, unit: str, id: uuid.UUID | None = None):
@@ -53,10 +51,10 @@ class Model:
 
     class Purchase:
 
-        def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID | None = None):        
+        def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID | None = None, date: str | None = None):        
             self._id = id or uuid.uuid4()  # если id не передан → генерируем новый
             self._name = name
-            self._data = datetime.now().strftime("%Y-%m-%d %H:%M")
+            self._date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
             self._price = price
             self._quantity = quantity  # Список ингредиентов с их количеством
 
@@ -75,8 +73,8 @@ class Model:
         def quantity(self):
             return self._quantity
         
-        def data(self):
-            return self._data
+        def date(self):
+            return self._date
     
     class Category:
         INGREDIENT = 1
@@ -103,13 +101,40 @@ class Model:
         
         def quantity(self):
             return self._quantity
+
+    class Sale:
+
+        def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID, date: str | None = None):
+            self._product_id = id
+            self._product_name = name
+            self._date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
+            self._price = price
+            self._quantity = quantity
+
+        def __repr__(self):
+            return f"Sale(product_id={self._product_id}, product_name='{self._product_name}', price={self._price}, quantity={self._quantity})"
+
+        def product_id(self):
+            return self._product_id
         
+        def product_name(self):
+            return self._product_name
+
+        def date(self):
+            return self._date
+        
+        def price(self):
+            return self._price
+        
+        def quantity(self):
+            return self._quantity
 
     def __init__(self):
         self._ingredients = []
         self._products = []
         self._purchase = []
         self._stock = []
+        self._sales = []
 
         self.load_from_xml()
 
@@ -145,6 +170,9 @@ class Model:
     
     def get_product_names(self):
         return [product.name() for product in self._products]
+
+    def get_products_names(self):
+        return [product.name() for product in self._products]
     
     def delete_product(self, name):
         self._products = [product for product in self._products if product.name() != name]
@@ -168,6 +196,20 @@ class Model:
 
     def get_stock(self):
         return self._stock
+
+    def add_sale(self, name, price, quantity):
+        product = None
+        for prod in self._products:
+            if prod.name() == name:
+                product = prod
+                break            
+        if product:
+            self._sales.append(Model.Sale(name, price, quantity, product.id()))
+        else:
+            assert False, "Продукт не найден"
+    
+    def get_sales(self):
+        return self._sales
 
     def save_to_xml(self):
         root = ET.Element("bakery")
@@ -199,7 +241,7 @@ class Model:
             ET.SubElement(purch_elem, "name").text = purchase.name()
             ET.SubElement(purch_elem, "price").text = str(purchase.price())
             ET.SubElement(purch_elem, "quantity").text = str(purchase.quantity())
-            ET.SubElement(purch_elem, "data").text = str(purchase.data())
+            ET.SubElement(purch_elem, "date").text = str(purchase.date())
 
         stock_elem = ET.SubElement(root, "stock")
         for item in self._stock:
@@ -208,6 +250,15 @@ class Model:
             ET.SubElement(item_elem, "name").text = item.name()
             ET.SubElement(item_elem, "category").text = str(item.category())
             ET.SubElement(item_elem, "quantity").text = str(item.quantity())
+
+        sale_elem = ET.SubElement(root, "sales")
+        for sale in self._sales:
+            sal_elem = ET.SubElement(sale_elem, "sale")
+            ET.SubElement(sal_elem, "product_id").text = str(sale.product_id())
+            ET.SubElement(sal_elem, "product_name").text = sale.product_name()
+            ET.SubElement(sal_elem, "price").text = str(sale.price())
+            ET.SubElement(sal_elem, "quantity").text = str(sale.quantity())
+            ET.SubElement(sal_elem, "date").text = str(sale.date())
 
         tree = ET.ElementTree(root)
         ET.indent(tree, space="  ", level=0)  # <-- вот эта строка добавляет отступы
@@ -245,7 +296,8 @@ class Model:
                     price = float(purch_elem.find("price").text)
                     quantity = int(purch_elem.find("quantity").text)
                     id = purch_elem.find("id").text
-                    self._purchase.append(Model.Purchase(name, price, quantity, uuid.UUID(id)))
+                    date = purch_elem.find("date").text
+                    self._purchase.append(Model.Purchase(name, price, quantity, uuid.UUID(id), date))
         
             self._stock.clear()
             if root.find("stock") is not None:
@@ -253,8 +305,18 @@ class Model:
                     name = item_elem.find("name").text
                     category = int(item_elem.find("category").text)
                     quantity = int(item_elem.find("quantity").text)
-                    id = item_elem.find("id").text
+                    id = item_elem.find("id").text                  
                     self._stock.append(Model.Inventory(name, category, quantity, uuid.UUID(id)))    
+                
+            self._sales.clear()
+            if root.find("sales") is not None:  
+                for sale_elem in root.find("sales").findall("sale"):
+                    product_name = sale_elem.find("product_name").text
+                    price = float(sale_elem.find("price").text)
+                    quantity = int(sale_elem.find("quantity").text)
+                    id = sale_elem.find("product_id").text
+                    date = item_elem.find("date").text
+                    self._sales.append(Model.Sale(product_name, price, quantity, uuid.UUID(id)), date)
 
         except FileNotFoundError:
             pass  # Файл не найден, начинаем с пустых данных

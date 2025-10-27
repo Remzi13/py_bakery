@@ -58,42 +58,13 @@
       </ingredients>
     </product>
   </products>
-  <purchases>
-    <purchase>
-      <id>f792e791-3f18-4558-aa20-500dbee1bd68</id>
-      <name>Мука</name>
-      <price>0.5</price>
-      <quantity>1</quantity>
-      <data>2025-10-27 21:47</data>
-    </purchase>
-    <purchase>
-      <id>32ae3d9d-fcaf-49e2-9705-c0dfe1f41620</id>
-      <name>Мука</name>
-      <price>0.7999999999999999</price>
-      <quantity>1</quantity>
-      <data>2025-10-27 21:47</data>
-    </purchase>
-    <purchase>
-      <id>77fa7014-4908-441b-9bd2-57e35c896f0d</id>
-      <name>Мука</name>
-      <price>0.6</price>
-      <quantity>3</quantity>
-      <data>2025-10-27 21:47</data>
-    </purchase>
-    <purchase>
-      <id>5c9c7635-5ae1-4ad0-b69c-46ad6861262a</id>
-      <name>Мука</name>
-      <price>0.5</price>
-      <quantity>5</quantity>
-      <data>2025-10-27 21:47</data>
-    </purchase>
-  </purchases>
+  <purchases />
   <stock>
     <item>
       <id>a49168d5-98eb-44ae-9e39-617c0c9329f6</id>
       <name>Мука</name>
       <category>1</category>
-      <quantity>8</quantity>
+      <quantity>0</quantity>
     </item>
     <item>
       <id>72b2ee8d-1148-4e7a-9473-7016996588d5</id>
@@ -108,4 +79,5 @@
       <quantity>0</quantity>
     </item>
   </stock>
+  <sales />
 </bakery>
