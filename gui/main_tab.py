@@ -102,6 +102,11 @@ class MainWidget(QWidget):
         self.model = model
 
         layout =  QGridLayout()
+
+        income = QLabel("Доход: {:.2f}.".format(self.model.calculate_income()))
+        expenses = QLabel("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
+        profit = QLabel("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
+
         purchase_button = QPushButton("Закупка")
         purchase_button.clicked.connect(self.add_purchase)
 
@@ -116,10 +121,13 @@ class MainWidget(QWidget):
         self.sales_table.setColumnCount(4)
         self.sales_table.setHorizontalHeaderLabels(["Названи", "Количество", "Цена", "Дата"])
 
-        layout.addWidget(purchase_button, 0, 0)
-        layout.addWidget(self.purchase_table, 1, 0)
-        layout.addWidget(sale_button, 2, 0)
-        layout.addWidget(self.sales_table, 3, 0)
+        layout.addWidget(income, 0, 0)
+        layout.addWidget(expenses, 0, 1)
+        layout.addWidget(profit, 0, 2)
+        layout.addWidget(purchase_button, 1, 0, 1, 3)
+        layout.addWidget(self.purchase_table, 2, 0, 1, 3)
+        layout.addWidget(sale_button, 3, 0, 1, 3)
+        layout.addWidget(self.sales_table, 4, 0, 1, 3)
 
         self.setLayout(layout)
         
@@ -134,7 +142,7 @@ class MainWidget(QWidget):
         for i, row in enumerate(data):            
             self.purchase_table.setItem(i, 0, QTableWidgetItem(row.name()))
             self.purchase_table.setItem(i, 1, QTableWidgetItem(str(row.quantity())))
-            self.purchase_table.setItem(i, 2, QTableWidgetItem(str(row.price())))
+            self.purchase_table.setItem(i, 2, QTableWidgetItem(str(round(row.price(), 3))))
             self.purchase_table.setItem(i, 3, QTableWidgetItem(row.date()))
     
     def update_sales_table(self):
@@ -145,7 +153,7 @@ class MainWidget(QWidget):
         for i, row in enumerate(data):            
             self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name()))
             self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity())))
-            self.sales_table.setItem(i, 2, QTableWidgetItem(str(row.price())))
+            self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price(), 3))))
             self.sales_table.setItem(i, 3, QTableWidgetItem(row.date()))
 
     def add_purchase(self):

@@ -73,25 +73,32 @@
       <quantity>3</quantity>
       <date>2025-10-28 06:29</date>
     </purchase>
+    <purchase>
+      <id>06e9f50b-9131-4bd7-bacf-599292a2bafe</id>
+      <name>Мука</name>
+      <price>1.2</price>
+      <quantity>1</quantity>
+      <date>2025-10-28 08:04</date>
+    </purchase>
   </purchases>
   <stock>
     <item>
       <inv_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</inv_id>
       <name>Мука</name>
       <category>1</category>
-      <quantity>0.7</quantity>
+      <quantity>1.4</quantity>
     </item>
     <item>
       <inv_id>72b2ee8d-1148-4e7a-9473-7016996588d5</inv_id>
       <name>Молоко</name>
       <category>1</category>
-      <quantity>2.5</quantity>
+      <quantity>2.0</quantity>
     </item>
     <item>
       <inv_id>12421f9f-cb3a-4150-ba3a-e382c935697e</inv_id>
       <name>Соль</name>
       <category>1</category>
-      <quantity>-0.6</quantity>
+      <quantity>-1.2</quantity>
     </item>
   </stock>
   <sales>
@@ -108,6 +115,13 @@
       <price>0.5</price>
       <quantity>1</quantity>
       <date>2025-10-28 07:03</date>
+    </sale>
+    <sale>
+      <product_id>d942a19b-de11-4e6e-93e2-78b482b62ca8</product_id>
+      <product_name>Хлеб</product_name>
+      <price>2.0000000000000004</price>
+      <quantity>1</quantity>
+      <date>2025-10-28 08:04</date>
     </sale>
   </sales>
 </bakery>

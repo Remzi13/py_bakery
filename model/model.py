@@ -223,6 +223,15 @@ class Model:
     def get_sales(self):
         return self._sales
 
+    def calculate_income(self):
+        return sum(sale.price() * sale.quantity() for sale in self._sales)
+    
+    def calculate_expenses(self):
+        return sum(purchase.price() * purchase.quantity() for purchase in self._purchase)  
+    
+    def calculate_profit(self):
+        return self.calculate_income() - self.calculate_expenses()
+
     def save_to_xml(self):
         root = ET.Element("bakery")
 
