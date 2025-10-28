@@ -124,4 +124,34 @@
       <date>2025-10-28 08:04</date>
     </sale>
   </sales>
+  <expense_types>
+    <expense_type>
+      <id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</id>
+      <name>Зарплата</name>
+      <default_price>0.4</default_price>
+      <category>1</category>
+    </expense_type>
+    <expense_type>
+      <id>c3df3d67-2f88-4ac8-92a2-09ba48550574</id>
+      <name>Печь</name>
+      <default_price>0.5</default_price>
+      <category>0</category>
+    </expense_type>
+  </expense_types>
+  <expenses>
+    <expense>
+      <type_id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</type_id>
+      <name>Зарплата</name>
+      <price>0.4</price>
+      <category>1</category>
+      <date>2025-10-28 16:28</date>
+    </expense>
+    <expense>
+      <type_id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</type_id>
+      <name>Зарплата</name>
+      <price>0.4</price>
+      <category>1</category>
+      <date>2025-10-28 16:29</date>
+    </expense>
+  </expenses>
 </bakery>

@@ -229,29 +229,29 @@ class ProductsTab(QWidget):
         self.edit_button = QPushButton("Редактировать")
         self.edit_button.clicked.connect(self.edit_product)
 
-        self.products_tabel = QTableWidget()
-        self.products_tabel.setColumnCount(2)
-        self.products_tabel.setHorizontalHeaderLabels(["Назавание", "Цена"])
-        self.products_tabel.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.products_tabel.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)  # выделение строк
-        self.products_tabel.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.products_tabel.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.products_tabel.itemSelectionChanged.connect(self.on_selection_changed)
+        self.products_table = QTableWidget()
+        self.products_table.setColumnCount(2)
+        self.products_table.setHorizontalHeaderLabels(["Назавание", "Цена"])
+        self.products_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.products_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)  # выделение строк
+        self.products_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.products_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.products_table.itemSelectionChanged.connect(self.on_selection_changed)
 
         add_layout.addWidget(self.add_button, 1, 0)  
         add_layout.addWidget(self.edit_button, 1, 1) 
         add_layout.addWidget(self.del_button, 1, 2) 
-        add_layout.addWidget(self.products_tabel, 2, 0, 1, 3)  
+        add_layout.addWidget(self.products_table, 2, 0, 1, 3)  
     
         self.setLayout(add_layout)
 
         self.update_products_table()
 
     def on_selection_changed(self):
-        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectionModel().selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
-            product_name = self.products_tabel.item(selected_row, 0).text()
+            product_name = self.products_table.item(selected_row, 0).text()
             # Здесь можно добавить логику для обработки выбранного продукта
             print(f"Выбран продукт: {product_name}")    
 
@@ -262,13 +262,13 @@ class ProductsTab(QWidget):
         self.update_products_table()
 
     def edit_product(self):
-        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectionModel().selectedRows()
         if not selected_rows:
             QMessageBox.warning(self, "Ошибка", "Выберите продукт для редактирования.")
             return
 
         selected_row = selected_rows[0].row()
-        product_name = self.products_tabel.item(selected_row, 0).text()
+        product_name = self.products_table.item(selected_row, 0).text()
         product = None
         for prod in self.model.get_products():
             if prod.name() == product_name:
@@ -306,13 +306,13 @@ class ProductsTab(QWidget):
         self.update_products_table()    
 
     def delete_product(self):
-        selected_rows = self.products_tabel.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectionModel().selectedRows()
         if not selected_rows:
             QMessageBox.warning(self, "Ошибка", "Выберите продукт для удаления.")
             return
 
         selected_row = selected_rows[0].row()
-        product_name = self.products_tabel.item(selected_row, 0).text()
+        product_name = self.products_table.item(selected_row, 0).text()
 
         confirm = QMessageBox.question(
             self, "Подтверждение удаления",
@@ -326,23 +326,23 @@ class ProductsTab(QWidget):
 
     def update_products_table(self):
         data = self.model.get_products()
-        self.products_tabel.clearContents()
-        self.products_tabel.setRowCount(len(data))
+        self.products_table.clearContents()
+        self.products_table.setRowCount(len(data))
 
-        for i, row in enumerate(data):            
-            self.products_tabel.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.products_tabel.setItem(i, 1, QTableWidgetItem(str(row.price())))  
+        for i, row in enumerate(data):
+            self.products_table.setItem(i, 0, QTableWidgetItem(row.name()))
+            self.products_table.setItem(i, 1, QTableWidgetItem(str(row.price())))  
 
 class ProductsWidget(QWidget):
     
     def __init__(self, model):
-        super().__init__()        
+        super().__init__()
         
         main_layout = QVBoxLayout()
         
         self.tab_widget = QTabWidget()
-        self.tab_widget.addTab(ProductsTab(model), "Продукция") 
-        self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")       
+        self.tab_widget.addTab(ProductsTab(model), "Продукция")
+        self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")
 
         main_layout.addWidget(self.tab_widget)
 

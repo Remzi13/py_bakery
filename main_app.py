@@ -5,6 +5,7 @@ from db_connector import DBConnector
 
 from gui.products import ProductsWidget
 from gui.storage_tab import StorageWidget
+from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget
 
 from model import model
@@ -25,6 +26,7 @@ class App(QMainWindow):
         self.setCentralWidget(self.tab_widget)
         
         self.tab_widget.addTab(MainWidget(self.model), "Главная")
+        self.tab_widget.addTab(ExpensesWidget(self.model), "Расходы")
         self.tab_widget.addTab(StorageWidget(self.model), "Склад")
         self.tab_widget.addTab(ProductsWidget(self.model), "Товары")
 

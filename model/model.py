@@ -10,7 +10,7 @@ class Model:
     class Ingredient:
         
         def __init__(self, name: str, unit: str, id: uuid.UUID | None = None):
-            self._id = id or uuid.uuid4()  # если id не передан → генерируем новый
+            self._id = id or uuid.uuid4()
             self._name = name
             self._unit = unit
 
@@ -52,11 +52,12 @@ class Model:
     class Purchase:
 
         def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID | None = None, date: str | None = None):        
-            self._id = id or uuid.uuid4()  # если id не передан → генерируем новый
+            # TODO - remove _id noned, becaus use date
+            self._id = id or uuid.uuid4()
             self._name = name
             self._date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
             self._price = price
-            self._quantity = quantity  # Список ингредиентов с их количеством
+            self._quantity = quantity
 
         def __repr__(self):
             return f"Purchase(id={self._id}, name='{self.name}', price={self.price}, quantity={self.quantity})"
@@ -104,8 +105,8 @@ class Model:
 
     class Sale:
 
-        def __init__(self, name: str, price: int, quantity: int, id: uuid.UUID, date: str | None = None):
-            self._product_id = id
+        def __init__(self, name: str, price: int, quantity: int, product_id: uuid.UUID, date: str | None = None):
+            self._product_id = product_id
             self._product_name = name
             self._date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
             self._price = price
@@ -128,6 +129,56 @@ class Model:
         
         def quantity(self):
             return self._quantity
+    
+    class ExpenseType():
+
+        class Type:
+            ENVIROMENT = 1
+            PAYMENT = 2
+
+        CATEGORY_NAMES = ['оборудование', 'платижи']
+
+        def __init__(self, name: str, price: int, category: Type, id: uuid.UUID | None = None):
+            self._id = id or uuid.uuid4()
+            self._name = name
+            self._default_price = price 
+            self._category = category
+
+        def id(self):
+            return self._id
+
+        def name(self):
+            return self._name
+        
+        def default_price(self):
+            return self._default_price
+        
+        def category(self):
+            return self._category
+
+    class Expense():
+
+        def __init__(self, name: str, price: int, category, type_id: uuid.UUID, date: str | None = None ):
+            self._type_id = type_id
+            self._name = name
+            self._price = price 
+            self._category = category
+            self._date = date or datetime.now().strftime("%Y-%m-%d %H:%M")
+
+        def type_id(self):
+            return self._type_id
+
+        def name(self):
+            return self._name
+        
+        def price(self):
+            return self._price
+        
+        def category(self):
+            return self._category
+        
+        def date(self):
+            return self._date
 
     def __init__(self):
         self._ingredients = []
@@ -135,6 +186,8 @@ class Model:
         self._purchase = []
         self._stock = []
         self._sales = []
+        self._expense_types = []
+        self._expenses = []
 
         self.load_from_xml()
 
@@ -223,14 +276,41 @@ class Model:
     def get_sales(self):
         return self._sales
 
+    def add_expense_type(self, name, price, category ):
+        self._expense_types.append(Model.ExpenseType(name, price, category))
+
+    def get_expense_type(self, name):
+        for expense_type in self._expense_types:
+            if expense_type.name() == name:
+                return expense_type
+        return None
+
+    def get_expense_types(self):
+        return self._expense_types
+    
+
+    def delete_expense_type(self, name):
+        self._expense_types = [expense for expense in self._expense_types if expense.name() != name]
+
+    def get_expense_category_names(self):
+        return Model.ExpenseType.CATEGORY_NAMES
+
+    def add_expense(self, name, price):
+        expense_type = self.get_expense_type(name)
+        self._expenses.append(Model.Expense(name, price, expense_type.category(), expense_type.id() ) )
+
+    def get_expenses(self):
+        return self._expenses
+
     def calculate_income(self):
         return sum(sale.price() * sale.quantity() for sale in self._sales)
-    
+
     def calculate_expenses(self):
         return sum(purchase.price() * purchase.quantity() for purchase in self._purchase)  
     
     def calculate_profit(self):
         return self.calculate_income() - self.calculate_expenses()
+
 
     def save_to_xml(self):
         root = ET.Element("bakery")
@@ -280,6 +360,23 @@ class Model:
             ET.SubElement(sal_elem, "price").text = str(sale.price())
             ET.SubElement(sal_elem, "quantity").text = str(sale.quantity())
             ET.SubElement(sal_elem, "date").text = str(sale.date())
+
+        expense_type_elem = ET.SubElement(root, "expense_types")
+        for expense_type in self._expense_types:
+            expense_elem = ET.SubElement(expense_type_elem, "expense_type")
+            ET.SubElement(expense_elem, "id").text = str(expense_type.id())
+            ET.SubElement(expense_elem, "name").text = expense_type.name()
+            ET.SubElement(expense_elem, "default_price").text = str(expense_type.default_price())
+            ET.SubElement(expense_elem, "category").text = str(expense_type.category())
+
+        expenses = ET.SubElement(root, "expenses")
+        for expense in self._expenses:
+            expense_elem = ET.SubElement(expenses, "expense")
+            ET.SubElement(expense_elem, "type_id").text = str(expense.type_id())
+            ET.SubElement(expense_elem, "name").text = expense.name()
+            ET.SubElement(expense_elem, "price").text = str(expense.price())
+            ET.SubElement(expense_elem, "category").text = str(expense.category())
+            ET.SubElement(expense_elem, "date").text = str(expense.date())
 
         tree = ET.ElementTree(root)
         ET.indent(tree, space="  ", level=0)  # <-- вот эта строка добавляет отступы
@@ -338,6 +435,25 @@ class Model:
                     id = sale_elem.find("product_id").text
                     date = sale_elem.find("date").text
                     self._sales.append(Model.Sale(product_name, price, quantity, uuid.UUID(id), date))
+
+            self._expense_types.clear()
+            if root.find("expense_types") is not None:
+                for expense_type_elem in root.find("expense_types").findall("expense_type"):
+                    name = expense_type_elem.find("name").text
+                    default_price = float(expense_type_elem.find("default_price").text)
+                    category = int(expense_type_elem.find("category").text)
+                    id = expense_type_elem.find("id").text
+                    self._expense_types.append(Model.ExpenseType(name, default_price, category, uuid.UUID(id)))
+
+            self._expenses.clear()
+            if root.find("expenses") is not None:
+                for expense_elem in root.find("expenses").findall("expense"):
+                    name = expense_elem.find("name").text
+                    price = float(expense_elem.find("price").text)
+                    category = int(expense_elem.find("category").text)
+                    type_id = expense_elem.find("type_id").text
+                    date = expense_elem.find("date").text
+                    self._expenses.append(Model.Expense(name, price, category, uuid.UUID(type_id), date))
 
         except FileNotFoundError:
             pass  # Файл не найден, начинаем с пустых данных
