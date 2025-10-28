@@ -21,6 +21,7 @@ class App(QMainWindow):
         self.db.connect()
 
         self.model = model.Model()
+        self.model.load_from_xml()
 
         self.tab_widget = QTabWidget()
         self.setCentralWidget(self.tab_widget)

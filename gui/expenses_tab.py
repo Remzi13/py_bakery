@@ -118,7 +118,7 @@ class AddExpenseDialog(QDialog):
     def accept(self):
         name = self.type_combo.currentText()
         price = self.price.value()
-        self._model.add_expense(name, price)
+        self._model.add_expense(name, price, 1)
         return super().accept()
 
 

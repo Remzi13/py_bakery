@@ -4,154 +4,92 @@
     <ingredient>
       <name>Мука</name>
       <unit>0</unit>
-      <id>a49168d5-98eb-44ae-9e39-617c0c9329f6</id>
-    </ingredient>
-    <ingredient>
-      <name>Молоко</name>
-      <unit>2</unit>
-      <id>72b2ee8d-1148-4e7a-9473-7016996588d5</id>
-    </ingredient>
-    <ingredient>
-      <name>Соль</name>
-      <unit>1</unit>
-      <id>12421f9f-cb3a-4150-ba3a-e382c935697e</id>
+      <id>181e3ac0-13ae-4ee7-82de-4244ebd8458e</id>
     </ingredient>
   </ingredients>
   <products>
     <product>
-      <id>d942a19b-de11-4e6e-93e2-78b482b62ca8</id>
+      <id>556a2cc2-8f2d-4e10-ad5e-417b305bfb4e</id>
       <name>Хлеб</name>
-      <price>0.7</price>
+      <price>0.4</price>
       <ingredients>
         <ingredient>
-          <ing_id>12421f9f-cb3a-4150-ba3a-e382c935697e</ing_id>
-          <name>Соль</name>
-          <quantity>0.6</quantity>
-        </ingredient>
-        <ingredient>
-          <ing_id>72b2ee8d-1148-4e7a-9473-7016996588d5</ing_id>
-          <name>Молоко</name>
+          <ing_id>181e3ac0-13ae-4ee7-82de-4244ebd8458e</ing_id>
+          <name>Мука</name>
           <quantity>0.5</quantity>
-        </ingredient>
-        <ingredient>
-          <ing_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</ing_id>
-          <name>Мука</name>
-          <quantity>0.30000000000000004</quantity>
-        </ingredient>
-      </ingredients>
-    </product>
-    <product>
-      <id>08b8dc09-0b47-4e9a-b86e-8a5e81fdc234</id>
-      <name>Пирог</name>
-      <price>100.0</price>
-      <ingredients>
-        <ingredient>
-          <ing_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</ing_id>
-          <name>Мука</name>
-          <quantity>0.0</quantity>
-        </ingredient>
-        <ingredient>
-          <ing_id>72b2ee8d-1148-4e7a-9473-7016996588d5</ing_id>
-          <name>Молоко</name>
-          <quantity>0.30000000000000004</quantity>
         </ingredient>
       </ingredients>
     </product>
   </products>
-  <purchases>
-    <purchase>
-      <id>c46cf09d-5a84-4290-9270-3dafccfa8cc9</id>
-      <name>Мука</name>
-      <price>1.2</price>
-      <quantity>1</quantity>
-      <date>2025-10-28 06:29</date>
-    </purchase>
-    <purchase>
-      <id>4b4697a5-3cde-48bc-a0a9-20d1a6fa5c6c</id>
-      <name>Молоко</name>
-      <price>1.0999999999999999</price>
-      <quantity>3</quantity>
-      <date>2025-10-28 06:29</date>
-    </purchase>
-    <purchase>
-      <id>06e9f50b-9131-4bd7-bacf-599292a2bafe</id>
-      <name>Мука</name>
-      <price>1.2</price>
-      <quantity>1</quantity>
-      <date>2025-10-28 08:04</date>
-    </purchase>
-  </purchases>
   <stock>
     <item>
-      <inv_id>a49168d5-98eb-44ae-9e39-617c0c9329f6</inv_id>
+      <inv_id>181e3ac0-13ae-4ee7-82de-4244ebd8458e</inv_id>
       <name>Мука</name>
-      <category>1</category>
-      <quantity>1.4</quantity>
-    </item>
-    <item>
-      <inv_id>72b2ee8d-1148-4e7a-9473-7016996588d5</inv_id>
-      <name>Молоко</name>
-      <category>1</category>
-      <quantity>2.0</quantity>
-    </item>
-    <item>
-      <inv_id>12421f9f-cb3a-4150-ba3a-e382c935697e</inv_id>
-      <name>Соль</name>
-      <category>1</category>
-      <quantity>-1.2</quantity>
+      <category>0</category>
+      <quantity>-0.5</quantity>
     </item>
   </stock>
   <sales>
     <sale>
-      <product_id>d942a19b-de11-4e6e-93e2-78b482b62ca8</product_id>
+      <product_id>556a2cc2-8f2d-4e10-ad5e-417b305bfb4e</product_id>
       <product_name>Хлеб</product_name>
-      <price>0.9999999999999999</price>
+      <price>1.0999999999999999</price>
       <quantity>1</quantity>
-      <date>2025-10-28 06:30</date>
+      <date>2025-10-28 17:35</date>
     </sale>
     <sale>
-      <product_id>d942a19b-de11-4e6e-93e2-78b482b62ca8</product_id>
+      <product_id>556a2cc2-8f2d-4e10-ad5e-417b305bfb4e</product_id>
       <product_name>Хлеб</product_name>
-      <price>0.5</price>
+      <price>1.2</price>
       <quantity>1</quantity>
-      <date>2025-10-28 07:03</date>
+      <date>2025-10-28 17:40</date>
     </sale>
     <sale>
-      <product_id>d942a19b-de11-4e6e-93e2-78b482b62ca8</product_id>
+      <product_id>556a2cc2-8f2d-4e10-ad5e-417b305bfb4e</product_id>
       <product_name>Хлеб</product_name>
-      <price>2.0000000000000004</price>
+      <price>2.3000000000000007</price>
       <quantity>1</quantity>
-      <date>2025-10-28 08:04</date>
+      <date>2025-10-28 17:40</date>
     </sale>
   </sales>
   <expense_types>
     <expense_type>
-      <id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</id>
-      <name>Зарплата</name>
-      <default_price>0.4</default_price>
-      <category>1</category>
+      <id>d0888fc4-18e9-4c28-9e13-c47e396786d3</id>
+      <name>Мука</name>
+      <default_price>100.0</default_price>
+      <category>0</category>
     </expense_type>
     <expense_type>
-      <id>c3df3d67-2f88-4ac8-92a2-09ba48550574</id>
-      <name>Печь</name>
-      <default_price>0.5</default_price>
-      <category>0</category>
+      <id>a8174091-baee-48a3-be85-aff41b81c607</id>
+      <name>Зарплата</name>
+      <default_price>0.30000000000000004</default_price>
+      <category>2</category>
     </expense_type>
   </expense_types>
   <expenses>
     <expense>
-      <type_id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</type_id>
-      <name>Зарплата</name>
-      <price>0.4</price>
-      <category>1</category>
-      <date>2025-10-28 16:28</date>
+      <type_id>d0888fc4-18e9-4c28-9e13-c47e396786d3</type_id>
+      <name>Мука</name>
+      <price>100.0</price>
+      <category>0</category>
+      <date>2025-10-28 17:34</date>
+      <quantity>1</quantity>
     </expense>
     <expense>
-      <type_id>ec6e469c-9054-4b59-955d-f8f39b72cbeb</type_id>
+      <type_id>d0888fc4-18e9-4c28-9e13-c47e396786d3</type_id>
+      <name>Мука</name>
+      <price>0.7</price>
+      <category>0</category>
+      <date>2025-10-28 17:34</date>
+      <quantity>1</quantity>
+    </expense>
+    <expense>
+      <type_id>a8174091-baee-48a3-be85-aff41b81c607</type_id>
       <name>Зарплата</name>
-      <price>0.4</price>
-      <category>1</category>
-      <date>2025-10-28 16:29</date>
+      <price>100.0</price>
+      <category>2</category>
+      <date>2025-10-28 17:36</date>
+      <quantity>1</quantity>
     </expense>
   </expenses>
 </bakery>

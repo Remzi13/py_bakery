@@ -41,7 +41,7 @@ class PurchaseDialog(QDialog):
         name = self.purchase_combo.currentText()
         price = self.price.value()
         quantity = self.quantity.value()
-        self.mode.add_purchase(name, price, quantity)
+        self.mode.add_expense(name, price, quantity)
         self.mode.update_inventory(name, quantity)
 
         return super().accept()
@@ -135,7 +135,7 @@ class MainWidget(QWidget):
         self.update_sales_table()
 
     def update_purchase_table(self):
-        data = self.model.get_purchases()
+        data = self.model.get_expenses()
         self.purchase_table.clearContents()
         self.purchase_table.setRowCount(len(data))
 

@@ -285,7 +285,7 @@ class ProductsTab(QWidget):
         for ing in product.ingredients():
             row_position = dialog.ing_table.rowCount()
             dialog.ing_table.insertRow(row_position)
-            dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name']))
+            dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name'])) 
             dialog.ing_table.setItem(row_position, 1, QTableWidgetItem(str(ing['quantity'])))
             ing_obj = self.model.get_ingredient(ing['name'])
             dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing_obj.unit()]))
