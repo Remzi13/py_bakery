@@ -7,7 +7,7 @@ class PurchaseDialog(QDialog):
 
     def __init__(self, model):
         super().__init__()
-        self.setWindowTitle("Добавить закупку")
+        self.setWindowTitle("Закупка")
         self.setGeometry(150, 150, 300, 200)
         self.mode = model
         layout = QGridLayout()
@@ -49,13 +49,14 @@ class PurchaseDialog(QDialog):
 class SaleDialog(QDialog):
     def __init__(self, model):
         super().__init__()
-        self.setWindowTitle("Добавить закупку")
+        self.setWindowTitle("Продажа")
         self.setGeometry(150, 150, 300, 200)
         self.mode = model
         layout = QGridLayout()
 
         self.product_combo = QComboBox()        
         self.product_combo.addItems(model.get_products_names())
+        self.product_combo.currentIndexChanged.connect(self.product_changed)
 
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.accept)    
@@ -77,6 +78,12 @@ class SaleDialog(QDialog):
         layout.addWidget(add_button, 3, 0, 1, 2)
 
         self.setLayout(layout)
+    
+    def product_changed(self):
+        product_name = self.product_combo.currentText()
+        product = self.mode.get_product_by_name(product_name)
+        if product:
+            self.price.setValue(product.price())
     
     def accept(self):
         name = self.product_combo.currentText()
@@ -118,7 +125,6 @@ class MainWidget(QWidget):
         
         self.update_purchase_table()
         self.update_sales_table()
-
 
     def update_purchase_table(self):
         data = self.model.get_purchases()

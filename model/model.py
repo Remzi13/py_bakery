@@ -81,17 +81,17 @@ class Model:
 
     class Inventory:
 
-        def __init__(self, name: str, category, quantity: int, id: uuid.UUID):
-            self._id = id
+        def __init__(self, name: str, category, quantity: int, inv_id: uuid.UUID):
+            self._inv_id = inv_id
             self._name = name
             self._category = category
             self._quantity = quantity
 
         def __repr__(self):
-            return f"Inventory(id={self._id}, name='{self.name}', category={self.category}, quantity={self.quantity})"
+            return f"Inventory(id={self._inv_id}, name='{self.name}', category={self.category}, quantity={self.quantity})"
 
-        def id(self):
-            return self._id 
+        def inv_id(self):
+            return self._inv_id 
         
         def name(self): 
             return self._name
@@ -153,6 +153,12 @@ class Model:
 
     def get_ingredients_names(self):
         return [ingredient.name() for ingredient in self._ingredients]
+    
+    def get_ingredient_by_id(self, id):
+        for ingredient in self._ingredients:
+            if ingredient.id() == id:
+                return ingredient
+        return None 
 
     def get_ingredients(self):
         return self._ingredients
@@ -168,8 +174,11 @@ class Model:
     def get_products(self):
         return self._products
     
-    def get_product_names(self):
-        return [product.name() for product in self._products]
+    def get_product_by_name(self, name):
+        for product in self._products:
+            if product.name() == name:
+                return product
+        return None   
 
     def get_products_names(self):
         return [product.name() for product in self._products]
@@ -204,6 +213,9 @@ class Model:
                 product = prod
                 break            
         if product:
+            for i in product.ingredients():                
+                self.update_inventory(i['name'], -i['quantity'] * quantity) 
+                
             self._sales.append(Model.Sale(name, price, quantity, product.id()))
         else:
             assert False, "Продукт не найден"
@@ -246,7 +258,7 @@ class Model:
         stock_elem = ET.SubElement(root, "stock")
         for item in self._stock:
             item_elem = ET.SubElement(stock_elem, "item")
-            ET.SubElement(item_elem, "id").text = str(item.id())
+            ET.SubElement(item_elem, "inv_id").text = str(item.inv_id())
             ET.SubElement(item_elem, "name").text = item.name()
             ET.SubElement(item_elem, "category").text = str(item.category())
             ET.SubElement(item_elem, "quantity").text = str(item.quantity())
@@ -304,9 +316,9 @@ class Model:
                 for item_elem in root.find("stock").findall("item"):
                     name = item_elem.find("name").text
                     category = int(item_elem.find("category").text)
-                    quantity = int(item_elem.find("quantity").text)
-                    id = item_elem.find("id").text                  
-                    self._stock.append(Model.Inventory(name, category, quantity, uuid.UUID(id)))    
+                    quantity = float(item_elem.find("quantity").text)
+                    inv_id = item_elem.find("inv_id").text                  
+                    self._stock.append(Model.Inventory(name, category, quantity, uuid.UUID(inv_id)))    
                 
             self._sales.clear()
             if root.find("sales") is not None:  
@@ -315,8 +327,8 @@ class Model:
                     price = float(sale_elem.find("price").text)
                     quantity = int(sale_elem.find("quantity").text)
                     id = sale_elem.find("product_id").text
-                    date = item_elem.find("date").text
-                    self._sales.append(Model.Sale(product_name, price, quantity, uuid.UUID(id)), date)
+                    date = sale_elem.find("date").text
+                    self._sales.append(Model.Sale(product_name, price, quantity, uuid.UUID(id), date))
 
         except FileNotFoundError:
             pass  # Файл не найден, начинаем с пустых данных

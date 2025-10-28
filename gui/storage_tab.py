@@ -11,8 +11,11 @@ class StorageWidget(QWidget):
         layout =  QGridLayout()    
 
         self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Название", "Тип", "Количество"])
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(["Название", "Категория", "Количество", "Ед. изм."])
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         layout.addWidget(self.table, 0, 0)
 
@@ -33,5 +36,7 @@ class StorageWidget(QWidget):
             self.table.setItem(i, 0, QTableWidgetItem(row.name()))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.category())))
             self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity())))
+            ing = self._model.get_ingredient_by_id(row.inv_id())
+            self.table.setItem(i, 3, QTableWidgetItem(self._model.get_units()[ing.unit()]))
 
 
