@@ -137,8 +137,8 @@ class IngredientsTab(QWidget):
         self.table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row.unit()]))
+            self.table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row.unit]))
 
 class AddProductDialog(QDialog):
     def __init__(self, model):
@@ -330,8 +330,8 @@ class ProductsTab(QWidget):
         self.products_table.setRowCount(len(data))
 
         for i, row in enumerate(data):
-            self.products_table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.products_table.setItem(i, 1, QTableWidgetItem(str(row.price())))  
+            self.products_table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.products_table.setItem(i, 1, QTableWidgetItem(str(row.price)))  
 
 class ProductsWidget(QWidget):
     

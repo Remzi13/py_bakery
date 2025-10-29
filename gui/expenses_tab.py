@@ -158,10 +158,10 @@ class ExpensesWidget(QWidget):
         self.table.setRowCount(len(expenses))
 
         for i, row in enumerate(expenses):            
-            self.table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.table.setItem(i, 1, QTableWidgetItem(str(row.price())))              
-            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category())]))
-            self.table.setItem(i, 3, QTableWidgetItem(row.date()))
+            self.table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.table.setItem(i, 1, QTableWidgetItem(str(row.price)))              
+            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category)]))
+            self.table.setItem(i, 3, QTableWidgetItem(row.date))
 
 
     def create_expense_type(self):

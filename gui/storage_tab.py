@@ -33,10 +33,10 @@ class StorageWidget(QWidget):
         self.table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.table.setItem(i, 1, QTableWidgetItem(str(row.category())))
-            self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity())))
-            ing = self._model.get_ingredient_by_id(row.inv_id())
-            self.table.setItem(i, 3, QTableWidgetItem(self._model.get_units()[ing.unit()]))
+            self.table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.table.setItem(i, 1, QTableWidgetItem(str(row.category)))
+            self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
+            ing = self._model.get_ingredient_by_id(row.inv_id)
+            self.table.setItem(i, 3, QTableWidgetItem(self._model.get_units()[ing.unit]))
 
 

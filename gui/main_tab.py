@@ -140,10 +140,10 @@ class MainWidget(QWidget):
         self.purchase_table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.purchase_table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.purchase_table.setItem(i, 1, QTableWidgetItem(str(row.quantity())))
-            self.purchase_table.setItem(i, 2, QTableWidgetItem(str(round(row.price(), 3))))
-            self.purchase_table.setItem(i, 3, QTableWidgetItem(row.date()))
+            self.purchase_table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.purchase_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))
+            self.purchase_table.setItem(i, 2, QTableWidgetItem(str(round(row.price, 3))))
+            self.purchase_table.setItem(i, 3, QTableWidgetItem(row.date))
     
     def update_sales_table(self):
         data = self.model.get_sales()
@@ -151,10 +151,10 @@ class MainWidget(QWidget):
         self.sales_table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
-            self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name()))
-            self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity())))
-            self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price(), 3))))
-            self.sales_table.setItem(i, 3, QTableWidgetItem(row.date()))
+            self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name))
+            self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))
+            self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price, 3))))
+            self.sales_table.setItem(i, 3, QTableWidgetItem(row.date))
 
     def add_purchase(self):
         dialog = PurchaseDialog(self.model)        
