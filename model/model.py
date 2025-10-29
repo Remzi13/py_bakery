@@ -115,14 +115,26 @@ class Model:
 
     def get_expense_type(self, name: str) -> Optional[ExpenseType]:
         return next((et for et in self._expense_types if et.name == name), None)
-
-    # --- Бизнес-логика (Обновлена для dataclasses и обработки ошибок) ---
+    
 
     def add_ingredient(self, name, unit):
         self._ingredients.append(self.Ingredient(name=name, unit=unit))
         # add_inventory и add_expense_type теперь используют get_ingredient для ID
         self.add_inventory(name, self.Category.INGREDIENT, 0)
         self.add_expense_type(name, 100, self.Category.INGREDIENT)
+
+    def delete_ingredient(self, name):
+        ingredient = self.get_ingredient(name)
+        products = self.get_products()
+        for product in products:           
+            for ing in product.ingredients:
+                if ing['name'] == name:
+                    raise ValueError(f"Ингредиент '{name}' используется в продукте '{product.name}'. Удаление невозможно.")
+        if ingredient:
+            self._ingredients = [ing for ing in self._ingredients if ing.name != name]
+            # Удаляем связанные записи в инвентаре и типах расходов
+            self._stock = [item for item in self._stock if item.inv_id != ingredient.id]
+            self._expense_types = [et for et in self._expense_types if et.name != name]
 
     def add_product(self, name, price, ingredients: List[Dict]):
         new_product = self.Product(name=name, price=price, ingredients=ingredients)
@@ -140,8 +152,7 @@ class Model:
 
     def add_inventory(self, name, category, quantity):
         ing = self.get_ingredient(name)
-        if not ing:
-             # Добавлена проверка
+        if not ing:             
              raise ValueError(f"Ингредиент '{name}' не найден. Невозможно добавить в инвентарь.")
 
         self._stock.append(self.Inventory(name=name, category=category, quantity=quantity, inv_id=ing.id))
@@ -151,8 +162,7 @@ class Model:
             if item.name == name:
                 # Inventory - dataclass, но не frozen, можно менять напрямую
                 item.quantity += quantity
-                return
-        # УЛУЧШЕНИЕ: Замена assert False на KeyError
+                return        
         raise KeyError(f"Элемент '{name}' не найден в инвентаре")
 
     def add_sale(self, name, price, quantity):

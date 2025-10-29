@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt
 
 # Импортируем все ваши модули
 from db_connector import DBConnector
-from gui.products import ProductsWidget
+from gui.products_tab import ProductsWidget
 from gui.storage_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget

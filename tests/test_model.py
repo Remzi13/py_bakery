@@ -99,6 +99,23 @@ def test_add_and_get_ingredient(model_instance):
     assert expense_type.default_price == 100
     assert expense_type.category == model.Model.Category.INGREDIENT
 
+def test_add_and_delete_ingredient(model_instance):
+    """Тестирование добавления и удаления ингредиента."""
+    model_instance.add_ingredient("Яйца", "штуки")
+    assert model_instance.get_ingredient("Яйца") is not None
+
+    model_instance.delete_ingredient("Яйца")
+    assert model_instance.get_ingredient("Яйца") is None
+
+def test_add_and_cant_delete_ingredient(model_instance):
+    """Тестирование невозможности удаления ингредиента, если он используется в продукте."""
+    model_instance.add_ingredient("Масло", "грамм")
+    ingredients = [{'name': "Масло", 'quantity': 50}]
+    model_instance.add_product("Булочка", 200, ingredients)
+
+    with pytest.raises(ValueError):
+        model_instance.delete_ingredient("Масло")
+
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
     products = initial_setup.get_products()

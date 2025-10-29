@@ -40,13 +40,11 @@ class IngredientsTab(QWidget):
     def __init__(self, model):
         super().__init__()
         
-        self.model = model
+        self._model = model
         add_layout = QGridLayout()
         
         self.add_button = QPushButton("Добавить")
-        self.add_button.clicked.connect(self.add_ingredient)
-        self.edit_button = QPushButton("Редактировать")
-        self.edit_button.clicked.connect(self.edit_ingredient)
+        self.add_button.clicked.connect(self.add_ingredient)        
         self.del_button = QPushButton("Удалить")
         self.del_button.clicked.connect(self.del_ingredient)
 
@@ -59,11 +57,10 @@ class IngredientsTab(QWidget):
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.itemSelectionChanged.connect(self.on_selection_changed)
 
-        add_layout.addWidget(self.add_button, 1, 0)
-        add_layout.addWidget(self.edit_button, 1, 1)
-        add_layout.addWidget(self.del_button, 1, 2)
-        add_layout.addWidget(QLabel("Склад:"), 2, 0, 1, 3)
-        add_layout.addWidget(self.table, 3, 0, 1, 3) 
+        add_layout.addWidget(self.add_button, 1, 0)        
+        add_layout.addWidget(self.del_button, 1, 1)
+        add_layout.addWidget(QLabel("Склад:"), 2, 0, 1, 2)
+        add_layout.addWidget(self.table, 2, 0, 1, 2) 
 
         self.setLayout(add_layout)
 
@@ -79,37 +76,10 @@ class IngredientsTab(QWidget):
 
     def add_ingredient(self):        
 
-        dialog = AddIngredientsDialog(self.model)
+        dialog = AddIngredientsDialog(self._model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         
-        self.update_ingredients_table()
-
-    def edit_ingredient(self):
-        selected_rows = self.table.selectionModel().selectedRows()
-        if not selected_rows:
-            QMessageBox.warning(self, "Ошибка", "Выберите ингредиент для редактирования.")
-            return
-
-        selected_row = selected_rows[0].row()
-        ingredient_name = self.table.item(selected_row, 0).text()
-        ingredient = self.model.get_ingredient(ingredient_name)
-
-        if not ingredient:
-            QMessageBox.warning(self, "Ошибка", "Ингредиент не найден.")
-            return
-
-        dialog = AddIngredientsDialog(self.model)
-        dialog.name_input.setText(ingredient.name)
-        dialog.unit_combo.setCurrentIndex(ingredient.unit)
-
-        if dialog.exec() != QDialog.DialogCode.Accepted:
-            return          
-
-        # Удаляем старый ингредиент и добавляем новый с обновленными данными
-        self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name != ingredient.name]
-        self.model.add_ingredient(dialog.name_input.text().strip(), dialog.unit_combo.currentIndex())
-
         self.update_ingredients_table()
 
     def del_ingredient(self):
@@ -128,17 +98,17 @@ class IngredientsTab(QWidget):
         )
 
         if confirm == QMessageBox.StandardButton.Yes:
-            self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name != ingredient_name]
+            self._model.delete_ingredient(ingredient_name)
             self.update_ingredients_table()
         
     def update_ingredients_table(self):
-        data = self.model.get_ingredients()
+        data = self._model.get_ingredients()
         self.table.clearContents()
         self.table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(self.model.get_units()[row.unit]))
+            self.table.setItem(i, 1, QTableWidgetItem(self._model.get_units()[row.unit]))
 
 class AddProductDialog(QDialog):
     def __init__(self, model):
