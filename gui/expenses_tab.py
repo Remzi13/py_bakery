@@ -53,9 +53,9 @@ class CreateExpenseTypeDialog(QDialog):
         self.table.setRowCount(len(expense_types))
 
         for i, row in enumerate(expense_types):            
-            self.table.setItem(i, 0, QTableWidgetItem(row.name()))
-            self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price())))              
-            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category())]))
+            self.table.setItem(i, 0, QTableWidgetItem(row.name))
+            self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price)))              
+            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category)]))
 
     def add_type(self):
         name = self.name_input.text()
@@ -82,21 +82,21 @@ class AddExpenseDialog(QDialog):
         layout =  QGridLayout()
 
         expense_types = self._model.get_expense_types()
-        self.type_label = QLabel("Тип: {}".format(self._model.get_expense_category_names()[expense_types[0].category()]))
+        self.type_label = QLabel("Тип: {}".format(self._model.get_expense_category_names()[expense_types[0].category]))
 
         self.type_combo = QComboBox()
         self.type_combo.currentIndexChanged.connect(self.type_changed)
         
         names = []
         for i in expense_types:
-            names.append(i.name())
+            names.append(i.name)
         self.type_combo.addItems(names)
 
         self.price = QDoubleSpinBox()            
         self.price.setRange(0.0, 1000.0)
         self.price.setDecimals(2)
         self.price.setSingleStep(0.1)
-        self.price.setValue(expense_types[0].default_price())
+        self.price.setValue(expense_types[0].default_price)
 
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
@@ -113,7 +113,7 @@ class AddExpenseDialog(QDialog):
     def type_changed(self):
         index = self.type_combo.currentIndex()
         expense_types = self._model.get_expense_types()
-        self.type_label.setText("Тип: {}".format(self._model.get_expense_category_names()[expense_types[index].category()]))
+        self.type_label.setText("Тип: {}".format(self._model.get_expense_category_names()[expense_types[index].category]))
 
     def accept(self):
         name = self.type_combo.currentText()

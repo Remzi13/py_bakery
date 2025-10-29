@@ -10,7 +10,7 @@ import model.model as model
 class AddIngredientsDialog(QDialog):
     def __init__(self, model):
         super().__init__()
-        self.setWindowTitle("Добавить Ингредиент")
+        self.setWindowTitle("Ингредиент")
         self.model = model
         layout =  QGridLayout()
 
@@ -18,7 +18,7 @@ class AddIngredientsDialog(QDialog):
         self.unit_combo = QComboBox()
         self.unit_combo.addItems(model.get_units())
 
-        save_button = QPushButton("Сохранить")
+        save_button = QPushButton("Добавить")
         save_button.clicked.connect(self.accept)
 
         layout.addWidget(QLabel("Название:"), 0, 0)
@@ -100,14 +100,14 @@ class IngredientsTab(QWidget):
             return
 
         dialog = AddIngredientsDialog(self.model)
-        dialog.name_input.setText(ingredient.name())
-        dialog.unit_combo.setCurrentIndex(ingredient.unit())
+        dialog.name_input.setText(ingredient.name)
+        dialog.unit_combo.setCurrentIndex(ingredient.unit)
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return          
 
         # Удаляем старый ингредиент и добавляем новый с обновленными данными
-        self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name() != ingredient.name()]
+        self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name != ingredient.name]
         self.model.add_ingredient(dialog.name_input.text().strip(), dialog.unit_combo.currentIndex())
 
         self.update_ingredients_table()
@@ -128,7 +128,7 @@ class IngredientsTab(QWidget):
         )
 
         if confirm == QMessageBox.StandardButton.Yes:
-            self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name() != ingredient_name]
+            self.model.ingredients = [ing for ing in self.model.get_ingredients() if ing.name != ingredient_name]
             self.update_ingredients_table()
         
     def update_ingredients_table(self):
@@ -198,7 +198,7 @@ class AddProductDialog(QDialog):
         self.ing_table.insertRow(row_position)
         self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
         self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(quantity)))
-        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing.unit()]))
+        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing.unit]))
 
     def accept(self):
         if not self.name_input.text().strip() or not self.price_input.value():
@@ -271,7 +271,7 @@ class ProductsTab(QWidget):
         product_name = self.products_table.item(selected_row, 0).text()
         product = None
         for prod in self.model.get_products():
-            if prod.name() == product_name:
+            if prod.name == product_name:
                 product = prod
                 break
 
@@ -280,21 +280,21 @@ class ProductsTab(QWidget):
             return
 
         dialog = AddProductDialog(self.model)
-        dialog.name_input.setText(product.name())
-        dialog.price_input.setValue(product.price())
-        for ing in product.ingredients():
+        dialog.name_input.setText(product.name)
+        dialog.price_input.setValue(product.price)
+        for ing in product.ingredients:
             row_position = dialog.ing_table.rowCount()
             dialog.ing_table.insertRow(row_position)
             dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name'])) 
             dialog.ing_table.setItem(row_position, 1, QTableWidgetItem(str(ing['quantity'])))
             ing_obj = self.model.get_ingredient(ing['name'])
-            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing_obj.unit()]))
+            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing_obj.unit]))
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return          
 
         # Удаляем старый продукт и добавляем новый с обновленными данными
-        self.model.delete_product(product.name())
+        self.model.delete_product(product.name)
         ingredients = []
         for row in range(dialog.ing_table.rowCount()):
             ing_name = dialog.ing_table.item(row, 0).text()
