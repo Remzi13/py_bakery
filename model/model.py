@@ -1,77 +1,15 @@
 import xml.etree.ElementTree as ET
 import uuid
 from datetime import datetime
-# Импортируем dataclasses для автоматизации работы с классами данных
-from dataclasses import dataclass, field
+
 from typing import List, Dict, Any, Optional, Union
 
-# --- Структуры данных (Refactored to dataclasses) ---
-
-# Вложенные классы вынесены на верхний уровень для чистоты и удобства
-# (frozen=True делает объект неизменяемым после создания)
-
-@dataclass(frozen=True)
-class Ingredient:
-    """Сырье для производства."""
-    name: str
-    unit: str
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
-
-@dataclass(frozen=True)
-class Product:
-    """Готовый продукт для продажи."""
-    name: str
-    price: int
-    ingredients: List[Dict[str, Any]]  # Список ингредиентов с их количеством
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
-
-@dataclass
-class Inventory:
-    """Инвентарь/Запас (изменяемый)."""
-    name: str
-    category: int
-    quantity: float  # float для более точного учета (вместо int)
-    inv_id: uuid.UUID
-
-@dataclass(frozen=True)
-class Sale:
-    """Проданный продукт."""
-    product_name: str
-    price: int
-    quantity: float
-    product_id: uuid.UUID
-    # Используем field(default_factory) для генерации даты по умолчанию
-    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
-
-@dataclass(frozen=True)
-class ExpenseType:
-    """Тип расхода (например, 'Аренда', 'Мука')."""
-    name: str
-    default_price: int
-    category: int
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
-
-@dataclass(frozen=True)
-class Expense:
-    """Фактический расход, зафиксированный во времени."""
-    name: str
-    price: int
-    category: int
-    quantity: float
-    type_id: uuid.UUID
-    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
+from model.entities import Ingredient, Product, Inventory, Sale, ExpenseType, Expense
+from model.ingredients import Ingredients
 
 class Model:
 
     UNITS_NAME = ['кг', 'грамм', 'литр', 'штуки']
-
-    class Category:
-        INGREDIENT = 0
-        ENVIRONMENT = 1  # ИСПРАВЛЕНО: ENVIROMENT -> ENVIRONMENT
-        PAYMENT = 2
-
-    # ИСПРАВЛЕНО: 'платижи' -> 'платежи'
-    CATEGORY_NAMES = ['ингредиенты', 'оборудование', 'платежи']
 
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
     # который может обращаться к Model.Ingredient и т.д.
@@ -84,28 +22,17 @@ class Model:
 
     def __init__(self):
         # Добавлены явные типы для ясности
-        self._ingredients: List[self.Ingredient] = []
+        self._ingredients = Ingredients(self)
         self._products: List[self.Product] = []
         self._stock: List[self.Inventory] = []
         self._sales: List[self.Sale] = []
         self._expense_types: List[self.ExpenseType] = []
         self._expenses: List[self.Expense] = []
         
-
     # --- Методы-геттеры (используют прямой доступ к атрибутам dataclasses) ---
 
     def get_units(self):
         return self.UNITS_NAME
-
-    def get_ingredient(self, name: str) -> Optional[Ingredient]:
-        """Ищет ингредиент по имени."""
-        return next((i for i in self._ingredients if i.name == name), None)
-
-    def get_ingredients_names(self):
-        return [i.name for i in self._ingredients]
-
-    def get_ingredient_by_id(self, id: uuid.UUID) -> Optional[Ingredient]:
-        return next((i for i in self._ingredients if i.id == id), None)
 
     def get_product_by_name(self, name: str) -> Optional[Product]:
         return next((p for p in self._products if p.name == name), None)
@@ -115,14 +42,7 @@ class Model:
 
     def get_expense_type(self, name: str) -> Optional[ExpenseType]:
         return next((et for et in self._expense_types if et.name == name), None)
-    
-
-    def add_ingredient(self, name, unit):
-        self._ingredients.append(self.Ingredient(name=name, unit=unit))
-        # add_inventory и add_expense_type теперь используют get_ingredient для ID
-        self.add_inventory(name, self.Category.INGREDIENT, 0)
-        self.add_expense_type(name, 100, self.Category.INGREDIENT)
-
+        
     def delete_ingredient(self, name):
         ingredient = self.get_ingredient(name)
         products = self.get_products()
@@ -150,12 +70,12 @@ class Model:
     def delete_product(self, name):
         self._products = [product for product in self._products if product.name != name]
 
-    def add_inventory(self, name, category, quantity):
-        ing = self.get_ingredient(name)
-        if not ing:             
-             raise ValueError(f"Ингредиент '{name}' не найден. Невозможно добавить в инвентарь.")
-
-        self._stock.append(self.Inventory(name=name, category=category, quantity=quantity, inv_id=ing.id))
+    #todo remove use only in ingredients.py
+    def add_inventory(self, name, category, quantity, ing_id):        
+        self._stock.append(self.Inventory(name=name, category=category, quantity=quantity, inv_id=ing_id))
+    
+    def delete_inventory(self, name):
+        self._stock = [inv for inv in self._stock if inv.name != name]
 
     def update_inventory(self, name, quantity):
         for item in self._stock:
@@ -175,8 +95,7 @@ class Model:
                 self.update_inventory(i['name'], -i['quantity'] * quantity)
 
             self._sales.append(self.Sale(product_name=name, price=price, quantity=quantity, product_id=product.id))
-        else:
-            # УЛУЧШЕНИЕ: Замена assert False на ValueError
+        else:            
             raise ValueError(f"Продукт '{name}' не найден")
 
     def add_expense_type(self, name, price, category ):
@@ -193,21 +112,18 @@ class Model:
         self._expenses.append(self.Expense(name=name, price=price, category=expense_type.category,
                                             quantity=quantity, type_id=expense_type.id))
 
-    def calculate_income(self):
-        # Используем прямой доступ к атрибутам
+    def calculate_income(self):        
         return sum(sale.price * sale.quantity for sale in self._sales)
 
-    def calculate_expenses(self):
-        # ИСПРАВЛЕНА КРИТИЧЕСКАЯ ОШИБКА: теперь суммируется price * quantity
+    def calculate_expenses(self):        
         return sum(expense.price * expense.quantity for expense in self._expenses)
 
     def calculate_profit(self):
         return self.calculate_income() - self.calculate_expenses()
 
-    # --- Методы, возвращающие списки ---
-    # Оставлены без изменений
+    # --- Методы, возвращающие списки ---    
 
-    def get_ingredients(self):
+    def ingredients(self):
         return self._ingredients
 
     def get_products(self):
@@ -231,13 +147,8 @@ class Model:
     def save_to_xml(self):
         root = ET.Element("bakery")
 
-        ingredients_elem = ET.SubElement(root, "ingredients")
-        for ingredient in self._ingredients:
-            ing_elem = ET.SubElement(ingredients_elem, "ingredient")
-            ET.SubElement(ing_elem, "name").text = ingredient.name
-            ET.SubElement(ing_elem, "unit").text = str(ingredient.unit)
-            ET.SubElement(ing_elem, "id").text = str(ingredient.id)
-
+        self._ingredients.save_to_xml(root)
+        
         products_elem = ET.SubElement(root, "products")
         for product in self._products:
             prod_elem = ET.SubElement(products_elem, "product")
@@ -295,14 +206,8 @@ class Model:
             tree = ET.parse("bakery_data.xml")
             root = tree.getroot()
 
-            self._ingredients.clear()
-            if root.find("products") is not None:
-                for ing_elem in root.find("ingredients").findall("ingredient"):
-                    name = ing_elem.find("name").text
-                    unit = int(ing_elem.find("unit").text)
-                    id = ing_elem.find("id").text
-                    self._ingredients.append(Model.Ingredient(name, unit, uuid.UUID(id))) 
-
+            self._ingredients.load_from_xml(root)
+            
             self._products.clear()
             if root.find("products") is not None:
                 for prod_elem in root.find("products").findall("product"):

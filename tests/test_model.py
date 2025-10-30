@@ -1,7 +1,8 @@
 import pytest
 import uuid
 from datetime import datetime
-from model import model # Предполагается, что ваш класс Model находится в model.py
+from model import model
+from model.entities import Category
 
 # --- Фикстуры для настройки тестов ---
 
@@ -12,15 +13,15 @@ def model_instance():
 @pytest.fixture
 def initial_setup(model_instance):
     """Фикстура для настройки базовых ингредиентов и продукта."""
-    model_instance.add_ingredient("Мука", "кг")
-    model_instance.add_ingredient("Сахар", "грамм")
+    model_instance.ingredients().add("Мука", "кг")
+    model_instance.ingredients().add("Сахар", "грамм")
 
     # Добавляем начальное количество инвентаря
     model_instance.update_inventory("Мука", 10)
     model_instance.update_inventory("Сахар", 500)
 
     # Добавляем тип расхода для оборудования
-    model_instance.add_expense_type("Аренда", 5000, model.Model.Category.ENVIRONMENT)
+    model_instance.add_expense_type("Аренда", 5000, Category.ENVIRONMENT)
 
     # Продукт: торт (1 кг муки, 100 грамм сахара)
     ingredients = [
@@ -69,7 +70,7 @@ def test_sale_creation_date():
 
 def test_initial_state(model_instance):
     """Тестирование начального состояния model.Model."""
-    assert model_instance.get_ingredients() == []
+    assert model_instance.ingredients().empty() == True
     assert model_instance.get_products() == []
     assert model_instance.get_stock() == []
     assert model_instance.get_sales() == []
@@ -78,10 +79,10 @@ def test_initial_state(model_instance):
 
 def test_add_and_get_ingredient(model_instance):
     """Тестирование добавления ингредиента и его последствий (инвентарь, тип расхода)."""
-    model_instance.add_ingredient("Молоко", "литр")
+    model_instance.ingredients().add("Молоко", "литр")
     
     # Проверка ингредиента
-    milk = model_instance.get_ingredient("Молоко")
+    milk = model_instance.ingredients().by_name("Молоко")
     assert milk is not None
     assert milk.unit == "литр"
     
@@ -90,31 +91,39 @@ def test_add_and_get_ingredient(model_instance):
     assert "Молоко" in stock_names
     milk_stock = [item for item in model_instance.get_stock() if item.name == "Молоко"][0]
     assert milk_stock.quantity == 0 # Начальное количество 0
-    assert milk_stock.category == model.Model.Category.INGREDIENT
+    assert milk_stock.category == Category.INGREDIENT
     assert milk_stock.inv_id == milk.id
     
     # Проверка типа расхода
     expense_type = model_instance.get_expense_type("Молоко")
     assert expense_type is not None
     assert expense_type.default_price == 100
-    assert expense_type.category == model.Model.Category.INGREDIENT
+    assert expense_type.category == Category.INGREDIENT
 
 def test_add_and_delete_ingredient(model_instance):
     """Тестирование добавления и удаления ингредиента."""
-    model_instance.add_ingredient("Яйца", "штуки")
-    assert model_instance.get_ingredient("Яйца") is not None
+    model_instance.ingredients().add("Яйца", "штуки")
+    assert model_instance.ingredients().by_name("Яйца") is not None
 
-    model_instance.delete_ingredient("Яйца")
-    assert model_instance.get_ingredient("Яйца") is None
+    model_instance.ingredients().delete("Яйца")
+    assert model_instance.ingredients().by_name("Яйца") is None
 
 def test_add_and_cant_delete_ingredient(model_instance):
     """Тестирование невозможности удаления ингредиента, если он используется в продукте."""
-    model_instance.add_ingredient("Масло", "грамм")
+    model_instance.ingredients().add("Масло", "грамм")
     ingredients = [{'name': "Масло", 'quantity': 50}]
     model_instance.add_product("Булочка", 200, ingredients)
 
     with pytest.raises(ValueError):
-        model_instance.delete_ingredient("Масло")
+        model_instance.ingredients().delete("Масло")
+
+def test_get_ingredients_names(initial_setup):
+
+    names = initial_setup.ingredients().names() 
+
+    assert names[0] == "Мука"
+    assert names[1] == "Сахар"
+
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
@@ -174,7 +183,7 @@ def test_add_and_get_expense_type(initial_setup):
     expense_type = initial_setup.get_expense_type("Аренда")
     assert expense_type.name == "Аренда"
     assert expense_type.default_price == 5000
-    assert expense_type.category == model.Model.Category.ENVIRONMENT
+    assert expense_type.category == Category.ENVIRONMENT
     assert isinstance(expense_type.id, uuid.UUID)
 
     initial_setup.delete_expense_type("Аренда")
@@ -189,7 +198,7 @@ def test_add_expense(initial_setup):
     assert expenses[0].name == "Аренда"
     assert expenses[0].price == 5000
     assert expenses[0].quantity == 1
-    assert expenses[0].category == model.Model.Category.ENVIRONMENT
+    assert expenses[0].category == Category.ENVIRONMENT
     # Проверка формата даты, аналогично Sale
 
 def test_calculate_finance(initial_setup):
