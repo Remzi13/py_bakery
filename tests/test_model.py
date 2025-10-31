@@ -77,7 +77,7 @@ def test_initial_state(model_instance):
     assert model_instance.stock().empty() == True
     assert model_instance.sales().empty() == True
     assert model_instance.expense_types().empty() == True
-    assert model_instance.get_expenses() == []
+    assert model_instance.expenses().empty() == True
 
 def test_add_and_get_ingredient(model_instance):
     """Тестирование добавления ингредиента и его последствий (инвентарь, тип расхода)."""
@@ -205,6 +205,18 @@ def test_expense_types_serialization_roundtrip(initial_setup):
     assert model_loader.expense_types().len() == initial_setup.expense_types().len()
     assert model_loader.expense_types().data() == initial_setup.expense_types().data()
 
+def test_expenses_serialization_roundtrip(initial_setup):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    initial_setup.expenses().save_to_xml(root_element)
+    
+    model_loader = model.Model()
+    model_loader.expenses().load_from_xml(root_element)
+    
+    assert model_loader.expenses().len() == initial_setup.expenses().len()
+    assert model_loader.expenses().data() == initial_setup.expenses().data()
+
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
@@ -271,9 +283,9 @@ def test_add_and_get_expense_type(initial_setup):
 
 def test_add_expense(initial_setup):
     """Тестирование добавления расхода."""
-    initial_setup.add_expense("Аренда", 5000, 1) # 1 месяц аренды
+    initial_setup.expenses().add("Аренда", 5000, 1) # 1 месяц аренды
     
-    expenses = initial_setup.get_expenses()
+    expenses = initial_setup.expenses().data()
     assert len(expenses) == 1
     assert expenses[0].name == "Аренда"
     assert expenses[0].price == 5000
@@ -288,8 +300,8 @@ def test_calculate_finance(initial_setup):
     initial_setup.sales().add("Торт", 1500, 1) 
     
     # Расходы
-    initial_setup.add_expense("Аренда", 5000, 1) 
-    initial_setup.add_expense("Мука", 120, 5) 
+    initial_setup.expenses().add("Аренда", 5000, 1) 
+    initial_setup.expenses().add("Мука", 120, 5) 
 
     income = initial_setup.calculate_income()
     expenses = initial_setup.calculate_expenses()

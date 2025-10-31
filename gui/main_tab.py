@@ -135,7 +135,7 @@ class MainWidget(QWidget):
         self.update_sales_table()
 
     def update_purchase_table(self):
-        data = self.model.get_expenses()
+        data = self.model.expenses().data()
         self.purchase_table.clearContents()
         self.purchase_table.setRowCount(len(data))
 

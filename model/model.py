@@ -11,12 +11,9 @@ from model.products import Products
 from model.stock import Stock
 from model.sales import Sales
 from model.expenses import ExpenseTypes
+from model.expenses import Expenses
 
 class Model:
-
-    # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
-    # который может обращаться к Model.Ingredient и т.д.                
-    Expense = Expense
 
     def __init__(self):
         # Добавлены явные типы для ясности
@@ -24,8 +21,8 @@ class Model:
         self._products = Products(self)
         self._stock = Stock(self)
         self._sales = Sales(self)
-        self._expense_types = ExpenseTypes(self)
-        self._expenses: List[self.Expense] = []
+        self._expense_types = ExpenseTypes()
+        self._expenses = Expenses(self)
  
     #todo remove use only in ingredients.py
     def add_stock_item(self, name, category, quantity, ing_id):        
@@ -37,20 +34,11 @@ class Model:
     def update_stock_item(self, name, quantity):
         self._stock.update(name, quantity)
 
-
-    def add_expense(self, name, price, quantity):
-        expense_type = self.expense_types().get(name)
-        if not expense_type:
-             raise ValueError(f"Тип расхода '{name}' не найден.")
-
-        self._expenses.append(self.Expense(name=name, price=price, category=expense_type.category,
-                                            quantity=quantity, type_id=expense_type.id))
-
     def calculate_income(self):        
         return sum(sale.price * sale.quantity for sale in self._sales.data())
 
     def calculate_expenses(self):        
-        return sum(expense.price * expense.quantity for expense in self._expenses)
+        return sum(expense.price * expense.quantity for expense in self._expenses.data())
 
     def calculate_profit(self):
         return self.calculate_income() - self.calculate_expenses()
@@ -72,7 +60,7 @@ class Model:
     def expense_types(self):
         return self._expense_types
  
-    def get_expenses(self):
+    def expenses(self):
         return self._expenses
     
     def save_to_xml(self):
@@ -83,17 +71,8 @@ class Model:
         self._stock.save_to_xml(root)                
         self._sales.save_to_xml(root)
         self._expense_types.save_to_xml(root)
-        
-        expenses = ET.SubElement(root, "expenses")
-        for expense in self._expenses:
-            expense_elem = ET.SubElement(expenses, "expense")
-            ET.SubElement(expense_elem, "type_id").text = str(expense.type_id)
-            ET.SubElement(expense_elem, "name").text = expense.name
-            ET.SubElement(expense_elem, "price").text = str(expense.price)
-            ET.SubElement(expense_elem, "category").text = str(expense.category)
-            ET.SubElement(expense_elem, "date").text = str(expense.date)
-            ET.SubElement(expense_elem, "quantity").text = str(expense.quantity)
-
+        self._expenses.save_to_xml(root)
+                
         tree = ET.ElementTree(root)
         ET.indent(tree, space="  ", level=0)  # добавляет отступы
         tree.write("bakery_data.xml", encoding="utf-8", xml_declaration=True)
@@ -108,17 +87,6 @@ class Model:
             self._stock.load_from_xml(root)
             self._sales.load_from_xml(root)
             self._expense_types.load_from_xml(root)
-            
-            self._expenses.clear()
-            if root.find("expenses") is not None:
-                for expense_elem in root.find("expenses").findall("expense"):
-                    name = expense_elem.find("name").text
-                    price = float(expense_elem.find("price").text)
-                    category = int(expense_elem.find("category").text)
-                    type_id = expense_elem.find("type_id").text
-                    date = expense_elem.find("date").text
-                    quantity = int(expense_elem.find("quantity").text)
-                    self._expenses.append(Model.Expense(name, price, category, quantity, uuid.UUID(type_id), date))
 
         except FileNotFoundError:
             pass  # Файл не найден, начинаем с пустых данных

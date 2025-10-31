@@ -50,7 +50,7 @@ class CreateExpenseTypeDialog(QDialog):
         self.update_table()
 
     def update_table(self):
-        expense_types = self._model.get_expense_types()     
+        expense_types = self._model.expense_types().data()
         self.table.clearContents()
         self.table.setRowCount(len(expense_types))
 
@@ -63,7 +63,7 @@ class CreateExpenseTypeDialog(QDialog):
         name = self.name_input.text()
         category = self.type_combo.currentIndex()
         price = self.price.value()        
-        self._model.add_expense_type(name, price, category)
+        self._model.expense_types().add(name, price, category)
 
         self.update_table()
         
@@ -72,7 +72,7 @@ class CreateExpenseTypeDialog(QDialog):
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
-            self._model.delete_expense_type(name)
+            self._model.expense_types().delete(name)
 
             self.update_table()
 
@@ -83,7 +83,7 @@ class AddExpenseDialog(QDialog):
         self._model = model
         layout =  QGridLayout()
 
-        expense_types = self._model.get_expense_types()
+        expense_types = self._model.expense_types().data()
         self.type_label = QLabel("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[0].category]))
 
         self.type_combo = QComboBox()
@@ -114,7 +114,7 @@ class AddExpenseDialog(QDialog):
     
     def type_changed(self):
         index = self.type_combo.currentIndex()
-        expense_types = self._model.get_expense_types()
+        expense_types = self._model.expense_types().data()
         self.type_label.setText("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[index].category]))
 
     def accept(self):
@@ -155,7 +155,7 @@ class ExpensesWidget(QWidget):
         self.update_table()
 
     def update_table(self):           
-        expenses = self._model.get_expenses()
+        expenses = self._model.expenses().data()
         self.table.clearContents()
         self.table.setRowCount(len(expenses))
 
