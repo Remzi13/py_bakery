@@ -12,7 +12,7 @@ class Ingredients:
     def add(self, name, unit: int):
         ing = model.entities.Ingredient(name=name, unit=unit)
         self._ingredients.append(ing)
-        self._model.add_inventory(name, model.entities.Category.INGREDIENT, 0, ing.id)
+        self._model.add_stock_item(name, model.entities.Category.INGREDIENT, 0, ing.id)
         self._model.add_expense_type(name, 100, model.entities.Category.INGREDIENT)
 
     def delete(self, name):
@@ -25,7 +25,7 @@ class Ingredients:
         if ingredient:
             self._ingredients = [ing for ing in self._ingredients if ing.name != name]
             # Удаляем связанные записи в инвентаре и типах расходов
-            self._model.delete_inventory(name) # [item for item in self._stock if item.inv_id != ingredient.id]
+            self._model.delete_stock_item(name) # [item for item in self._stock if item.inv_id != ingredient.id]
             self._model.delete_expense_type(name) # [et for et in self._expense_types if et.name != name]
 
     def by_name(self, name: str) -> Optional[model.entities.Ingredient]:

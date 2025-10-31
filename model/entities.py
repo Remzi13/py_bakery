@@ -24,7 +24,7 @@ class Product:
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass
-class Inventory:
+class StockItem:
     """Инвентарь/Запас (изменяемый)."""
     name: str
     category: int

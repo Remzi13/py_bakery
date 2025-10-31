@@ -4,16 +4,16 @@ from datetime import datetime
 
 from typing import List, Dict, Any, Optional, Union
 
-from model.entities import Inventory, Sale, ExpenseType, Expense
+from model.entities import Sale, ExpenseType, Expense
 
 from model.ingredients import Ingredients
 from model.products import Products
+from model.stock import Stock
 
 class Model:
 
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
-    # который может обращаться к Model.Ingredient и т.д.    
-    Inventory = Inventory
+    # который может обращаться к Model.Ingredient и т.д.        
     Sale = Sale
     ExpenseType = ExpenseType
     Expense = Expense
@@ -22,7 +22,7 @@ class Model:
         # Добавлены явные типы для ясности
         self._ingredients = Ingredients(self)
         self._products = Products(self)
-        self._stock: List[self.Inventory] = []
+        self._stock = Stock(self)
         self._sales: List[self.Sale] = []
         self._expense_types: List[self.ExpenseType] = []
         self._expenses: List[self.Expense] = []
@@ -35,19 +35,14 @@ class Model:
         return next((et for et in self._expense_types if et.name == name), None)
     
     #todo remove use only in ingredients.py
-    def add_inventory(self, name, category, quantity, ing_id):        
-        self._stock.append(self.Inventory(name=name, category=category, quantity=quantity, inv_id=ing_id))
+    def add_stock_item(self, name, category, quantity, ing_id):        
+        self._stock.add(name=name, category=category, quantity=quantity, inv_id=ing_id)
     
-    def delete_inventory(self, name):
-        self._stock = [inv for inv in self._stock if inv.name != name]
+    def delete_stock_item(self, name):
+        self._stock.delete(name)        
 
-    def update_inventory(self, name, quantity):
-        for item in self._stock:
-            if item.name == name:
-                # Inventory - dataclass, но не frozen, можно менять напрямую
-                item.quantity += quantity
-                return        
-        raise KeyError(f"Элемент '{name}' не найден в инвентаре")
+    def update_stock_item(self, name, quantity):
+        self._stock.update(name, quantity)
 
     def add_sale(self, name, price, quantity):
         product = self.products().by_name(name)
@@ -56,7 +51,7 @@ class Model:
             for i in product.ingredients:
                 # Используем прямой доступ к ключам словаря i['name'], i['quantity']
                 # (В идеале ingredients должны быть dataclass'ами, но для совместимости оставим так)
-                self.update_inventory(i['name'], -i['quantity'] * quantity)
+                self.update_stock_item(i['name'], -i['quantity'] * quantity)
 
             self._sales.append(self.Sale(product_name=name, price=price, quantity=quantity, product_id=product.id))
         else:            
@@ -92,6 +87,9 @@ class Model:
 
     def products(self):
         return self._products
+    
+    def stock(self):
+        return self._stock
 
     def get_stock(self):
         return self._stock
@@ -150,7 +148,7 @@ class Model:
             ET.SubElement(expense_elem, "quantity").text = str(expense.quantity)
 
         tree = ET.ElementTree(root)
-        ET.indent(tree, space="  ", level=0)  # <-- вот эта строка добавляет отступы
+        ET.indent(tree, space="  ", level=0)  # добавляет отступы
         tree.write("bakery_data.xml", encoding="utf-8", xml_declaration=True)
 
     def load_from_xml(self):
