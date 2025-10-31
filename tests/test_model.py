@@ -82,7 +82,7 @@ def test_initial_state(model_instance):
 def test_add_and_get_ingredient(model_instance):
     """Тестирование добавления ингредиента и его последствий (инвентарь, тип расхода)."""
     model_instance.ingredients().add("Молоко", unit_by_name("литр"))
-    
+    assert model_instance.ingredients().has("Молоко") == True
     # Проверка ингредиента
     milk = model_instance.ingredients().by_name("Молоко")
     assert milk is not None
@@ -119,6 +119,9 @@ def test_add_and_cant_delete_ingredient(model_instance):
     model_instance.ingredients().add("Масло", unit_by_name("грамм"))
     ingredients = [{'name': "Масло", 'quantity': 50}]
     model_instance.products().add("Булочка", 200, ingredients)
+
+    assert model_instance.products().has("Булочка") == True
+    assert model_instance.products().has("Не Булочка") == False
 
     with pytest.raises(ValueError):
         model_instance.ingredients().delete("Масло")

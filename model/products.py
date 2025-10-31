@@ -27,6 +27,9 @@ class Products:
 
     def by_name(self, name: str) -> Optional[model.entities.Product]:
         return next((i for i in self._products if i.name == name), None)
+    
+    def has(self, name : str) -> bool:
+        return self.by_name(name) is not None
 
     def empty(self) -> bool:
         return len(self._products) == 0

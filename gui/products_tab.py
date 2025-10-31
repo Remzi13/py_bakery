@@ -33,6 +33,10 @@ class AddIngredientsDialog(QDialog):
         if not self.name_input.text().strip():
             QMessageBox.warning(self, "Ошибка", "Введите название ингредиента.")
             return
+        name = self.name_input.text().strip()
+        if self._model.ingredients().has(name):
+            QMessageBox.warning(self, "Ошибка", "Введите название ингредиента который уже сушествует.")
+            return
         self._model.ingredients().add(self.name_input.text().strip(), entities.unit_by_name(self.unit_combo.currentText()))
         return super().accept()
 
@@ -160,8 +164,13 @@ class AddProductDialog(QDialog):
 
     def add_ingredient(self):
         ingredient_name = self.ingredient_combo.currentText()
-        quantity = self.ing_quantity.value()
+
+        for row in range(self.ing_table.rowCount()):
+            if self.ing_table.item(row, 0).text() == ingredient_name:        
+                QMessageBox.warning(self, "Ошибка", "Продукт с таким именм уже добавлен.")
+                return        
         
+        quantity = self.ing_quantity.value()        
         ing = self._model.ingredients().by_name(ingredient_name)
 
         row_position = self.ing_table.rowCount()
@@ -171,16 +180,22 @@ class AddProductDialog(QDialog):
         self.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing.unit]))
 
     def accept(self):
-        if not self.name_input.text().strip() or not self.price_input.value():
+        name = self.name_input.text().strip()
+        if not name or not self.price_input.value():
             QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
             return
+        
+        if self._model.products().has(name) is True:
+            QMessageBox.warning(self, "Ошибка", "Продукт с таким именм уже сушествует.")
+            return        
+        
         ingredients = []
         for row in range(self.ing_table.rowCount()):
             ing_name = self.ing_table.item(row, 0).text()
             quantity = float(self.ing_table.item(row, 1).text())
             ingredients.append({'name': ing_name, 'quantity': quantity})
 
-        self._model.products().add(self.name_input.text().strip(), float(self.price_input.value()), ingredients)
+        self._model.products().add(name, float(self.price_input.value()), ingredients)
 
         return super().accept()
 

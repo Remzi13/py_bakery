@@ -34,6 +34,9 @@ class Ingredients:
     def by_id(self, id: uuid.UUID) -> Optional[model.entities.Ingredient]:
         return next((i for i in self._ingredients if i.id == id), None)
 
+    def has(self, name: str) -> bool:
+        return self.by_name(name) is not None
+
     def len(self):
         return len(self._ingredients)
     
