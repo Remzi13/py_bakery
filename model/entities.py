@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 class Ingredient:
     """Сырье для производства."""
     name: str
-    unit: str
+    unit: int
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass(frozen=True)
@@ -66,3 +66,26 @@ class Category:
     PAYMENT = 2
 
 CATEGORY_NAMES = ['ингредиенты', 'оборудование', 'платежи']
+
+
+class Unit:
+    Kilogram    = 0
+    Gramm       = 1
+    Liter       = 2
+    Piece       = 3
+
+UNIT_NAME = {
+    Unit.Kilogram:  'кг',
+    Unit.Gramm:     'грамм',
+    Unit.Liter:     'литр',
+    Unit.Piece:     'штук'
+}
+
+
+def unit_by_name(unit_name: str) -> int:
+        
+    for unit_value, name in UNIT_NAME.items():        
+        if name == unit_name:    
+            return unit_value
+                
+    raise ValueError(f"Единица измерения '{unit_name}' не найдена в UNIT_NAME.")

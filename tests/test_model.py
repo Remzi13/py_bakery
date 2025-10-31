@@ -2,7 +2,7 @@ import pytest
 import uuid
 from datetime import datetime
 from model import model
-from model.entities import Category
+from model.entities import Category, Unit, unit_by_name
 import xml.etree.ElementTree as ET
 
 # --- Фикстуры для настройки тестов ---
@@ -80,7 +80,7 @@ def test_initial_state(model_instance):
 
 def test_add_and_get_ingredient(model_instance):
     """Тестирование добавления ингредиента и его последствий (инвентарь, тип расхода)."""
-    model_instance.ingredients().add("Молоко", "литр")
+    model_instance.ingredients().add("Молоко", unit_by_name("литр"))
     
     # Проверка ингредиента
     milk = model_instance.ingredients().by_name("Молоко")
@@ -103,7 +103,7 @@ def test_add_and_get_ingredient(model_instance):
 
 def test_add_and_delete_ingredient(model_instance):
     """Тестирование добавления и удаления ингредиента."""
-    model_instance.ingredients().add("Яйца", "штуки")
+    model_instance.ingredients().add("Яйца", unit_by_name("штук"))
     assert model_instance.ingredients().by_name("Яйца") is not None
 
     model_instance.ingredients().delete("Яйца")
@@ -111,7 +111,7 @@ def test_add_and_delete_ingredient(model_instance):
 
 def test_add_and_cant_delete_ingredient(model_instance):
     """Тестирование невозможности удаления ингредиента, если он используется в продукте."""
-    model_instance.ingredients().add("Масло", "грамм")
+    model_instance.ingredients().add("Масло", unit_by_name("грамм"))
     ingredients = [{'name': "Масло", 'quantity': 50}]
     model_instance.add_product("Булочка", 200, ingredients)
 
@@ -129,9 +129,9 @@ def test_get_ingredients_names(initial_setup):
 def test_ingredient_serialization_roundtrip(model_instance):
     """Тестирует сохранение и последующую загрузку списка ингредиентов."""
     
-    model_instance.ingredients().add(name="Мука (Высший сорт)", unit="кг")
-    model_instance.ingredients().add(name="Яйца (С0)", unit="шт")
-    model_instance.ingredients().add(name="Молоко", unit="л")
+    model_instance.ingredients().add(name="Мука (Высший сорт)", unit=unit_by_name("кг"))
+    model_instance.ingredients().add(name="Яйца (С0)", unit=unit_by_name("штук"))
+    model_instance.ingredients().add(name="Молоко", unit=unit_by_name("литр"))
 
     # Создаем фиктивный корневой элемент XML
     root_element = ET.Element("data")

@@ -24,7 +24,7 @@ class Ingredients:
     def names(self):
         return [i.name for i in self._ingredients]
 
-    def add(self, name, unit):
+    def add(self, name, unit: int):
         ing = model.entities.Ingredient(name=name, unit=unit)
         self._ingredients.append(ing)
         self._model.add_inventory(name, model.entities.Category.INGREDIENT, 0, ing.id)
@@ -57,6 +57,6 @@ class Ingredients:
         if root.find("ingredients") is not None:
             for ing_elem in root.find("ingredients").findall("ingredient"):
                 name = ing_elem.find("name").text
-                unit = ing_elem.find("unit").text
+                unit = int(ing_elem.find("unit").text)
                 id = ing_elem.find("id").text
                 self._ingredients.append(model.entities.Ingredient(name, unit, uuid.UUID(id)))

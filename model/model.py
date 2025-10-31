@@ -9,8 +9,6 @@ from model.ingredients import Ingredients
 
 class Model:
 
-    UNITS_NAME = ['кг', 'грамм', 'литр', 'штуки']
-
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
     # который может обращаться к Model.Ingredient и т.д.
     Ingredient = Ingredient
@@ -30,10 +28,6 @@ class Model:
         self._expenses: List[self.Expense] = []
         
     # --- Методы-геттеры (используют прямой доступ к атрибутам dataclasses) ---
-
-    def get_units(self):
-        return self.UNITS_NAME
-
     def get_product_by_name(self, name: str) -> Optional[Product]:
         return next((p for p in self._products if p.name == name), None)
 
