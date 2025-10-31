@@ -2,7 +2,7 @@ import pytest
 import uuid
 from datetime import datetime
 from model import model
-from model.entities import Category, Unit, unit_by_name, Ingredient, Product
+from model.entities import Category, Unit, unit_by_name, Ingredient, Product, Sale
 import xml.etree.ElementTree as ET
 
 
@@ -59,12 +59,12 @@ def test_product_creation(model_instance):
 def test_sale_creation_date():
     """Тестирование инициализации Sale и формата даты."""
     test_uuid = uuid.uuid4()
-    sale = model.Model.Sale("Пирог", 300, 2, test_uuid, date="2025-10-28 10:30")
+    sale = Sale("Пирог", 300, 2, test_uuid, date="2025-10-28 10:30")
     
     assert sale.date == "2025-10-28 10:30"
     
     # Проверка, что при отсутствии даты генерируется строка
-    sale_auto_date = model.Model.Sale("Кекс", 100, 1, test_uuid)
+    sale_auto_date = Sale("Кекс", 100, 1, test_uuid)
     # Проверка формата 'YYYY-MM-DD HH:MM'
     assert datetime.strptime(sale_auto_date.date, "%Y-%m-%d %H:%M")
 
@@ -75,7 +75,7 @@ def test_initial_state(model_instance):
     assert model_instance.ingredients().empty() == True
     assert model_instance.products().empty() == True
     assert model_instance.stock().empty() == True
-    assert model_instance.get_sales() == []
+    assert model_instance.sales().empty() == True
     assert model_instance.get_expense_types() == []
     assert model_instance.get_expenses() == []
 
@@ -181,6 +181,18 @@ def test_stock_serialization_roundtrip(initial_setup):
     assert model_loader.stock().len() == initial_setup.stock().len()
     assert model_loader.stock().data() == initial_setup.stock().data()
 
+def test_sales_serialization_roundtrip(initial_setup):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    initial_setup.sales().save_to_xml(root_element)
+    
+    model_loader = model.Model()
+    model_loader.sales().load_from_xml(root_element)
+    
+    assert model_loader.sales().len() == initial_setup.sales().len()
+    assert model_loader.sales().data() == initial_setup.sales().data()
+
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
@@ -223,7 +235,7 @@ def test_add_sale_and_inventory_update(initial_setup):
     # ----------------------------------------
     
     # Теперь этот вызов должен работать:
-    initial_setup.add_sale("Пирожок", 100, 1) 
+    initial_setup.sales().add("Пирожок", 100, 1) 
     
     # ... (дальнейшая проверка, если есть) ...
     
@@ -231,7 +243,7 @@ def test_add_sale_and_inventory_update(initial_setup):
     # то удалите этот вызов и убедитесь, что вы тестируете продукт, который 
     # *действительно* не существует:
     with pytest.raises(ValueError, match="Продукт 'НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ' не найден"):
-        initial_setup.add_sale("НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ", 1, 1)
+        initial_setup.sales().add("НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ", 1, 1)
 
 def test_add_and_get_expense_type(initial_setup):
     """Тестирование добавления, получения и удаления типа расхода."""
@@ -260,8 +272,8 @@ def test_add_expense(initial_setup):
 def test_calculate_finance(initial_setup):
     """Тестирование расчета дохода, расхода и прибыли."""
     # Продажи
-    initial_setup.add_sale("Торт", 1500, 2)
-    initial_setup.add_sale("Торт", 1500, 1) 
+    initial_setup.sales().add("Торт", 1500, 2)
+    initial_setup.sales().add("Торт", 1500, 1) 
     
     # Расходы
     initial_setup.add_expense("Аренда", 5000, 1) 

@@ -9,12 +9,12 @@ from model.entities import Sale, ExpenseType, Expense
 from model.ingredients import Ingredients
 from model.products import Products
 from model.stock import Stock
+from model.sales import Sales
 
 class Model:
 
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
-    # который может обращаться к Model.Ingredient и т.д.        
-    Sale = Sale
+    # который может обращаться к Model.Ingredient и т.д.            
     ExpenseType = ExpenseType
     Expense = Expense
 
@@ -23,7 +23,7 @@ class Model:
         self._ingredients = Ingredients(self)
         self._products = Products(self)
         self._stock = Stock(self)
-        self._sales: List[self.Sale] = []
+        self._sales = Sales(self)
         self._expense_types: List[self.ExpenseType] = []
         self._expenses: List[self.Expense] = []
         
@@ -44,19 +44,6 @@ class Model:
     def update_stock_item(self, name, quantity):
         self._stock.update(name, quantity)
 
-    def add_sale(self, name, price, quantity):
-        product = self.products().by_name(name)
-
-        if product:
-            for i in product.ingredients:
-                # Используем прямой доступ к ключам словаря i['name'], i['quantity']
-                # (В идеале ingredients должны быть dataclass'ами, но для совместимости оставим так)
-                self.update_stock_item(i['name'], -i['quantity'] * quantity)
-
-            self._sales.append(self.Sale(product_name=name, price=price, quantity=quantity, product_id=product.id))
-        else:            
-            raise ValueError(f"Продукт '{name}' не найден")
-
     def add_expense_type(self, name, price, category ):
         self._expense_types.append(self.ExpenseType(name=name, default_price=price, category=category))
 
@@ -72,7 +59,7 @@ class Model:
                                             quantity=quantity, type_id=expense_type.id))
 
     def calculate_income(self):        
-        return sum(sale.price * sale.quantity for sale in self._sales)
+        return sum(sale.price * sale.quantity for sale in self._sales.data())
 
     def calculate_expenses(self):        
         return sum(expense.price * expense.quantity for expense in self._expenses)
@@ -91,7 +78,7 @@ class Model:
     def stock(self):
         return self._stock
 
-    def get_sales(self):
+    def sales(self):
         return self._sales
 
     def get_expense_types(self):
@@ -106,15 +93,8 @@ class Model:
         self._ingredients.save_to_xml(root)
         self._products.save_to_xml(root)               
         self._stock.save_to_xml(root)                
+        self._sales.save_to_xml(root)
         
-        sale_elem = ET.SubElement(root, "sales")
-        for sale in self._sales:
-            sal_elem = ET.SubElement(sale_elem, "sale")
-            ET.SubElement(sal_elem, "product_id").text = str(sale.product_id)
-            ET.SubElement(sal_elem, "product_name").text = sale.product_name
-            ET.SubElement(sal_elem, "price").text = str(sale.price)
-            ET.SubElement(sal_elem, "quantity").text = str(sale.quantity)
-            ET.SubElement(sal_elem, "date").text = str(sale.date)
 
         expense_type_elem = ET.SubElement(root, "expense_types")
         for expense_type in self._expense_types:
@@ -146,16 +126,7 @@ class Model:
             self._ingredients.load_from_xml(root)
             self._products.load_from_xml(root)
             self._stock.load_from_xml(root)
-                
-            self._sales.clear()
-            if root.find("sales") is not None:  
-                for sale_elem in root.find("sales").findall("sale"):
-                    product_name = sale_elem.find("product_name").text
-                    price = float(sale_elem.find("price").text)
-                    quantity = int(sale_elem.find("quantity").text)
-                    id = sale_elem.find("product_id").text
-                    date = sale_elem.find("date").text
-                    self._sales.append(Model.Sale(product_name, price, quantity, uuid.UUID(id), date))
+            self._sales.load_from_xml(root)
 
             self._expense_types.clear()
             if root.find("expense_types") is not None:
