@@ -10,12 +10,12 @@ from model.ingredients import Ingredients
 from model.products import Products
 from model.stock import Stock
 from model.sales import Sales
+from model.expenses import ExpenseTypes
 
 class Model:
 
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
-    # который может обращаться к Model.Ingredient и т.д.            
-    ExpenseType = ExpenseType
+    # который может обращаться к Model.Ingredient и т.д.                
     Expense = Expense
 
     def __init__(self):
@@ -24,16 +24,9 @@ class Model:
         self._products = Products(self)
         self._stock = Stock(self)
         self._sales = Sales(self)
-        self._expense_types: List[self.ExpenseType] = []
+        self._expense_types = ExpenseTypes(self)
         self._expenses: List[self.Expense] = []
-        
-    # --- Методы-геттеры (используют прямой доступ к атрибутам dataclasses) ---
-    def get_products_names(self):
-        return [p.name for p in self._products]
-
-    def get_expense_type(self, name: str) -> Optional[ExpenseType]:
-        return next((et for et in self._expense_types if et.name == name), None)
-    
+ 
     #todo remove use only in ingredients.py
     def add_stock_item(self, name, category, quantity, ing_id):        
         self._stock.add(name=name, category=category, quantity=quantity, inv_id=ing_id)
@@ -44,14 +37,9 @@ class Model:
     def update_stock_item(self, name, quantity):
         self._stock.update(name, quantity)
 
-    def add_expense_type(self, name, price, category ):
-        self._expense_types.append(self.ExpenseType(name=name, default_price=price, category=category))
-
-    def delete_expense_type(self, name):
-        self._expense_types = [expense for expense in self._expense_types if expense.name != name]
 
     def add_expense(self, name, price, quantity):
-        expense_type = self.get_expense_type(name)
+        expense_type = self.expense_types().get(name)
         if not expense_type:
              raise ValueError(f"Тип расхода '{name}' не найден.")
 
@@ -81,7 +69,7 @@ class Model:
     def sales(self):
         return self._sales
 
-    def get_expense_types(self):
+    def expense_types(self):
         return self._expense_types
  
     def get_expenses(self):
@@ -94,16 +82,8 @@ class Model:
         self._products.save_to_xml(root)               
         self._stock.save_to_xml(root)                
         self._sales.save_to_xml(root)
+        self._expense_types.save_to_xml(root)
         
-
-        expense_type_elem = ET.SubElement(root, "expense_types")
-        for expense_type in self._expense_types:
-            expense_elem = ET.SubElement(expense_type_elem, "expense_type")
-            ET.SubElement(expense_elem, "id").text = str(expense_type.id)
-            ET.SubElement(expense_elem, "name").text = expense_type.name
-            ET.SubElement(expense_elem, "default_price").text = str(expense_type.default_price)
-            ET.SubElement(expense_elem, "category").text = str(expense_type.category)
-
         expenses = ET.SubElement(root, "expenses")
         for expense in self._expenses:
             expense_elem = ET.SubElement(expenses, "expense")
@@ -127,15 +107,7 @@ class Model:
             self._products.load_from_xml(root)
             self._stock.load_from_xml(root)
             self._sales.load_from_xml(root)
-
-            self._expense_types.clear()
-            if root.find("expense_types") is not None:
-                for expense_type_elem in root.find("expense_types").findall("expense_type"):
-                    name = expense_type_elem.find("name").text
-                    default_price = float(expense_type_elem.find("default_price").text)
-                    category = int(expense_type_elem.find("category").text)
-                    id = expense_type_elem.find("id").text
-                    self._expense_types.append(Model.ExpenseType(name, default_price, category, uuid.UUID(id)))            
+            self._expense_types.load_from_xml(root)
             
             self._expenses.clear()
             if root.find("expenses") is not None:

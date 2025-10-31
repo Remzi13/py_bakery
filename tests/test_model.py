@@ -23,7 +23,7 @@ def initial_setup(model_instance):
     model_instance.update_stock_item("Сахар", 500)
 
     # Добавляем тип расхода для оборудования
-    model_instance.add_expense_type("Аренда", 5000, Category.ENVIRONMENT)
+    model_instance.expense_types().add("Аренда", 5000, Category.ENVIRONMENT)
 
     # Продукт: торт (1 кг муки, 100 грамм сахара)
     ingredients = [
@@ -76,7 +76,7 @@ def test_initial_state(model_instance):
     assert model_instance.products().empty() == True
     assert model_instance.stock().empty() == True
     assert model_instance.sales().empty() == True
-    assert model_instance.get_expense_types() == []
+    assert model_instance.expense_types().empty() == True
     assert model_instance.get_expenses() == []
 
 def test_add_and_get_ingredient(model_instance):
@@ -101,7 +101,7 @@ def test_add_and_get_ingredient(model_instance):
     assert milk_stock.inv_id == milk.id
     
     # Проверка типа расхода
-    expense_type = model_instance.get_expense_type("Молоко")
+    expense_type = model_instance.expense_types().get("Молоко")
     assert expense_type is not None
     assert expense_type.default_price == 100
     assert expense_type.category == Category.INGREDIENT
@@ -193,6 +193,18 @@ def test_sales_serialization_roundtrip(initial_setup):
     assert model_loader.sales().len() == initial_setup.sales().len()
     assert model_loader.sales().data() == initial_setup.sales().data()
 
+def test_expense_types_serialization_roundtrip(initial_setup):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    initial_setup.expense_types().save_to_xml(root_element)
+    
+    model_loader = model.Model()
+    model_loader.expense_types().load_from_xml(root_element)
+    
+    assert model_loader.expense_types().len() == initial_setup.expense_types().len()
+    assert model_loader.expense_types().data() == initial_setup.expense_types().data()
+
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
@@ -248,14 +260,14 @@ def test_add_sale_and_inventory_update(initial_setup):
 def test_add_and_get_expense_type(initial_setup):
     """Тестирование добавления, получения и удаления типа расхода."""
     # "Аренда" уже добавлена в initial_setup
-    expense_type = initial_setup.get_expense_type("Аренда")
+    expense_type = initial_setup.expense_types().get("Аренда")
     assert expense_type.name == "Аренда"
     assert expense_type.default_price == 5000
     assert expense_type.category == Category.ENVIRONMENT
     assert isinstance(expense_type.id, uuid.UUID)
 
-    initial_setup.delete_expense_type("Аренда")
-    assert initial_setup.get_expense_type("Аренда") is None
+    initial_setup.expense_types().delete("Аренда")
+    assert initial_setup.expense_types().get("Аренда") is None
 
 def test_add_expense(initial_setup):
     """Тестирование добавления расхода."""

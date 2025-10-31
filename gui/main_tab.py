@@ -146,7 +146,7 @@ class MainWidget(QWidget):
             self.purchase_table.setItem(i, 3, QTableWidgetItem(row.date))
     
     def update_sales_table(self):
-        data = self.model.get_sales()
+        data = self.model.sales().data()
         self.sales_table.clearContents()
         self.sales_table.setRowCount(len(data))
 
