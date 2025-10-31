@@ -7,8 +7,8 @@ from typing import List, Dict
 
 class Products:
 
-    def __init__(self, model_instance):
-        self._model = model_instance
+    def __init__(self, ingredients):
+        self._ingredients = ingredients
         self._products: List[model.entities.Product] = []
 
     def add(self, name, price, ingredients: List[Dict]):
@@ -53,7 +53,7 @@ class Products:
             ingredients_list_elem = ET.SubElement(prod_elem, "ingredients")
             for ing in product.ingredients:
                 ing_elem = ET.SubElement(ingredients_list_elem, "ingredient")
-                ET.SubElement(ing_elem, "ing_id").text = str(self._model.ingredients().by_name(ing['name']).id) 
+                ET.SubElement(ing_elem, "ing_id").text = str(self._ingredients.by_name(ing['name']).id) 
                 ET.SubElement(ing_elem, "name").text = ing['name']
                 ET.SubElement(ing_elem, "quantity").text = str(ing['quantity'])
 

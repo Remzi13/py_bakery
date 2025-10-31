@@ -49,12 +49,12 @@ class ExpenseTypes:
 
 class Expenses:
 
-    def __init__(self, model_instance):
-        self._model = model_instance
+    def __init__(self, types):
+        self._expense_types = types
         self._expenses: List[model.entities.Expense] = []
 
     def add(self, name, price, quantity):
-        expense_type = self._model.expense_types().get(name)
+        expense_type = self._expense_types.get(name)
         if not expense_type:
              raise ValueError(f"Тип расхода '{name}' не найден.")
 

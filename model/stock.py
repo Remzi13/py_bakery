@@ -5,8 +5,7 @@ import model.entities
 
 class Stock:
 
-    def __init__(self, model_instance):
-        self._model = model_instance
+    def __init__(self):
         self._items : List[model.entities.StockItem] = []
 
     def add(self, name, category, quantity, inv_id):

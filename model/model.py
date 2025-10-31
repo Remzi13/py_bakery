@@ -2,10 +2,6 @@ import xml.etree.ElementTree as ET
 import uuid
 from datetime import datetime
 
-from typing import List, Dict, Any, Optional, Union
-
-from model.entities import Sale, ExpenseType, Expense
-
 from model.ingredients import Ingredients
 from model.products import Products
 from model.stock import Stock
@@ -17,12 +13,12 @@ class Model:
 
     def __init__(self):
         # Добавлены явные типы для ясности
-        self._ingredients = Ingredients(self)
-        self._products = Products(self)
-        self._stock = Stock(self)
-        self._sales = Sales(self)
+        self._stock = Stock()
         self._expense_types = ExpenseTypes()
-        self._expenses = Expenses(self)
+        self._ingredients = Ingredients(self)
+        self._products = Products(self._ingredients)
+        self._sales = Sales(self._stock, self._products)
+        self._expenses = Expenses(self._expense_types)
  
     #todo remove use only in ingredients.py
     def add_stock_item(self, name, category, quantity, ing_id):        
@@ -30,9 +26,6 @@ class Model:
     
     def delete_stock_item(self, name):
         self._stock.delete(name)        
-
-    def update_stock_item(self, name, quantity):
-        self._stock.update(name, quantity)
 
     def calculate_income(self):        
         return sum(sale.price * sale.quantity for sale in self._sales.data())

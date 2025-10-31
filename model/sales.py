@@ -5,18 +5,19 @@ import model.entities
 
 class Sales:
 
-    def __init__(self, model_instance):
-        self._model = model_instance
+    def __init__(self, stock, products):
+        self._stock = stock
+        self._products = products
         self._sales : List[model.entities.Sale] = []
 
     def add(self, name, price, quantity):
-        product = self._model.products().by_name(name)
+        product = self._products.by_name(name)
 
         if product:
             for i in product.ingredients:
                 # Используем прямой доступ к ключам словаря i['name'], i['quantity']
                 # (В идеале ingredients должны быть dataclass'ами, но для совместимости оставим так)
-                self._model.update_stock_item(i['name'], -i['quantity'] * quantity)
+                self._stock.update(i['name'], -i['quantity'] * quantity)
 
             self._sales.append(model.entities.Sale(product_name=name, price=price, quantity=quantity, product_id=product.id))
         else:            

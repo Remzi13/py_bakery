@@ -19,8 +19,8 @@ def initial_setup(model_instance):
     model_instance.ingredients().add("Сахар", "грамм")
 
     # Добавляем начальное количество инвентаря
-    model_instance.update_stock_item("Мука", 10)
-    model_instance.update_stock_item("Сахар", 500)
+    model_instance.stock().update("Мука", 10)
+    model_instance.stock().update("Сахар", 500)
 
     # Добавляем тип расхода для оборудования
     model_instance.expense_types().add("Аренда", 5000, Category.ENVIRONMENT)
@@ -233,13 +233,13 @@ def test_delete_product(initial_setup):
 
 def test_update_stock_item(initial_setup):
     """Тестирование обновления инвентаря."""
-    initial_setup.update_stock_item("Мука", 5) # 10 + 5 = 15
+    initial_setup.stock().update("Мука", 5) # 10 + 5 = 15
     flour_stock = [item for item in initial_setup.stock().data() if item.name == "Мука"][0]
     assert flour_stock.quantity == 15
     
     # ИСПРАВЛЕНИЕ: Замените AssertionError на KeyError
     with pytest.raises(KeyError, match="Элемент 'Вода' не найден в инвентаре"):
-        initial_setup.update_stock_item("Вода", 1)
+        initial_setup.stock().update("Вода", 1)
 
 def test_add_sale_and_inventory_update(initial_setup):
     """Тестирование добавления продажи и связанного обновления инвентаря."""
