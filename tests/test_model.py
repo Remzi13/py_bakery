@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from model import model
 from model.entities import Category
+import xml.etree.ElementTree as ET
 
 # --- Фикстуры для настройки тестов ---
 
@@ -119,11 +120,33 @@ def test_add_and_cant_delete_ingredient(model_instance):
 
 def test_get_ingredients_names(initial_setup):
 
-    names = initial_setup.ingredients().names() 
+    names = initial_setup.ingredients().names()
 
     assert names[0] == "Мука"
     assert names[1] == "Сахар"
 
+
+def test_ingredient_serialization_roundtrip(model_instance):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    
+    model_instance.ingredients().add(name="Мука (Высший сорт)", unit="кг")
+    model_instance.ingredients().add(name="Яйца (С0)", unit="шт")
+    model_instance.ingredients().add(name="Молоко", unit="л")
+
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    model_instance.ingredients().save_to_xml(root_element)
+
+    # 3. Загрузка (Десериализация)
+    model_loader = model.Model()
+    model_loader.ingredients().load_from_xml(root_element)
+
+    # Убеждаемся, что количество загруженных элементов совпадает
+    assert model_loader.ingredients().len() == model_instance.ingredients().len()
+    
+    # Убеждаемся, что каждый загруженный элемент совпадает с исходным
+    # Поскольку Ingredient - это dataclass, сравнение объектов простое и надежное.
+    assert model_loader.ingredients().data() == model_instance.ingredients().data()
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""

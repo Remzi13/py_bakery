@@ -9,9 +9,15 @@ class Ingredients:
         self._model = model_instance
         self._ingredients: List[model.entities.Ingredient] = []
 
-    def by_name(self, name: str) -> Optional[model.entities.Ingredient]:        
+    def by_name(self, name: str) -> Optional[model.entities.Ingredient]:
         return next((i for i in self._ingredients if i.name == name), None)
 
+    def len(self):
+        return len(self._ingredients)
+    
+    def data(self):
+        return self._ingredients
+    
     def empty(self) -> bool:
         return len(self._ingredients) == 0
     
@@ -27,7 +33,7 @@ class Ingredients:
     def delete(self, name):
         ingredient = self.by_name(name)
         products = self._model.get_products()
-        for product in products:           
+        for product in products:
             for ing in product.ingredients:
                 if ing['name'] == name:
                     raise ValueError(f"Ингредиент '{name}' используется в продукте '{product.name}'. Удаление невозможно.")
@@ -51,6 +57,6 @@ class Ingredients:
         if root.find("ingredients") is not None:
             for ing_elem in root.find("ingredients").findall("ingredient"):
                 name = ing_elem.find("name").text
-                unit = int(ing_elem.find("unit").text)
+                unit = ing_elem.find("unit").text
                 id = ing_elem.find("id").text
-                self._ingredients.append(model.entities.Ingredient(name, unit, uuid.UUID(id))) 
+                self._ingredients.append(model.entities.Ingredient(name, unit, uuid.UUID(id)))
