@@ -114,7 +114,7 @@ class AddProductDialog(QDialog):
     def __init__(self, model):
         super().__init__()
         self.setWindowTitle("Добавить Продукт")
-        self.model = model
+        self._model = model
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
@@ -125,7 +125,7 @@ class AddProductDialog(QDialog):
 
         ing_layout = QHBoxLayout()
         self.ingredient_combo = QComboBox()
-        self.ingredient_combo.addItems(model.get_ingredients_names())
+        self.ingredient_combo.addItems(model.ingredients().names())
         self.ing_quantity = QDoubleSpinBox()
         self.ing_quantity.setRange(0.0, 10.0)
         self.ing_quantity.setDecimals(2)
@@ -162,13 +162,13 @@ class AddProductDialog(QDialog):
         ingredient_name = self.ingredient_combo.currentText()
         quantity = self.ing_quantity.value()
         
-        ing = self.model.get_ingredient(ingredient_name)
+        ing = self._model.ingredients().by_name(ingredient_name)
 
         row_position = self.ing_table.rowCount()
         self.ing_table.insertRow(row_position)
         self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
         self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(quantity)))
-        self.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing.unit]))
+        self.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing.unit]))
 
     def accept(self):
         if not self.name_input.text().strip() or not self.price_input.value():
@@ -180,7 +180,7 @@ class AddProductDialog(QDialog):
             quantity = float(self.ing_table.item(row, 1).text())
             ingredients.append({'name': ing_name, 'quantity': quantity})
 
-        self.model.add_product(self.name_input.text().strip(), float(self.price_input.value()), ingredients)
+        self._model.products().add(self.name_input.text().strip(), float(self.price_input.value()), ingredients)
 
         return super().accept()
 
@@ -188,7 +188,7 @@ class ProductsTab(QWidget):
     def __init__(self, model):
         super().__init__()
 
-        self.model = model
+        self._model = model
 
         add_layout = QGridLayout()
 
@@ -226,7 +226,7 @@ class ProductsTab(QWidget):
             print(f"Выбран продукт: {product_name}")    
 
     def add_product(self):
-        dialog = AddProductDialog(self.model)
+        dialog = AddProductDialog(self._model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         self.update_products_table()
@@ -240,7 +240,7 @@ class ProductsTab(QWidget):
         selected_row = selected_rows[0].row()
         product_name = self.products_table.item(selected_row, 0).text()
         product = None
-        for prod in self.model.get_products():
+        for prod in self._model.products().data():
             if prod.name == product_name:
                 product = prod
                 break
@@ -249,7 +249,7 @@ class ProductsTab(QWidget):
             QMessageBox.warning(self, "Ошибка", "Продукт не найден.")
             return
 
-        dialog = AddProductDialog(self.model)
+        dialog = AddProductDialog(self._model)
         dialog.name_input.setText(product.name)
         dialog.price_input.setValue(product.price)
         for ing in product.ingredients:
@@ -257,21 +257,21 @@ class ProductsTab(QWidget):
             dialog.ing_table.insertRow(row_position)
             dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name'])) 
             dialog.ing_table.setItem(row_position, 1, QTableWidgetItem(str(ing['quantity'])))
-            ing_obj = self.model.get_ingredient(ing['name'])
-            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(self.model.get_units()[ing_obj.unit]))
+            ing_obj = self._model.ingredients().by_name(ing['name'])
+            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing_obj.unit]))
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return          
 
         # Удаляем старый продукт и добавляем новый с обновленными данными
-        self.model.delete_product(product.name)
+        self._model.products().delete(product.name)
         ingredients = []
         for row in range(dialog.ing_table.rowCount()):
             ing_name = dialog.ing_table.item(row, 0).text()
             quantity = float(dialog.ing_table.item(row, 1).text())
             ingredients.append({'name': ing_name, 'quantity': quantity})
 
-        self.model.add_product(dialog.name_input.text().strip(), float(dialog.price_input.value()), ingredients)
+        self._model.products().add(dialog.name_input.text().strip(), float(dialog.price_input.value()), ingredients)
 
         self.update_products_table()    
 
@@ -291,11 +291,11 @@ class ProductsTab(QWidget):
         )
 
         if confirm == QMessageBox.StandardButton.Yes:
-            self.model.delete_product(product_name)
+            self._model.products().delete(product_name)
             self.update_products_table()
 
     def update_products_table(self):
-        data = self.model.get_products()
+        data = self._model.products().data()
         self.products_table.clearContents()
         self.products_table.setRowCount(len(data))
 

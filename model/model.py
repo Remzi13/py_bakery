@@ -21,7 +21,7 @@ class Model:
     def __init__(self):
         # Добавлены явные типы для ясности
         self._ingredients = Ingredients(self)
-        self._products = Products()
+        self._products = Products(self)
         self._stock: List[self.Inventory] = []
         self._sales: List[self.Sale] = []
         self._expense_types: List[self.ExpenseType] = []
