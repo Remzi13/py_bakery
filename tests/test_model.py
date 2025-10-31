@@ -2,8 +2,9 @@ import pytest
 import uuid
 from datetime import datetime
 from model import model
-from model.entities import Category, Unit, unit_by_name
+from model.entities import Category, Unit, unit_by_name, Ingredient, Product
 import xml.etree.ElementTree as ET
+
 
 # --- Фикстуры для настройки тестов ---
 
@@ -29,7 +30,7 @@ def initial_setup(model_instance):
         {'name': "Мука", 'quantity': 1},
         {'name': "Сахар", 'quantity': 100}
     ]
-    model_instance.add_product("Торт", 1500, ingredients)
+    model_instance.products().add("Торт", 1500, ingredients)
     return model_instance
 
 # --- Тесты для внутренних классов (UUID, repr, getters) ---
@@ -38,7 +39,7 @@ def test_ingredient_creation():
     """Тестирование инициализации Ingredient и геттеров."""
     name = "Яйца"
     unit = "штуки"
-    ingredient = model.Model.Ingredient(name, unit)
+    ingredient = Ingredient(name, unit)
     
     assert ingredient.name == name
     assert ingredient.unit == unit
@@ -48,7 +49,7 @@ def test_ingredient_creation():
 def test_product_creation(model_instance):
     """Тестирование инициализации Product."""
     ingredients = [{'name': "Мука", 'quantity': 1}]
-    product = model.Model.Product("Хлеб", 500, ingredients)
+    product = Product("Хлеб", 500, ingredients)
     
     assert product.name == "Хлеб"
     assert product.price == 500
@@ -72,7 +73,7 @@ def test_sale_creation_date():
 def test_initial_state(model_instance):
     """Тестирование начального состояния model.Model."""
     assert model_instance.ingredients().empty() == True
-    assert model_instance.get_products() == []
+    assert model_instance.products().empty() == True
     assert model_instance.get_stock() == []
     assert model_instance.get_sales() == []
     assert model_instance.get_expense_types() == []
@@ -85,11 +86,11 @@ def test_add_and_get_ingredient(model_instance):
     # Проверка ингредиента
     milk = model_instance.ingredients().by_name("Молоко")
     assert milk is not None
-    assert milk.unit == "литр"
+    assert milk.unit == unit_by_name("литр")
 
     milk = model_instance.ingredients().by_id(milk.id)
     assert milk is not None
-    assert milk.unit == "литр"
+    assert milk.unit == unit_by_name("литр")
     
     # Проверка инвентаря
     stock_names = [item.name for item in model_instance.get_stock()]
@@ -117,7 +118,7 @@ def test_add_and_cant_delete_ingredient(model_instance):
     """Тестирование невозможности удаления ингредиента, если он используется в продукте."""
     model_instance.ingredients().add("Масло", unit_by_name("грамм"))
     ingredients = [{'name': "Масло", 'quantity': 50}]
-    model_instance.add_product("Булочка", 200, ingredients)
+    model_instance.products().add("Булочка", 200, ingredients)
 
     with pytest.raises(ValueError):
         model_instance.ingredients().delete("Масло")
@@ -152,19 +153,35 @@ def test_ingredient_serialization_roundtrip(model_instance):
     # Поскольку Ingredient - это dataclass, сравнение объектов простое и надежное.
     assert model_loader.ingredients().data() == model_instance.ingredients().data()
 
+def test_products_serialization_roundtrip(model_instance):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    model_instance.products().save_to_xml(root_element)
+
+    # 3. Загрузка (Десериализация)
+    model_loader = model.Model()
+    model_loader.products().load_from_xml(root_element)
+
+    # Убеждаемся, что количество загруженных элементов совпадает
+    assert model_loader.products().len() == model_instance.products().len()
+    
+    # Убеждаемся, что каждый загруженный элемент совпадает с исходным
+    # Поскольку Ingredient - это dataclass, сравнение объектов простое и надежное.
+    assert model_loader.products().data() == model_instance.products().data()
+
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""
-    products = initial_setup.get_products()
-    assert len(products) == 1
-    assert products[0].name == "Торт"
-    assert initial_setup.get_product_by_name("Торт") == products[0]
-    assert "Торт" in initial_setup.get_products_names()
-    assert initial_setup.get_product_by_name("Не Торт") is None
+    products = initial_setup.products()    
+    assert products.by_name("Торт").name == "Торт"
+    assert "Торт" in products.names()
+    assert products.by_name("Не Торт") is None
 
 def test_delete_product(initial_setup):
     """Тестирование удаления продукта."""
-    initial_setup.delete_product("Торт")
-    assert initial_setup.get_products() == []
+    assert initial_setup.products().empty() == False
+    initial_setup.products().delete("Торт")
+    assert initial_setup.products().empty() == True
 
 def test_update_inventory(initial_setup):
     """Тестирование обновления инвентаря."""
@@ -183,7 +200,7 @@ def test_add_sale_and_inventory_update(initial_setup):
     # Вам нужно убедиться, что ингредиенты 'Мука' и 'Сахар' уже добавлены!
     
     # Добавляем "Пирожок" (предполагаем, что он использует 0.5 кг Муки и 50 грамм Сахара)
-    initial_setup.add_product(
+    initial_setup.products().add(
         name="Пирожок", 
         price=100, # Цена продажи 100
         ingredients=[

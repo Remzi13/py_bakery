@@ -4,15 +4,15 @@ from datetime import datetime
 
 from typing import List, Dict, Any, Optional, Union
 
-from model.entities import Ingredient, Product, Inventory, Sale, ExpenseType, Expense
+from model.entities import Inventory, Sale, ExpenseType, Expense
+
 from model.ingredients import Ingredients
+from model.products import Products
 
 class Model:
 
     # Переопределяем атрибуты Model, чтобы сохранить совместимость с внешним кодом,
-    # который может обращаться к Model.Ingredient и т.д.
-    Ingredient = Ingredient
-    Product = Product
+    # который может обращаться к Model.Ingredient и т.д.    
     Inventory = Inventory
     Sale = Sale
     ExpenseType = ExpenseType
@@ -21,36 +21,19 @@ class Model:
     def __init__(self):
         # Добавлены явные типы для ясности
         self._ingredients = Ingredients(self)
-        self._products: List[self.Product] = []
+        self._products = Products()
         self._stock: List[self.Inventory] = []
         self._sales: List[self.Sale] = []
         self._expense_types: List[self.ExpenseType] = []
         self._expenses: List[self.Expense] = []
         
     # --- Методы-геттеры (используют прямой доступ к атрибутам dataclasses) ---
-    def get_product_by_name(self, name: str) -> Optional[Product]:
-        return next((p for p in self._products if p.name == name), None)
-
     def get_products_names(self):
         return [p.name for p in self._products]
 
     def get_expense_type(self, name: str) -> Optional[ExpenseType]:
         return next((et for et in self._expense_types if et.name == name), None)
-
-    def add_product(self, name, price, ingredients: List[Dict]):
-        new_product = self.Product(name=name, price=price, ingredients=ingredients)
-
-        # Логика обновления продукта, если он уже существует
-        for i, product in enumerate(self._products):
-            if product.name == name:
-                self._products[i] = new_product
-                return
-
-        self._products.append(new_product)
-
-    def delete_product(self, name):
-        self._products = [product for product in self._products if product.name != name]
-
+    
     #todo remove use only in ingredients.py
     def add_inventory(self, name, category, quantity, ing_id):        
         self._stock.append(self.Inventory(name=name, category=category, quantity=quantity, inv_id=ing_id))
@@ -67,7 +50,7 @@ class Model:
         raise KeyError(f"Элемент '{name}' не найден в инвентаре")
 
     def add_sale(self, name, price, quantity):
-        product = self.get_product_by_name(name)
+        product = self.products().by_name(name)
 
         if product:
             for i in product.ingredients:
@@ -107,7 +90,7 @@ class Model:
     def ingredients(self):
         return self._ingredients
 
-    def get_products(self):
+    def products(self):
         return self._products
 
     def get_stock(self):
@@ -129,19 +112,7 @@ class Model:
         root = ET.Element("bakery")
 
         self._ingredients.save_to_xml(root)
-        
-        products_elem = ET.SubElement(root, "products")
-        for product in self._products:
-            prod_elem = ET.SubElement(products_elem, "product")
-            ET.SubElement(prod_elem, "id").text = str(product.id)
-            ET.SubElement(prod_elem, "name").text = product.name
-            ET.SubElement(prod_elem, "price").text = str(product.price)
-            ingredients_list_elem = ET.SubElement(prod_elem, "ingredients")
-            for ing in product.ingredients:
-                ing_elem = ET.SubElement(ingredients_list_elem, "ingredient")
-                ET.SubElement(ing_elem, "ing_id").text = str(self.get_ingredient(ing['name']).id) 
-                ET.SubElement(ing_elem, "name").text = ing['name']
-                ET.SubElement(ing_elem, "quantity").text = str(ing['quantity'])
+        self._products.save_to_xml(root)               
                 
         stock_elem = ET.SubElement(root, "stock")
         for item in self._stock:
@@ -188,20 +159,7 @@ class Model:
             root = tree.getroot()
 
             self._ingredients.load_from_xml(root)
-            
-            self._products.clear()
-            if root.find("products") is not None:
-                for prod_elem in root.find("products").findall("product"):
-                    name = prod_elem.find("name").text
-                    price = float(prod_elem.find("price").text)
-                    id = prod_elem.find("id").text
-                    ingredients = []
-                    for ing_elem in prod_elem.find("ingredients").findall("ingredient"):
-                        ing_name = ing_elem.find("name").text
-                        quantity = float(ing_elem.find("quantity").text)
-                        ing_id = ing_elem.find("ing_id").text
-                        ingredients.append({'name': ing_name, 'quantity': quantity})                
-                    self._products.append(Model.Product(name, price, ingredients, uuid.UUID(id)))
+            self._products.load_from_xml(root)
             
             self._stock.clear()
             if root.find("stock") is not None:
