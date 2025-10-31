@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import (
     QLineEdit, QComboBox, QLabel, QDoubleSpinBox
 )
 
+import model.entities as entities
+
 class CreateExpenseTypeDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -12,7 +14,7 @@ class CreateExpenseTypeDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.type_combo = QComboBox()
-        self.type_combo.addItems(self._model.get_expense_category_names())
+        self.type_combo.addItems(entities.CATEGORY_NAMES.values())
 
         self.price = QDoubleSpinBox()        
         self.price.setRange(0.0, 1000.0)
@@ -55,7 +57,7 @@ class CreateExpenseTypeDialog(QDialog):
         for i, row in enumerate(expense_types):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price)))              
-            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category)]))
+            self.table.setItem(i, 2, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
 
     def add_type(self):
         name = self.name_input.text()
@@ -82,7 +84,7 @@ class AddExpenseDialog(QDialog):
         layout =  QGridLayout()
 
         expense_types = self._model.get_expense_types()
-        self.type_label = QLabel("Тип: {}".format(self._model.get_expense_category_names()[expense_types[0].category]))
+        self.type_label = QLabel("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[0].category]))
 
         self.type_combo = QComboBox()
         self.type_combo.currentIndexChanged.connect(self.type_changed)
@@ -113,7 +115,7 @@ class AddExpenseDialog(QDialog):
     def type_changed(self):
         index = self.type_combo.currentIndex()
         expense_types = self._model.get_expense_types()
-        self.type_label.setText("Тип: {}".format(self._model.get_expense_category_names()[expense_types[index].category]))
+        self.type_label.setText("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[index].category]))
 
     def accept(self):
         name = self.type_combo.currentText()
@@ -160,7 +162,7 @@ class ExpensesWidget(QWidget):
         for i, row in enumerate(expenses):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.price)))              
-            self.table.setItem(i, 2, QTableWidgetItem(self._model.get_expense_category_names()[int(row.category)]))
+            self.table.setItem(i, 2, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
             self.table.setItem(i, 3, QTableWidgetItem(row.date))
 
 

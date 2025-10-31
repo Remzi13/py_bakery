@@ -91,18 +91,12 @@ class Model:
     def stock(self):
         return self._stock
 
-    def get_stock(self):
-        return self._stock
-
     def get_sales(self):
         return self._sales
 
     def get_expense_types(self):
         return self._expense_types
-
-    def get_expense_category_names(self):
-        return self.CATEGORY_NAMES
-
+ 
     def get_expenses(self):
         return self._expenses
     
@@ -111,15 +105,8 @@ class Model:
 
         self._ingredients.save_to_xml(root)
         self._products.save_to_xml(root)               
-                
-        stock_elem = ET.SubElement(root, "stock")
-        for item in self._stock:
-            item_elem = ET.SubElement(stock_elem, "item")
-            ET.SubElement(item_elem, "inv_id").text = str(item.inv_id)
-            ET.SubElement(item_elem, "name").text = item.name
-            ET.SubElement(item_elem, "category").text = str(item.category)
-            ET.SubElement(item_elem, "quantity").text = str(item.quantity)
-
+        self._stock.save_to_xml(root)                
+        
         sale_elem = ET.SubElement(root, "sales")
         for sale in self._sales:
             sal_elem = ET.SubElement(sale_elem, "sale")
@@ -158,15 +145,7 @@ class Model:
 
             self._ingredients.load_from_xml(root)
             self._products.load_from_xml(root)
-            
-            self._stock.clear()
-            if root.find("stock") is not None:
-                for item_elem in root.find("stock").findall("item"):
-                    name = item_elem.find("name").text
-                    category = int(item_elem.find("category").text)
-                    quantity = float(item_elem.find("quantity").text)
-                    inv_id = item_elem.find("inv_id").text                  
-                    self._stock.append(Model.Inventory(name, category, quantity, uuid.UUID(inv_id)))    
+            self._stock.load_from_xml(root)
                 
             self._sales.clear()
             if root.find("sales") is not None:  

@@ -161,17 +161,26 @@ def test_products_serialization_roundtrip(initial_setup):
     # Создаем фиктивный корневой элемент XML
     root_element = ET.Element("data")
     initial_setup.products().save_to_xml(root_element)
-
-    # 3. Загрузка (Десериализация)
+    
     model_loader = model.Model()
     model_loader.products().load_from_xml(root_element)
 
     # Убеждаемся, что количество загруженных элементов совпадает
-    assert model_loader.products().len() == initial_setup.products().len()
-    
-    # Убеждаемся, что каждый загруженный элемент совпадает с исходным
-    # Поскольку Ingredient - это dataclass, сравнение объектов простое и надежное.
+    assert model_loader.products().len() == initial_setup.products().len()        
     assert model_loader.products().data() == initial_setup.products().data()
+
+def test_stock_serialization_roundtrip(initial_setup):
+    """Тестирует сохранение и последующую загрузку списка ингредиентов."""
+    # Создаем фиктивный корневой элемент XML
+    root_element = ET.Element("data")
+    initial_setup.stock().save_to_xml(root_element)
+    
+    model_loader = model.Model()
+    model_loader.stock().load_from_xml(root_element)
+    
+    assert model_loader.stock().len() == initial_setup.stock().len()
+    assert model_loader.stock().data() == initial_setup.stock().data()
+
 
 def test_add_and_get_product(initial_setup):
     """Тестирование добавления продукта и геттеров."""

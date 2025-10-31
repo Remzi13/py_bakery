@@ -9,12 +9,12 @@ class PurchaseDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Закупка")
         self.setGeometry(150, 150, 300, 200)
-        self.mode = model
+        self._model = model
         layout = QGridLayout()
         
         self.purchase_combo = QComboBox()
         # add items to bouth
-        self.purchase_combo.addItems(model.get_ingredients_names())
+        self.purchase_combo.addItems(self._model.ingredients().names())
 
         self.price = QDoubleSpinBox()        
         self.price.setRange(0.0, 1000.0)
@@ -51,11 +51,11 @@ class SaleDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Продажа")
         self.setGeometry(150, 150, 300, 200)
-        self.mode = model
+        self._model = model
         layout = QGridLayout()
 
         self.product_combo = QComboBox()        
-        self.product_combo.addItems(model.get_products_names())
+        self.product_combo.addItems(self._model.products().names())
         self.product_combo.currentIndexChanged.connect(self.product_changed)
 
         add_button = QPushButton("Добавить")

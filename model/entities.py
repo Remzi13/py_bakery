@@ -65,7 +65,11 @@ class Category:
     ENVIRONMENT = 1
     PAYMENT = 2
 
-CATEGORY_NAMES = ['ингредиенты', 'оборудование', 'платежи']
+CATEGORY_NAMES = {
+    Category.INGREDIENT :'ингредиенты',
+    Category.ENVIRONMENT : 'оборудование',
+    Category.PAYMENT : 'платежи'
+}
 
 
 class Unit:
