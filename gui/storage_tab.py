@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QTableWidget, QTableWidgetItem
 )
 
+import model.entities as entities
+
 class StorageWidget(QWidget):
     
     def __init__(self, model):
@@ -36,7 +38,7 @@ class StorageWidget(QWidget):
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.category)))
             self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
-            ing = self._model.get_ingredient_by_id(row.inv_id)
-            self.table.setItem(i, 3, QTableWidgetItem(self._model.get_units()[ing.unit]))
+            ing = self._model.ingredients().by_id(row.inv_id)
+            self.table.setItem(i, 3, QTableWidgetItem(entities.UNIT_NAMES[ing.unit]))
 
 

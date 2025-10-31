@@ -74,17 +74,16 @@ class Unit:
     Liter       = 2
     Piece       = 3
 
-UNIT_NAME = {
+UNIT_NAMES = {
     Unit.Kilogram:  'кг',
     Unit.Gramm:     'грамм',
     Unit.Liter:     'литр',
     Unit.Piece:     'штук'
 }
 
-
 def unit_by_name(unit_name: str) -> int:
         
-    for unit_value, name in UNIT_NAME.items():        
+    for unit_value, name in UNIT_NAMES.items():        
         if name == unit_name:    
             return unit_value
                 

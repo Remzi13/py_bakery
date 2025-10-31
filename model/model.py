@@ -36,19 +36,6 @@ class Model:
 
     def get_expense_type(self, name: str) -> Optional[ExpenseType]:
         return next((et for et in self._expense_types if et.name == name), None)
-        
-    def delete_ingredient(self, name):
-        ingredient = self.get_ingredient(name)
-        products = self.get_products()
-        for product in products:           
-            for ing in product.ingredients:
-                if ing['name'] == name:
-                    raise ValueError(f"Ингредиент '{name}' используется в продукте '{product.name}'. Удаление невозможно.")
-        if ingredient:
-            self._ingredients = [ing for ing in self._ingredients if ing.name != name]
-            # Удаляем связанные записи в инвентаре и типах расходов
-            self._stock = [item for item in self._stock if item.inv_id != ingredient.id]
-            self._expense_types = [et for et in self._expense_types if et.name != name]
 
     def add_product(self, name, price, ingredients: List[Dict]):
         new_product = self.Product(name=name, price=price, ingredients=ingredients)

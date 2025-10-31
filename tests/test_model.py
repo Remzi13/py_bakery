@@ -86,6 +86,10 @@ def test_add_and_get_ingredient(model_instance):
     milk = model_instance.ingredients().by_name("Молоко")
     assert milk is not None
     assert milk.unit == "литр"
+
+    milk = model_instance.ingredients().by_id(milk.id)
+    assert milk is not None
+    assert milk.unit == "литр"
     
     # Проверка инвентаря
     stock_names = [item.name for item in model_instance.get_stock()]

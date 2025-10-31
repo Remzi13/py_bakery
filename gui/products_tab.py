@@ -5,18 +5,18 @@ from PyQt6.QtWidgets import (
     QDialog
 )
 
-import model.model as model
+import model.entities as entities
 
 class AddIngredientsDialog(QDialog):
     def __init__(self, model):
         super().__init__()
         self.setWindowTitle("Ингредиент")
-        self.model = model
+        self._model = model
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
-        self.unit_combo = QComboBox()
-        self.unit_combo.addItems(model.get_units())
+        self.unit_combo = QComboBox()        
+        self.unit_combo.addItems(list(entities.UNIT_NAMES.values()))
 
         save_button = QPushButton("Добавить")
         save_button.clicked.connect(self.accept)
@@ -33,7 +33,7 @@ class AddIngredientsDialog(QDialog):
         if not self.name_input.text().strip():
             QMessageBox.warning(self, "Ошибка", "Введите название ингредиента.")
             return
-        self.model.add_ingredient(self.name_input.text().strip(), self.unit_combo.currentIndex())
+        self._model.ingredients().add(self.name_input.text().strip(), entities.unit_by_name(self.unit_combo.currentText()))
         return super().accept()
 
 class IngredientsTab(QWidget):
@@ -98,17 +98,17 @@ class IngredientsTab(QWidget):
         )
 
         if confirm == QMessageBox.StandardButton.Yes:
-            self._model.delete_ingredient(ingredient_name)
+            self._model.ingredients().delete(ingredient_name)
             self.update_ingredients_table()
         
     def update_ingredients_table(self):
-        data = self._model.get_ingredients()
+        data = self._model.ingredients().data()
         self.table.clearContents()
         self.table.setRowCount(len(data))
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(self._model.get_units()[row.unit]))
+            self.table.setItem(i, 1, QTableWidgetItem(entities.UNIT_NAMES[row.unit]))
 
 class AddProductDialog(QDialog):
     def __init__(self, model):
