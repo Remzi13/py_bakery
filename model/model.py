@@ -19,8 +19,8 @@ class Model:
         self._expenses = Expenses(self._expense_types)
  
     #todo remove use only in ingredients.py
-    def add_stock_item(self, name, category, quantity, ing_id):        
-        self._stock.add(name=name, category=category, quantity=quantity, inv_id=ing_id)
+    def add_stock_item(self, name, category, quantity, unit):        
+        self._stock.add(name=name, category=category, quantity=quantity, unit=unit)
     
     def delete_stock_item(self, name):
         self._stock.delete(name)        

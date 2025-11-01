@@ -14,10 +14,10 @@ class CreateExpenseTypeDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.type_combo = QComboBox()
-        self.type_combo.addItems(entities.CATEGORY_NAMES.values())
+        self.type_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
 
         self.price = QDoubleSpinBox()        
-        self.price.setRange(0.0, 1000.0)
+        self.price.setRange(0.0, 100000.0)
         self.price.setDecimals(2)
         self.price.setSingleStep(0.1)
 
@@ -57,7 +57,7 @@ class CreateExpenseTypeDialog(QDialog):
         for i, row in enumerate(expense_types):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price)))              
-            self.table.setItem(i, 2, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
+            self.table.setItem(i, 2, QTableWidgetItem(entities.EXPENSE_CATEGORY_NAMES[int(row.category)]))
 
     def add_type(self):
         name = self.name_input.text()
@@ -93,7 +93,7 @@ class AddExpenseDialog(QDialog):
         layout =  QGridLayout()
 
         expense_types = self._model.expense_types().data()
-        self.type_label = QLabel("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[0].category]))
+        self.type_label = QLabel("Тип: {}".format(entities.EXPENSE_CATEGORY_NAMES[expense_types[0].category]))
 
         self.type_combo = QComboBox()
         self.type_combo.currentIndexChanged.connect(self.type_changed)
@@ -128,7 +128,7 @@ class AddExpenseDialog(QDialog):
     def type_changed(self):
         name = self.type_combo.currentText()        
         expense_type = self._model.expense_types().get(name)
-        self.type_label.setText("Тип: {}".format(entities.CATEGORY_NAMES[expense_type.category]))
+        self.type_label.setText("Тип: {}".format(entities.EXPENSE_CATEGORY_NAMES[expense_type.category]))
 
     def accept(self):
         
@@ -137,7 +137,7 @@ class AddExpenseDialog(QDialog):
         quantity = self.quantity.value()
 
         expense_type = self._model.expense_types().get(name)
-        if expense_type.category == entities.Category.INGREDIENT:
+        if expense_type.category == entities.ExpenseCategory.INGREDIENT:
             self._model.stock().update(name, quantity)
 
         self._model.expenses().add(name, price, quantity)
@@ -182,7 +182,7 @@ class ExpensesWidget(QWidget):
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.price)))              
             self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
-            self.table.setItem(i, 3, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
+            self.table.setItem(i, 3, QTableWidgetItem(entities.EXPENSE_CATEGORY_NAMES[int(row.category)]))
             self.table.setItem(i, 4, QTableWidgetItem(row.date))
 
     def create_expense_type(self):
@@ -192,6 +192,9 @@ class ExpensesWidget(QWidget):
         return
     
     def add_expense(self):
+        if self._model.expense_types().empty():
+            QMessageBox.warning(self, "Ошибка", "Не создано не одного типа расходов.")
+            return
         dialog = AddExpenseDialog(self._model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return

@@ -12,8 +12,8 @@ class Ingredients:
     def add(self, name, unit: int):
         ing = model.entities.Ingredient(name=name, unit=unit)
         self._ingredients.append(ing)
-        self._model.add_stock_item(name, model.entities.Category.INGREDIENT, 0, ing.id)
-        self._model.expense_types().add(name, 100, model.entities.Category.INGREDIENT)
+        self._model.add_stock_item(name, model.entities.StockCategory.INGREDIENT, 0, unit=unit)
+        self._model.expense_types().add(name, 100, model.entities.ExpenseCategory.INGREDIENT)
 
     def can_delete(self, name) -> bool:
         products = self._model.products().data()

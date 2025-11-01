@@ -8,11 +8,18 @@ from typing import List, Dict, Any
 # Вложенные классы вынесены на верхний уровень для чистоты и удобства
 # (frozen=True делает объект неизменяемым после создания)
 
+class Unit:
+    Kilogram    = 0
+    Gramm       = 1
+    Liter       = 2
+    Piece       = 3
+
+
 @dataclass(frozen=True)
 class Ingredient:
     """Сырье для производства."""
     name: str
-    unit: int
+    unit: Unit
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass(frozen=True)
@@ -23,13 +30,26 @@ class Product:
     ingredients: List[Dict[str, Any]]  # Список ингредиентов с их количеством
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
+class StockCategory:
+    """Категории для учета физического запаса на складе (StockItem)."""
+    INGREDIENT = 0
+    PACKAGING = 1
+    EQUIPMENT = 2 # Вместо ENVIRONMENT
+
+STOCK_CATEGORY_NAMES = {
+    StockCategory.INGREDIENT: 'Сырье',
+    StockCategory.PACKAGING:  'Упаковка',
+    StockCategory.EQUIPMENT:  'Оборудование'
+}
+
 @dataclass
 class StockItem:
     """Инвентарь/Запас (изменяемый)."""
     name: str
-    category: int
-    quantity: float 
-    inv_id: uuid.UUID
+    category: StockCategory
+    quantity: float
+    unit: Unit 
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass(frozen=True)
 class Sale:
@@ -41,12 +61,25 @@ class Sale:
     # Используем field(default_factory) для генерации даты по умолчанию
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
+class ExpenseCategory:
+    """Категории для учета финансовых расходов (Expense/ExpenseType)."""
+    INGREDIENT = 0
+    EQUIPMENT = 1
+    PAYMENT = 2
+    OTHER = 3
+
+EXPENSE_CATEGORY_NAMES = {
+    ExpenseCategory.INGREDIENT:    'Сырьё',
+    ExpenseCategory.EQUIPMENT: 'Оборудование',
+    ExpenseCategory.PAYMENT:  'Платежи',
+}
+
 @dataclass(frozen=True)
 class ExpenseType:
     """Тип расхода (например, 'Аренда', 'Мука')."""
     name: str
     default_price: int
-    category: int
+    category: ExpenseCategory
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass(frozen=True)
@@ -54,35 +87,11 @@ class Expense:
     """Фактический расход, зафиксированный во времени."""
     name: str
     price: int
-    category: int
+    category: ExpenseCategory
     quantity: float
     type_id: uuid.UUID
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
-class Category:
-    INGREDIENT = 0
-    ENVIRONMENT = 1
-    PAYMENT = 2
-
-CATEGORY_NAMES = {
-    Category.INGREDIENT :'ингредиенты',
-    Category.ENVIRONMENT : 'оборудование',
-    Category.PAYMENT : 'платежи'
-}
-
-def category_by_name(category_name: str) -> int:
-        
-    for category, name in CATEGORY_NAMES.items():        
-        if name == category_name:    
-            return category
-                
-    raise ValueError(f"Категория '{category_name}' не найдена в CATEGORY_NAMES.")
-
-class Unit:
-    Kilogram    = 0
-    Gramm       = 1
-    Liter       = 2
-    Piece       = 3
 
 UNIT_NAMES = {
     Unit.Kilogram:  'кг',

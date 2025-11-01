@@ -2,7 +2,7 @@ import pytest
 import uuid
 from datetime import datetime
 from model import model
-from model.entities import Category, Unit, unit_by_name, Ingredient, Product, Sale
+from model.entities import Unit, unit_by_name, Ingredient, Product, Sale, ExpenseCategory, StockCategory
 import xml.etree.ElementTree as ET
 
 
@@ -15,15 +15,15 @@ def model_instance():
 @pytest.fixture
 def initial_setup(model_instance):
     """Фикстура для настройки базовых ингредиентов и продукта."""
-    model_instance.ingredients().add("Мука", "кг")
-    model_instance.ingredients().add("Сахар", "грамм")
+    model_instance.ingredients().add("Мука", unit_by_name("кг"))
+    model_instance.ingredients().add("Сахар", unit_by_name("грамм"))
 
     # Добавляем начальное количество инвентаря
     model_instance.stock().update("Мука", 10)
     model_instance.stock().update("Сахар", 500)
 
     # Добавляем тип расхода для оборудования
-    model_instance.expense_types().add("Аренда", 5000, Category.ENVIRONMENT)
+    model_instance.expense_types().add("Аренда", 5000, ExpenseCategory.PAYMENT)
 
     # Продукт: торт (1 кг муки, 100 грамм сахара)
     ingredients = [
@@ -97,14 +97,14 @@ def test_add_and_get_ingredient(model_instance):
     assert "Молоко" in stock_names
     milk_stock = [item for item in model_instance.stock().data() if item.name == "Молоко"][0]
     assert milk_stock.quantity == 0 # Начальное количество 0
-    assert milk_stock.category == Category.INGREDIENT
-    assert milk_stock.inv_id == milk.id
+    assert milk_stock.category == StockCategory.INGREDIENT
+    assert milk_stock.unit == milk.unit
     
     # Проверка типа расхода
     expense_type = model_instance.expense_types().get("Молоко")
     assert expense_type is not None
     assert expense_type.default_price == 100
-    assert expense_type.category == Category.INGREDIENT
+    assert expense_type.category == ExpenseCategory.INGREDIENT
 
 def test_add_and_delete_ingredient(model_instance):
     """Тестирование добавления и удаления ингредиента."""
@@ -275,7 +275,7 @@ def test_add_and_get_expense_type(initial_setup):
     expense_type = initial_setup.expense_types().get("Аренда")
     assert expense_type.name == "Аренда"
     assert expense_type.default_price == 5000
-    assert expense_type.category == Category.ENVIRONMENT
+    assert expense_type.category == ExpenseCategory.PAYMENT
     assert isinstance(expense_type.id, uuid.UUID)
 
     initial_setup.expense_types().delete("Аренда")
@@ -290,7 +290,7 @@ def test_add_expense(initial_setup):
     assert expenses[0].name == "Аренда"
     assert expenses[0].price == 5000
     assert expenses[0].quantity == 1
-    assert expenses[0].category == Category.ENVIRONMENT
+    assert expenses[0].category == ExpenseCategory.PAYMENT
     # Проверка формата даты, аналогично Sale
 
 def test_calculate_finance(initial_setup):
