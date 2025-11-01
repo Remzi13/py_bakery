@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt
 # Импортируем все ваши модули
 from db_connector import DBConnector
 from gui.products_tab import ProductsWidget
-from gui.storage_tab import StorageWidget
+from gui.stock_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget
 from model import model
@@ -32,7 +32,7 @@ class App(QMainWindow):
         self.model = model.Model()
         self.model.load_from_xml()
 
-        self.load_stylesheet() # Применяем стили
+        #self.load_stylesheet() # Применяем стили
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -66,6 +66,7 @@ class App(QMainWindow):
             button.setObjectName(f"menuButton_{index}")
             button.clicked.connect(lambda checked, idx=index: self.stacked_widget.setCurrentIndex(idx))
             button.clicked.connect(lambda checked, btn=button: self.update_menu_style(btn))
+            button.clicked.connect(lambda checked, idx=index, name=name: self.change_page(idx, name))
             
             self.menu_layout.addWidget(button)
             self.menu_buttons.append(button)
@@ -78,6 +79,10 @@ class App(QMainWindow):
         self.menu_buttons[0].setProperty("current", "true")
         self.menu_buttons[0].style().unpolish(self.menu_buttons[0])
         self.menu_buttons[0].style().polish(self.menu_buttons[0])
+
+    def change_page(self, index, name):
+        self.stacked_widget.setCurrentIndex(index)
+        self.setWindowTitle(name)        
 
     def update_menu_style(self, active_button):
         """Обновляет стиль кнопок при переключении, чтобы выделить активную."""

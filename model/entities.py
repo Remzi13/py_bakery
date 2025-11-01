@@ -59,7 +59,6 @@ class Expense:
     type_id: uuid.UUID
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
-
 class Category:
     INGREDIENT = 0
     ENVIRONMENT = 1
@@ -71,6 +70,13 @@ CATEGORY_NAMES = {
     Category.PAYMENT : 'платежи'
 }
 
+def category_by_name(category_name: str) -> int:
+        
+    for category, name in CATEGORY_NAMES.items():        
+        if name == category_name:    
+            return category
+                
+    raise ValueError(f"Категория '{category_name}' не найдена в CATEGORY_NAMES.")
 
 class Unit:
     Kilogram    = 0

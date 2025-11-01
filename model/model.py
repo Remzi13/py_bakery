@@ -1,6 +1,4 @@
 import xml.etree.ElementTree as ET
-import uuid
-from datetime import datetime
 
 from model.ingredients import Ingredients
 from model.products import Products
@@ -80,6 +78,7 @@ class Model:
             self._stock.load_from_xml(root)
             self._sales.load_from_xml(root)
             self._expense_types.load_from_xml(root)
+            self._expenses.load_from_xml(root)
 
         except FileNotFoundError:
             pass  # Файл не найден, начинаем с пустых данных

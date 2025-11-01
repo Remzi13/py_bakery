@@ -102,8 +102,11 @@ class IngredientsTab(QWidget):
         )
 
         if confirm == QMessageBox.StandardButton.Yes:
-            self._model.ingredients().delete(ingredient_name)
-            self.update_ingredients_table()
+            if self._model.ingredients().can_delete(ingredient_name):
+                self._model.ingredients().delete(ingredient_name)
+                self.update_ingredients_table()
+            else:
+                QMessageBox.warning(self, "Ошибка", f"Нельзя удалить '{ingredient_name}' испльзуется в товаха.")
         
     def update_ingredients_table(self):
         data = self._model.ingredients().data()
@@ -114,37 +117,50 @@ class IngredientsTab(QWidget):
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(entities.UNIT_NAMES[row.unit]))
 
-class AddProductDialog(QDialog):
+class CreateProductDialog(QDialog):
     def __init__(self, model):
         super().__init__()
-        self.setWindowTitle("Добавить Продукт")
+        self.setWindowTitle("Новый продукт")
         self._model = model
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
         self.price_input = QDoubleSpinBox()        
-        self.price_input.setRange(0.0, 1000.0)
+        self.price_input.setRange(0.0, 10000.0)
         self.price_input.setDecimals(2)
         self.price_input.setSingleStep(0.1)
-
-        ing_layout = QHBoxLayout()
+        
+        ing_layout = QGridLayout()
         self.ingredient_combo = QComboBox()
         self.ingredient_combo.addItems(model.ingredients().names())
+        self.ingredient_combo.currentIndexChanged.connect(self.ing_combo_changed)
         self.ing_quantity = QDoubleSpinBox()
         self.ing_quantity.setRange(0.0, 10.0)
         self.ing_quantity.setDecimals(2)
         self.ing_quantity.setSingleStep(0.1)
         self.add_ingredient_button = QPushButton("+")
         self.add_ingredient_button.clicked.connect(self.add_ingredient)
+        self.del_ingredient_button = QPushButton("-")
+        self.del_ingredient_button.clicked.connect(self.del_ingredient)
+        ing = self._model.ingredients().by_name(model.ingredients().names()[0])
+        entities.UNIT_NAMES[ing.unit]
+        self.ing_unit = QLabel(entities.UNIT_NAMES[ing.unit])
+                
         
+        ing_layout.addWidget(QLabel("Ингредиент:"), 0, 0)
+        ing_layout.addWidget(self.ingredient_combo, 0, 1)
+        ing_layout.addWidget(self.ing_quantity, 0, 2)
+        ing_layout.addWidget(self.ing_unit, 0, 3)
+        ing_layout.addWidget(self.add_ingredient_button, 1, 0, 1, 2)
+        ing_layout.addWidget(self.del_ingredient_button, 1, 2, 1, 2)
+
         self.ing_table = QTableWidget()
         self.ing_table.setColumnCount(3)
         self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
-
-        ing_layout.addWidget(QLabel("Ингредиент:"))
-        ing_layout.addWidget(self.ingredient_combo)
-        ing_layout.addWidget(self.ing_quantity)
-        ing_layout.addWidget(self.add_ingredient_button)
+        self.ing_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.ing_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.ing_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.ing_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
@@ -162,6 +178,12 @@ class AddProductDialog(QDialog):
 
         self.setLayout(layout)
 
+    def ing_combo_changed(self):
+        name = self.ingredient_combo.currentText()
+        ing = self._model.ingredients().by_name(name)
+        entities.UNIT_NAMES[ing.unit]
+        self.ing_unit.setText(entities.UNIT_NAMES[ing.unit])
+
     def add_ingredient(self):
         ingredient_name = self.ingredient_combo.currentText()
 
@@ -170,14 +192,23 @@ class AddProductDialog(QDialog):
                 QMessageBox.warning(self, "Ошибка", "Продукт с таким именм уже добавлен.")
                 return        
         
-        quantity = self.ing_quantity.value()        
+        quantity = self.ing_quantity.value()
+        if not quantity > 0.0:
+            QMessageBox.warning(self, "Ошибка", "Игредиент должен быть больше нуля.")
+            return
+
         ing = self._model.ingredients().by_name(ingredient_name)
 
         row_position = self.ing_table.rowCount()
         self.ing_table.insertRow(row_position)
         self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
-        self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(quantity)))
+        self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(round(quantity, 3))))
         self.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing.unit]))
+    
+    def del_ingredient(self):
+        row = self.ing_table.currentRow()
+        if row >= 0:
+            self.ing_table.removeRow(row)
 
     def accept(self):
         name = self.name_input.text().strip()
@@ -241,7 +272,7 @@ class ProductsTab(QWidget):
             print(f"Выбран продукт: {product_name}")    
 
     def add_product(self):
-        dialog = AddProductDialog(self._model)
+        dialog = CreateProductDialog(self._model)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         self.update_products_table()
@@ -264,7 +295,7 @@ class ProductsTab(QWidget):
             QMessageBox.warning(self, "Ошибка", "Продукт не найден.")
             return
 
-        dialog = AddProductDialog(self._model)
+        dialog = CreateProductDialog(self._model)
         dialog.name_input.setText(product.name)
         dialog.price_input.setValue(product.price)
         for ing in product.ingredients:
@@ -330,54 +361,7 @@ class ProductsWidget(QWidget):
         self.tab_widget.addTab(IngredientsTab(model), "Ингредиенты")
 
         main_layout.addWidget(self.tab_widget)
-
-        ## 2. Форма для добавления новой продукции
-        #add_product_group = QGroupBox("2. Добавить новую продукцию")
-        #add_layout = QGridLayout()
-#
-        #self.prod_name_input = QLineEdit()
-        #self.prod_price_input = QLineEdit()
-        #self.add_prod_button = QPushButton("Добавить Продукт")
-        #self.add_prod_button.clicked.connect(self.add_new_product)
-#
-        #add_layout.addWidget(QLabel("Название:"), 0, 0)
-        #add_layout.addWidget(self.prod_name_input, 0, 1)
-        #add_layout.addWidget(QLabel("Цена (за шт.):"), 1, 0)
-        #add_layout.addWidget(self.prod_price_input, 1, 1)
-        #add_layout.addWidget(self.add_prod_button, 2, 0, 1, 2)
-        #
-        #add_product_group.setLayout(add_layout)
-        #main_layout.addWidget(add_product_group)
-        #
-        ## 2. Форма для создания/редактирования рецепта
-        #recipe_group = QGroupBox("2. Создать/Редактировать Рецепт")
-        #recipe_layout = QGridLayout()
-        #
-        #self.product_select_combo = QComboBox() # Выбор продукта для рецепта
-        #self.ingredient_for_recipe_combo = QComboBox() # Выбор ингредиента
-        #self.quantity_needed_input = QLineEdit() # Количество ингредиента
-        #self.add_recipe_button = QPushButton("Добавить Ингредиент в Рецепт")
-        #self.add_recipe_button.clicked.connect(self.add_ingredient_to_recipe)
-        #
-        #self.recipe_table = QTableWidget()
-        #self.recipe_table.setColumnCount(3)
-        #self.recipe_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
-        #self.recipe_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-#
-        #recipe_layout.addWidget(QLabel("Продукт:"), 0, 0)
-        #recipe_layout.addWidget(self.product_select_combo, 0, 1)
-        #recipe_layout.addWidget(QLabel("Ингредиент:"), 1, 0)
-        #recipe_layout.addWidget(self.ingredient_for_recipe_combo, 1, 1)
-        #recipe_layout.addWidget(QLabel("Нужно (доли):"), 2, 0)
-        #recipe_layout.addWidget(self.quantity_needed_input, 2, 1)
-        #recipe_layout.addWidget(self.add_recipe_button, 3, 0, 1, 2)
-        #
-        #recipe_layout.addWidget(QLabel("Состав Рецепта:"), 4, 0, 1, 2)
-        #recipe_layout.addWidget(self.recipe_table, 5, 0, 1, 2)
-        #
-        #recipe_group.setLayout(recipe_layout)
-        #main_layout.addWidget(recipe_group)
-#
+        
         self.setLayout(main_layout)
 
     def add_new_product(self):

@@ -15,13 +15,19 @@ class Ingredients:
         self._model.add_stock_item(name, model.entities.Category.INGREDIENT, 0, ing.id)
         self._model.expense_types().add(name, 100, model.entities.Category.INGREDIENT)
 
-    def delete(self, name):
-        ingredient = self.by_name(name)
+    def can_delete(self, name) -> bool:
         products = self._model.products().data()
         for product in products:
             for ing in product.ingredients:
                 if ing['name'] == name:
-                    raise ValueError(f"Ингредиент '{name}' используется в продукте '{product.name}'. Удаление невозможно.")
+                    return False
+        return True
+                
+    def delete(self, name):
+        if self.can_delete(name) is False:
+            raise ValueError(f"Ингредиент '{name}' используется в продукте '. Удаление невозможно.")
+        
+        ingredient = self.by_name(name)
         if ingredient:
             self._ingredients = [ing for ing in self._ingredients if ing.name != name]
             # Удаляем связанные записи в инвентаре и типах расходов

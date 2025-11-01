@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog,
-    QLineEdit, QComboBox, QLabel, QDoubleSpinBox
+    QLineEdit, QComboBox, QLabel, QDoubleSpinBox, QMessageBox, QSpinBox
 )
 
 import model.entities as entities
@@ -62,7 +62,12 @@ class CreateExpenseTypeDialog(QDialog):
     def add_type(self):
         name = self.name_input.text()
         category = self.type_combo.currentIndex()
-        price = self.price.value()        
+        price = self.price.value()   
+
+        if name == "":
+            QMessageBox.warning(self, "Ошибка", "Имя не может быть пустым.")
+            return 
+
         self._model.expense_types().add(name, price, category)
 
         self.update_table()
@@ -72,6 +77,10 @@ class CreateExpenseTypeDialog(QDialog):
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
+            category = entities.category_by_name(self.table.item(selected_row, 2).text())
+            if category == entities.Category.INGREDIENT:
+                QMessageBox.warning(self, "Ошибка", "Нелья удалять ингредиенты.")
+                return
             self._model.expense_types().delete(name)
 
             self.update_table()
@@ -99,6 +108,8 @@ class AddExpenseDialog(QDialog):
         self.price.setDecimals(2)
         self.price.setSingleStep(0.1)
         self.price.setValue(expense_types[0].default_price)
+        
+        self.quantity = QSpinBox()
 
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
@@ -108,21 +119,29 @@ class AddExpenseDialog(QDialog):
         layout.addWidget(self.type_label, 1, 0)        
         layout.addWidget(QLabel("Цена:"), 2, 0)
         layout.addWidget(self.price, 2, 1)
-        layout.addWidget(save_button, 3, 0, 1, 2)
+        layout.addWidget(QLabel("Количество:"), 3, 0)
+        layout.addWidget(self.quantity, 3, 1)
+        layout.addWidget(save_button, 4, 0, 1, 2)
 
         self.setLayout(layout)
     
     def type_changed(self):
-        index = self.type_combo.currentIndex()
-        expense_types = self._model.expense_types().data()
-        self.type_label.setText("Тип: {}".format(entities.CATEGORY_NAMES[expense_types[index].category]))
+        name = self.type_combo.currentText()        
+        expense_type = self._model.expense_types().get(name)
+        self.type_label.setText("Тип: {}".format(entities.CATEGORY_NAMES[expense_type.category]))
 
     def accept(self):
+        
         name = self.type_combo.currentText()
         price = self.price.value()
-        self._model.add_expense(name, price, 1)
-        return super().accept()
+        quantity = self.quantity.value()
 
+        expense_type = self._model.expense_types().get(name)
+        if expense_type.category == entities.Category.INGREDIENT:
+            self._model.stock().update(name, quantity)
+
+        self._model.expenses().add(name, price, quantity)
+        return super().accept()
 
 class ExpensesWidget(QWidget):
 
@@ -139,9 +158,9 @@ class ExpensesWidget(QWidget):
         add_button.clicked.connect(self.add_expense)
         
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Назавание", "Цена", "Категория", "Дата"])
-        #self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["Назавание", "Цена", "Количество", "Категория", "Дата"])
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -162,9 +181,9 @@ class ExpensesWidget(QWidget):
         for i, row in enumerate(expenses):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.price)))              
-            self.table.setItem(i, 2, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
-            self.table.setItem(i, 3, QTableWidgetItem(row.date))
-
+            self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
+            self.table.setItem(i, 3, QTableWidgetItem(entities.CATEGORY_NAMES[int(row.category)]))
+            self.table.setItem(i, 4, QTableWidgetItem(row.date))
 
     def create_expense_type(self):
         dialog = CreateExpenseTypeDialog(self._model)
