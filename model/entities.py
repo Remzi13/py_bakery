@@ -72,6 +72,7 @@ EXPENSE_CATEGORY_NAMES = {
     ExpenseCategory.INGREDIENT:    'Сырьё',
     ExpenseCategory.EQUIPMENT: 'Оборудование',
     ExpenseCategory.PAYMENT:  'Платежи',
+    ExpenseCategory.OTHER:  'Другое',
 }
 
 @dataclass(frozen=True)
@@ -100,10 +101,17 @@ UNIT_NAMES = {
     Unit.Piece:     'штук'
 }
 
-def unit_by_name(unit_name: str) -> int:
+def unit_by_name(unit_name: str) -> Unit:
         
     for unit_value, name in UNIT_NAMES.items():        
         if name == unit_name:    
             return unit_value
                 
     raise ValueError(f"Единица измерения '{unit_name}' не найдена в UNIT_NAME.")
+
+def category_by_name(category_name : str) -> ExpenseCategory:
+    for category, name in EXPENSE_CATEGORY_NAMES.items():
+        if name == category_name:    
+            return category
+        
+    raise ValueError(f"Категория '{category_name}' не найдена в EXPENSE_CATEGORY_NAMES.")

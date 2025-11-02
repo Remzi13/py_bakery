@@ -142,8 +142,7 @@ class CreateProductDialog(QDialog):
         self.add_ingredient_button.clicked.connect(self.add_ingredient)
         self.del_ingredient_button = QPushButton("-")
         self.del_ingredient_button.clicked.connect(self.del_ingredient)
-        ing = self._model.ingredients().by_name(model.ingredients().names()[0])
-        entities.UNIT_NAMES[ing.unit]
+        ing = self._model.ingredients().by_name(model.ingredients().names()[0])        
         self.ing_unit = QLabel(entities.UNIT_NAMES[ing.unit])
                 
         
@@ -363,9 +362,3 @@ class ProductsWidget(QWidget):
         main_layout.addWidget(self.tab_widget)
         
         self.setLayout(main_layout)
-
-    def add_new_product(self):
-        pass  # Логика добавления нового продукта в БД
-
-    def add_ingredient_to_recipe(self):
-        pass  # Логика добавления ингредиента в рецепт продукта

@@ -93,15 +93,17 @@ class AddExpenseDialog(QDialog):
         layout =  QGridLayout()
 
         expense_types = self._model.expense_types().data()
-        self.type_label = QLabel("Тип: {}".format(entities.EXPENSE_CATEGORY_NAMES[expense_types[0].category]))
-
-        self.type_combo = QComboBox()
-        self.type_combo.currentIndexChanged.connect(self.type_changed)
         
+        self.name_combo = QComboBox()
         names = []
         for i in expense_types:
             names.append(i.name)
-        self.type_combo.addItems(names)
+        self.name_combo.addItems(names)
+        
+        self.category_combo = QComboBox()
+        self.category_combo.addItem("Все")
+        self.category_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
+        self.category_combo.currentIndexChanged.connect(self.category_changed)
 
         self.price = QDoubleSpinBox()            
         self.price.setRange(0.0, 1000.0)
@@ -114,9 +116,10 @@ class AddExpenseDialog(QDialog):
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
 
-        layout.addWidget(QLabel("Название:"), 0, 0)
-        layout.addWidget(self.type_combo, 0, 1)
-        layout.addWidget(self.type_label, 1, 0)        
+        layout.addWidget(QLabel("Категория:"), 0, 0)
+        layout.addWidget(self.category_combo, 0, 1)               
+        layout.addWidget(QLabel("Название:"), 1, 0)
+        layout.addWidget(self.name_combo, 1, 1)
         layout.addWidget(QLabel("Цена:"), 2, 0)
         layout.addWidget(self.price, 2, 1)
         layout.addWidget(QLabel("Количество:"), 3, 0)
@@ -125,14 +128,21 @@ class AddExpenseDialog(QDialog):
 
         self.setLayout(layout)
     
-    def type_changed(self):
-        name = self.type_combo.currentText()        
-        expense_type = self._model.expense_types().get(name)
-        self.type_label.setText("Тип: {}".format(entities.EXPENSE_CATEGORY_NAMES[expense_type.category]))
+    def category_changed(self):
+        selected_category = self.category_combo.currentText()
+        self.name_combo.clear()
+
+        if selected_category == "Все":            
+            names = [e.name for e in self._model.expense_types().data()]
+        else:            
+            names = [e.name for e in self._model.expense_types().data() if e.category == entities.category_by_name(selected_category)]
+
+        self.name_combo.addItems(names)
+
 
     def accept(self):
         
-        name = self.type_combo.currentText()
+        name = self.name_combo.currentText()
         price = self.price.value()
         quantity = self.quantity.value()
 
