@@ -25,13 +25,18 @@ class SaleDialog(QDialog):
         self.quantity = QSpinBox()
         self.quantity.setRange(1, 1000)
 
+        self.discount = QSpinBox()
+        self.discount.setRange(0, 100)
+
         layout.addWidget(QLabel("Навание"), 0, 0)
         layout.addWidget(self.product_combo, 0, 1)
         layout.addWidget(QLabel("Цена"), 1, 0)
         layout.addWidget(self.price, 1, 1)
         layout.addWidget(QLabel("Количество"), 2, 0)
         layout.addWidget(self.quantity, 2, 1)
-        layout.addWidget(add_button, 3, 0, 1, 2)
+        layout.addWidget(QLabel("Скидка"), 3, 0)
+        layout.addWidget(self.discount, 3, 1)
+        layout.addWidget(add_button, 4, 0, 1, 2)
 
         self.setLayout(layout)
     
@@ -45,7 +50,8 @@ class SaleDialog(QDialog):
         name = self.product_combo.currentText()
         price = self.price.value()
         quantity = self.quantity.value()
-        self._model.sales().add(name, price, quantity)        
+        discount = self.discount.value()
+        self._model.sales().add(name, price, quantity, discount)
 
         return super().accept()
 
@@ -66,8 +72,8 @@ class MainWidget(QWidget):
         sale_button.clicked.connect(self.add_sale)
                 
         self.sales_table = QTableWidget()
-        self.sales_table.setColumnCount(4)
-        self.sales_table.setHorizontalHeaderLabels(["Названи", "Количество", "Цена", "Дата"])
+        self.sales_table.setColumnCount(5)
+        self.sales_table.setHorizontalHeaderLabels(["Названи", "Количество", "Цена", "Скидка", "Дата"])
         self.sales_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.sales_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.sales_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
@@ -92,7 +98,8 @@ class MainWidget(QWidget):
             self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name))
             self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))
             self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price, 3))))
-            self.sales_table.setItem(i, 3, QTableWidgetItem(row.date))
+            self.sales_table.setItem(i, 3, QTableWidgetItem(str(row.discount)))
+            self.sales_table.setItem(i, 4, QTableWidgetItem(row.date))
 
         self.income.setText("Доход: {:.2f}.".format(self.model.calculate_income()))
         self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))

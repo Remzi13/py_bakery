@@ -32,9 +32,9 @@ class Product:
 
 class StockCategory:
     """Категории для учета физического запаса на складе (StockItem)."""
-    INGREDIENT = 0
-    PACKAGING = 1
-    EQUIPMENT = 2 # Вместо ENVIRONMENT
+    INGREDIENT  = 0
+    PACKAGING   = 1
+    EQUIPMENT   = 2 
 
 STOCK_CATEGORY_NAMES = {
     StockCategory.INGREDIENT: 'Сырье',
@@ -58,21 +58,21 @@ class Sale:
     price: int
     quantity: float
     product_id: uuid.UUID
-    # Используем field(default_factory) для генерации даты по умолчанию
+    discount : int # percent
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
 class ExpenseCategory:
     """Категории для учета финансовых расходов (Expense/ExpenseType)."""
-    INGREDIENT = 0
-    EQUIPMENT = 1
-    PAYMENT = 2
-    OTHER = 3
+    INGREDIENT  = 0
+    EQUIPMENT   = 1
+    PAYMENT     = 2
+    OTHER       = 3
 
 EXPENSE_CATEGORY_NAMES = {
-    ExpenseCategory.INGREDIENT:    'Сырьё',
-    ExpenseCategory.EQUIPMENT: 'Оборудование',
-    ExpenseCategory.PAYMENT:  'Платежи',
-    ExpenseCategory.OTHER:  'Другое',
+    ExpenseCategory.INGREDIENT: 'Сырьё',
+    ExpenseCategory.EQUIPMENT:  'Оборудование',
+    ExpenseCategory.PAYMENT:    'Платежи',
+    ExpenseCategory.OTHER:      'Другое',
 }
 
 @dataclass(frozen=True)

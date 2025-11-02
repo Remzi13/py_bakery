@@ -10,7 +10,7 @@ class Sales:
         self._products = products
         self._sales : List[model.entities.Sale] = []
 
-    def add(self, name, price, quantity):
+    def add(self, name, price, quantity, discount):
         product = self._products.by_name(name)
 
         if product:
@@ -19,7 +19,7 @@ class Sales:
                 # (В идеале ingredients должны быть dataclass'ами, но для совместимости оставим так)
                 self._stock.update(i['name'], -i['quantity'] * quantity)
 
-            self._sales.append(model.entities.Sale(product_name=name, price=price, quantity=quantity, product_id=product.id))
+            self._sales.append(model.entities.Sale(product_name=name, price=price, quantity=quantity, discount=discount, product_id=product.id))
         else:            
             raise ValueError(f"Продукт '{name}' не найден")
 
@@ -41,6 +41,7 @@ class Sales:
             ET.SubElement(sal_elem, "product_name").text = sale.product_name
             ET.SubElement(sal_elem, "price").text = str(sale.price)
             ET.SubElement(sal_elem, "quantity").text = str(sale.quantity)
+            ET.SubElement(sal_elem, "discount").text = str(sale.discount)
             ET.SubElement(sal_elem, "date").text = str(sale.date)
 
     def load_from_xml(self, root):
@@ -52,4 +53,5 @@ class Sales:
                 quantity = int(sale_elem.find("quantity").text)
                 id = sale_elem.find("product_id").text
                 date = sale_elem.find("date").text
-                self._sales.append(model.entities.Sale(product_name, price, quantity, uuid.UUID(id), date))
+                discount = int(sale_elem.find("discount").text)
+                self._sales.append(model.entities.Sale(product_name=product_name, price=price, quantity=quantity, discount=discount, product_id=uuid.UUID(id), date=date))

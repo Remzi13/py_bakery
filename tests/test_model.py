@@ -59,12 +59,12 @@ def test_product_creation(model_instance):
 def test_sale_creation_date():
     """Тестирование инициализации Sale и формата даты."""
     test_uuid = uuid.uuid4()
-    sale = Sale("Пирог", 300, 2, test_uuid, date="2025-10-28 10:30")
+    sale = Sale("Пирог", 300, 2, test_uuid, date="2025-10-28 10:30", discount=0)
     
     assert sale.date == "2025-10-28 10:30"
     
     # Проверка, что при отсутствии даты генерируется строка
-    sale_auto_date = Sale("Кекс", 100, 1, test_uuid)
+    sale_auto_date = Sale("Кекс", 100, 1, test_uuid, discount=0)
     # Проверка формата 'YYYY-MM-DD HH:MM'
     assert datetime.strptime(sale_auto_date.date, "%Y-%m-%d %H:%M")
 
@@ -259,7 +259,7 @@ def test_add_sale_and_inventory_update(initial_setup):
     # ----------------------------------------
     
     # Теперь этот вызов должен работать:
-    initial_setup.sales().add("Пирожок", 100, 1) 
+    initial_setup.sales().add("Пирожок", 100, 1, discount=0) 
     
     # ... (дальнейшая проверка, если есть) ...
     
@@ -267,7 +267,7 @@ def test_add_sale_and_inventory_update(initial_setup):
     # то удалите этот вызов и убедитесь, что вы тестируете продукт, который 
     # *действительно* не существует:
     with pytest.raises(ValueError, match="Продукт 'НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ' не найден"):
-        initial_setup.sales().add("НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ", 1, 1)
+        initial_setup.sales().add("НЕ СУЩЕСТВУЮЩИЙ ПРОДУКТ", 1, 1, discount=0)
 
 def test_add_and_get_expense_type(initial_setup):
     """Тестирование добавления, получения и удаления типа расхода."""
@@ -296,8 +296,8 @@ def test_add_expense(initial_setup):
 def test_calculate_finance(initial_setup):
     """Тестирование расчета дохода, расхода и прибыли."""
     # Продажи
-    initial_setup.sales().add("Торт", 1500, 2)
-    initial_setup.sales().add("Торт", 1500, 1) 
+    initial_setup.sales().add("Торт", 1500, 2, discount=0)
+    initial_setup.sales().add("Торт", 1500, 1, discount=0) 
     
     # Расходы
     initial_setup.expenses().add("Аренда", 5000, 1) 
