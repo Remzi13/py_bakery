@@ -236,7 +236,13 @@ def test_update_stock_item(initial_setup):
     initial_setup.stock().update("Мука", 5) # 10 + 5 = 15
     flour_stock = [item for item in initial_setup.stock().data() if item.name == "Мука"][0]
     assert flour_stock.quantity == 15
-    
+    flour_stock = initial_setup.stock().get("Сахар")
+    assert flour_stock.quantity == 500
+
+    initial_setup.stock().set("Сахар", 200)
+    flour_stock = initial_setup.stock().get("Сахар")
+    assert flour_stock.quantity == 200
+
     # ИСПРАВЛЕНИЕ: Замените AssertionError на KeyError
     with pytest.raises(KeyError, match="Элемент 'Вода' не найден в инвентаре"):
         initial_setup.stock().update("Вода", 1)

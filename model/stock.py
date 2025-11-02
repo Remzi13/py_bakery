@@ -11,13 +11,25 @@ class Stock:
     def add(self, name : str, category : model.entities.StockCategory, quantity : float, unit : model.entities.Unit):
         self._items.append(model.entities.StockItem(name=name, category=category, quantity=quantity, unit=unit))
 
+    def get(self, name) -> model.entities.StockItem:
+        for item in self._items:
+            if item.name == name:
+                return item
+        return None        
+
     def delete(self, name):
         self._items = [item for item in self._items if item.name != name]
+
+    def set(self, name, quantity):
+        for item in self._items:
+            if item.name == name:
+                item.quantity = quantity
+                return        
+        raise KeyError(f"Элемент '{name}' не найден в инвентаре")
 
     def update(self, name, quantity):
         for item in self._items:
             if item.name == name:
-                # Inventory - dataclass, но не frozen, можно менять напрямую
                 item.quantity += quantity
                 return        
         raise KeyError(f"Элемент '{name}' не найден в инвентаре")
