@@ -13,8 +13,9 @@ class CreateExpenseTypeDialog(QDialog):
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
-        self.type_combo = QComboBox()
-        self.type_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
+        self.category_combo = QComboBox()
+        self.category_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
+        self.category_combo.currentIndexChanged.connect(self.update_table)
 
         self.price = QDoubleSpinBox()        
         self.price.setRange(0.0, 100000.0)
@@ -38,7 +39,7 @@ class CreateExpenseTypeDialog(QDialog):
         layout.addWidget(QLabel("Название:"), 0, 0)
         layout.addWidget(self.name_input, 0, 1)
         layout.addWidget(QLabel("Тип:"), 1, 0)
-        layout.addWidget(self.type_combo, 1, 1)
+        layout.addWidget(self.category_combo, 1, 1)
         layout.addWidget(QLabel("Цена:"), 2, 0)
         layout.addWidget(self.price, 2, 1)
         layout.addWidget(self.table, 3, 0, 1, 2)
@@ -50,11 +51,12 @@ class CreateExpenseTypeDialog(QDialog):
         self.update_table()
 
     def update_table(self):
-        expense_types = self._model.expense_types().data()
+        expense_types = self._model.expense_types().data()        
+        category = entities.category_by_name(self.category_combo.currentText())
+        expense_types = [expense for expense in expense_types if expense.category == category]
         self.table.clearContents()
         self.table.setRowCount(len(expense_types))
-
-        for i, row in enumerate(expense_types):            
+        for i, row in enumerate(expense_types):
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price)))              
             self.table.setItem(i, 2, QTableWidgetItem(entities.EXPENSE_CATEGORY_NAMES[int(row.category)]))
@@ -78,7 +80,7 @@ class CreateExpenseTypeDialog(QDialog):
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
             category = entities.category_by_name(self.table.item(selected_row, 2).text())
-            if category == entities.Category.INGREDIENT:
+            if category == entities.ExpenseCategory.INGREDIENT:
                 QMessageBox.warning(self, "Ошибка", "Нелья удалять ингредиенты.")
                 return
             self._model.expense_types().delete(name)

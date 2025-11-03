@@ -5,8 +5,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-# Импортируем все ваши модули
-from db_connector import DBConnector
 from gui.products_tab import ProductsWidget
 from gui.stock_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
@@ -26,8 +24,7 @@ class App(QMainWindow):
         self.setWindowTitle("Управление")
         self.setGeometry(100, 100, 1000, 700) 
 
-        self.db = DBConnector()
-        self.db.connect()
+  
 
         self.model = model.Model()
         self.model.load_from_xml()

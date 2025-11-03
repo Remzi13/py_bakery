@@ -44,7 +44,7 @@ class SaleDialog(QDialog):
         product_name = self.product_combo.currentText()
         product = self._model.products().by_name(product_name)
         if product:
-            self.price.setValue(product.price())
+            self.price.setValue(product.price)
     
     def accept(self):
         name = self.product_combo.currentText()
