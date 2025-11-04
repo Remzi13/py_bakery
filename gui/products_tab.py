@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QGridLayout, 
     QLineEdit, QPushButton, QComboBox, QTableWidget, QTabWidget,
     QTableWidgetItem, QMessageBox, QGroupBox, QHeaderView, QDoubleSpinBox, QHBoxLayout,
-    QDialog
+    QDialog, QSpinBox
 )
 
 class AddIngredientsDialog(QDialog):
@@ -135,10 +135,9 @@ class EditProductDialog(QDialog):
             self.setWindowTitle("Редактировать")
             self.name_input = QLabel(self._name)
 
-        self.price_input = QDoubleSpinBox()        
-        self.price_input.setRange(0.0, 10000.0)
-        self.price_input.setDecimals(2)
-        self.price_input.setSingleStep(0.1)
+        self.price_input = QSpinBox()        
+        self.price_input.setRange(1, 10000)        
+        self.price_input.setSingleStep(1)
         
         ing_layout = QGridLayout()
         self.ingredient_combo = QComboBox()

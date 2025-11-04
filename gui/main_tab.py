@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QPushButton, QDialog, QTableWidget,
-    QComboBox, QDoubleSpinBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView
+    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView
 )
 class SaleDialog(QDialog):
     def __init__(self, model):
@@ -17,9 +17,9 @@ class SaleDialog(QDialog):
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.accept)    
 
-        self.price = QDoubleSpinBox()        
+        self.price = QSpinBox()        
         self.price.setRange(0, 10000)
-        self.price.setSingleStep(0.1)
+        self.price.setSingleStep(1)
         self.product_changed()
 
         self.quantity = QSpinBox()

@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog,
-    QLineEdit, QComboBox, QLabel, QDoubleSpinBox, QMessageBox, QSpinBox
+    QLineEdit, QComboBox, QLabel, QMessageBox, QSpinBox
 )
 
 class CreateExpenseTypeDialog(QDialog):
@@ -15,10 +15,9 @@ class CreateExpenseTypeDialog(QDialog):
         self.category_combo.addItems(self._model.utils().get_expense_category_names())
         self.category_combo.currentIndexChanged.connect(self.update_table)
 
-        self.price = QDoubleSpinBox()        
-        self.price.setRange(0.0, 100000.0)
-        self.price.setDecimals(2)
-        self.price.setSingleStep(0.1)
+        self.price = QSpinBox()        
+        self.price.setRange(0, 1000000)        
+        self.price.setSingleStep(1)
 
         self.table = QTableWidget()
         self.table.setColumnCount(3)
@@ -129,10 +128,9 @@ class AddExpenseDialog(QDialog):
         self.category_combo.addItems(names)
         self.category_combo.currentIndexChanged.connect(self.category_changed)
 
-        self.price = QDoubleSpinBox()            
-        self.price.setRange(1.0, 1000000.0)
-        self.price.setDecimals(2)
-        self.price.setSingleStep(0.1)
+        self.price = QSpinBox()            
+        self.price.setRange(1, 1000000)        
+        self.price.setSingleStep(1)
         self.price.setValue(expense_types[0].default_price)
         
         self.quantity = QSpinBox()
