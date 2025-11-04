@@ -17,9 +17,10 @@ class SaleDialog(QDialog):
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.accept)    
 
-        self.price = QSpinBox()        
-        self.price.setRange(0, 1000)
-        self.price.setSingleStep(1)
+        self.price = QDoubleSpinBox()        
+        self.price.setRange(0, 10000)
+        self.price.setSingleStep(0.1)
+        self.product_changed()
 
         self.quantity = QSpinBox()
         self.quantity.setRange(1, 1000)

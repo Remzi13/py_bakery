@@ -74,7 +74,7 @@ class CreateExpenseTypeDialog(QDialog):
 
     def add_type(self):
         name = self.name_input.text()
-        category = self.type_combo.currentIndex()
+        category = self.category_combo.currentText()
         price = self.price.value()   
 
         if name == "":
@@ -121,7 +121,8 @@ class AddExpenseDialog(QDialog):
         for i in expense_types:
             names.append(i.name)
         self.name_combo.addItems(names)
-        
+        self.name_combo.currentIndexChanged.connect(self.name_changed)
+
         self.category_combo = QComboBox()
         self.category_combo.addItem("Все")
         names = self._model.utils().get_expense_category_names()
@@ -129,13 +130,13 @@ class AddExpenseDialog(QDialog):
         self.category_combo.currentIndexChanged.connect(self.category_changed)
 
         self.price = QDoubleSpinBox()            
-        self.price.setRange(0.0, 1000.0)
+        self.price.setRange(1.0, 1000000.0)
         self.price.setDecimals(2)
         self.price.setSingleStep(0.1)
         self.price.setValue(expense_types[0].default_price)
         
         self.quantity = QSpinBox()
-
+        self.quantity.setRange(1, 1000)
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
 
@@ -151,6 +152,11 @@ class AddExpenseDialog(QDialog):
 
         self.setLayout(layout)
     
+    def name_changed(self):
+        name = self.name_combo.currentText()
+        if name is not None:
+            self.price.setValue(self._model.expense_types().get(name).default_price)
+
     def category_changed(self):
         selected_category = self.category_combo.currentText()
         self.name_combo.clear()
@@ -160,8 +166,9 @@ class AddExpenseDialog(QDialog):
         else:            
             names = self._model.expense_types().get_names_by_category_name(selected_category)            
 
+        if len(names) > 0:
+            self.price.setValue(self._model.expense_types().get(names[0]).default_price)
         self.name_combo.addItems(names)
-
 
     def accept(self):
         name = self.name_combo.currentText()
@@ -228,7 +235,7 @@ class ExpensesWidget(QWidget):
         
             # 1. Используем UtilsRepository для преобразования ID в имя.
             # ПРИМЕЧАНИЕ: Мы используем row.category, предполагая, что теперь оно содержит числовой ID.
-            category_name = self._model.utils().get_expense_category_name_by_id(row.category) 
+            category_name = self._model.utils().get_expense_category_name_by_id(row.category_id) 
 
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.price))) 

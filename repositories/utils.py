@@ -46,3 +46,20 @@ class UtilsRepository:
         cursor.execute("SELECT name FROM expense_categories WHERE id = ?", (category_id,))
         row = cursor.fetchone()
         return row[0] if row else None
+    
+    def get_expense_category_id_by_name(self, name: str) -> Optional[int]:
+        """
+        Возвращает ID категории расхода по ее строковому имени (например, 'Сырьё').
+        
+        Args:
+            name (str): Строковое имя категории.
+            
+        Returns:
+            Optional[int]: ID категории или None, если категория не найдена.
+        """
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT id FROM expense_categories WHERE name = ?", (name,))
+        row = cursor.fetchone()
+                
+        return row['id'] if row else None 
+        

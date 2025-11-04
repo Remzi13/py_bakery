@@ -118,14 +118,23 @@ class IngredientsTab(QWidget):
             unit_name = self._model.utils().get_unit_name_by_id(row.unit_id)
             self.table.setItem(i, 1, QTableWidgetItem(unit_name))
 
-class CreateProductDialog(QDialog):
-    def __init__(self, model):
-        super().__init__()
-        self.setWindowTitle("Новый продукт")
-        self._model = model
-        layout =  QGridLayout()
 
-        self.name_input = QLineEdit()
+class EditProductDialog(QDialog):
+
+    def __init__(self, model, name = None):
+        super().__init__()
+        
+        self._model = model
+        self._name = name
+        layout =  QGridLayout()
+        
+        if self._name is None:
+            self.setWindowTitle("Создать")
+            self.name_input = QLineEdit()
+        else:
+            self.setWindowTitle("Редактировать")
+            self.name_input = QLabel(self._name)
+
         self.price_input = QDoubleSpinBox()        
         self.price_input.setRange(0.0, 10000.0)
         self.price_input.setDecimals(2)
@@ -213,16 +222,18 @@ class CreateProductDialog(QDialog):
             self.ing_table.removeRow(row)
 
     def accept(self):
-        name = self.name_input.text().strip()
-        if not name or not self.price_input.value():
-            QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
-            return
-        
-        if self._model.products().has(name) is True:
-            QMessageBox.warning(self, "Ошибка", "Продукт с таким именм уже сушествует.")
-            return        
-        
         ingredients = []
+        name = self._name
+        if name is None:
+            name = self.name_input.text().strip()
+            if not name or not self.price_input.value():
+                QMessageBox.warning(self, "Ошибка", "Введите название и цену продукта.")
+                return
+        
+            if self._model.products().has(name) is True:
+                QMessageBox.warning(self, "Ошибка", "Продукт с таким именм уже сушествует.")
+                return        
+        
         for row in range(self.ing_table.rowCount()):
             ing_name = self.ing_table.item(row, 0).text()
             quantity = float(self.ing_table.item(row, 1).text())
@@ -275,7 +286,7 @@ class ProductsTab(QWidget):
 
     def add_product(self):
         if not self._model.ingredients().empty():
-            dialog = CreateProductDialog(self._model)
+            dialog = EditProductDialog(self._model, None)
             if dialog.exec() != QDialog.DialogCode.Accepted:
                 return
             self.update_products_table()
@@ -300,8 +311,7 @@ class ProductsTab(QWidget):
             QMessageBox.warning(self, "Ошибка", "Продукт не найден.")
             return
 
-        dialog = CreateProductDialog(self._model)
-        dialog.name_input.setText(product.name)
+        dialog = EditProductDialog(self._model, product_name )        
         dialog.price_input.setValue(product.price)
         for ing in product.ingredients:
             row_position = dialog.ing_table.rowCount()

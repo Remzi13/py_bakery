@@ -182,7 +182,7 @@ def test_sales_and_stock_logic(populated_model: SQLiteModel):
     
     # Проверка ошибки при недостатке запаса
     # Попытка продать 30 шт. "Хлеб" (нужно 30*1=30 кг Муки, есть 8.0)
-    with pytest.raises(ValueError, match="Недостаточно запаса 'Мука'"):
+    with pytest.raises(ValueError, match="Недостаточно запаса для 'Мука'. Требуется списание 30.00, текущий остаток 8.00."):
         model.sales().add(name='Хлеб', price=200, quantity=30.0, discount=0)
 
 

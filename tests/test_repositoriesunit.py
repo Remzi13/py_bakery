@@ -183,7 +183,7 @@ class TestStockRepository:
         repo.add(name='Масло', category_name='Сырье', quantity=10.0, unit_name='кг')
         
         # Попытка списать больше, чем есть
-        with pytest.raises(ValueError, match="Недостаточно запаса 'Масло'"):
+        with pytest.raises(ValueError, match="Недостаточно запаса для 'Масло'. Требуется списание 100.00, текущий остаток 10.00."):
             repo.update('Масло', -100.0)
 
     def test_data(self, repo: StockRepository):
@@ -211,6 +211,38 @@ class TestStockRepository:
         # 4. Проверка на ошибку при несуществующем элементе
         with pytest.raises(KeyError):
             repo.set('Несуществующий Товар', 10.0)
+
+    def test_update_quantity_positive(self, repo: StockRepository):
+        """Проверяет, что update корректно увеличивает запас."""
+        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+    
+        # Увеличение (покупка)
+        repo.update('Мука', 5.5)
+    
+        updated_item = repo.get('Мука')
+        assert updated_item.quantity == 15.5
+
+    def test_update_quantity_negative_success(self, repo: StockRepository):
+        """Проверяет, что update корректно уменьшает запас при достаточном остатке."""
+        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+
+        # Уменьшение (продажа)
+        repo.update('Мука', -3.0)
+
+        updated_item = repo.get('Мука')
+        assert updated_item.quantity == 7.0
+
+    def test_update_quantity_negative_failure(self, repo: StockRepository):
+        """Проверяет, что update вызывает ValueError при попытке уйти в минус."""
+        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+
+        # Попытка списания больше, чем есть на складе
+        with pytest.raises(ValueError, match="Недостаточно запаса"):
+            repo.update('Мука', -10.1)
+        
+        # Проверяем, что количество не изменилось (rollback)
+        item_after_fail = repo.get('Мука')
+        assert item_after_fail.quantity == 10.0
 
 # --- 3. Тесты для IngredientsRepository (Сложная логика) ---
 
@@ -438,7 +470,7 @@ class TestSalesRepository:
         repo = model.sales()
         # Попытка продать 30 Булочек. Списание: 30 * 0.5 кг = 15.0 кг (есть 10.0 кг)
         
-        with pytest.raises(ValueError, match="Недостаточно запаса 'Мука'"):
+        with pytest.raises(ValueError, match=r"Недостаточно запаса для 'Мука'. Требуется списание 15.00, текущий остаток 10.00."):
             repo.add(name='Булочка', price=80, quantity=30.0, discount=0)
             
         # Проверка, что транзакция была откатана
@@ -509,3 +541,34 @@ class TestUtilsRepository:
         # Ожидаемый порядок: 'кг', 'грамм', 'литр', 'штук', 'тест_ААА'
         # Если бы не было ORDER BY id, 'тест_ААА' была бы где-то в середине.
         assert names[-1] == 'тест_ААА'
+
+    def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
+        """Проверяет успешное получение ID для известной категории."""
+               
+        # Мы знаем, что 'Сырьё' (INGREDIENT) должна быть в БД после инициализации
+        ingredient_id = repo.get_expense_category_id_by_name('Сырьё')
+        
+        # ID категории должны быть > 0
+        assert isinstance(ingredient_id, int)
+        assert ingredient_id >= 1 
+
+    def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
+        """Проверяет, что возвращается None для несуществующей категории."""
+        
+        unknown_id = repo.get_expense_category_id_by_name('Реклама')
+        
+        assert unknown_id is None
+        
+    def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
+        """Проверяет, что поиск чувствителен к регистру (по умолчанию в SQLite)."""
+        
+        # Если в базе 'Сырьё', то 'сырьё' должно вернуть None
+        lowercase_id = repo.get_expense_category_id_by_name('сырьё')
+        
+        # Примечание: В SQLite по умолчанию сравнение строк без учета регистра, 
+        # но для русских букв может работать как чувствительное, 
+        # поэтому мы просто проверяем, что оно корректно находит точное имя.
+        assert lowercase_id is None
+        
+        # Если очень хочется убедиться, что 'Сырьё' существует:
+        assert repo.get_expense_category_id_by_name('Сырьё') is not None

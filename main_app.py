@@ -1,7 +1,11 @@
+import os
+import logging
 import sys
+import traceback
+
 from PyQt6.QtWidgets import ( 
     QApplication, QMainWindow, QWidget, QHBoxLayout, 
-    QVBoxLayout, QPushButton, QStackedWidget, QSizePolicy 
+    QVBoxLayout, QPushButton, QStackedWidget, QSizePolicy, QMessageBox
 )
 from PyQt6.QtCore import Qt
 
@@ -12,11 +16,58 @@ from gui.main_tab import MainWidget
 #from model import model
 from sql_model.model import SQLiteModel
 
+
 # НОВЫЙ ГЛУБОКИЙ ЯНТАРНЫЙ ЦВЕТ
 ACCENT_COLOR = "#FFB300"    # Насыщенный янтарный
 ACCENT_HOVER = "#E69900"    # Чуть темнее при наведении
 ACCENT_PRESSED = "#CC8400"  # Глубокий оранжевый при нажатии
 ACCENT_LIGHT = "#FFE082"    # Мягкий светлый янтарный для выделения в таблице
+
+# 1. Настройка логирования
+# Это создаст файл app_errors.log в папке запуска приложения
+LOG_FILE = 'app_errors.log'
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.ERROR,
+    format='%(asctime)s | %(levelname)s | %(threadName)s | %(name)s | %(message)s'
+)
+
+def handle_unhandled_exception(exc_type, exc_value, exc_traceback):
+    """
+    Глобальный обработчик необработанных исключений.
+    Заменяет стандартный вывод ошибки в консоль на логирование и уведомление.
+    """
+    # 2. Получение и запись полного стека ошибок в лог-файл
+    error_message = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    logging.error("КРИТИЧЕСКАЯ ОШИБКА. Необработанное исключение: \n%s", error_message)
+
+    # 3. Формирование сообщения для пользователя (вывод в консоль/терминал)
+    user_message = (
+        "Произошла критическая ошибка! Приложение будет закрыто.\n"
+        "Пожалуйста, свяжитесь с разработчиком и приложите файл с ошибками:\n"
+        f"'{os.path.abspath(LOG_FILE)}'\n"
+        f"\nТип: {exc_type.__name__}\nСообщение: {exc_value}"
+    )
+    
+    # 4. Вывод простого сообщения в консоль (наиболее надежный способ)
+    print("\n" + "="*80)
+    print("!!! АВАРИЙНОЕ ЗАВЕРШЕНИЕ РАБОТЫ !!!")
+    print(user_message)
+    print("="*80 + "\n")
+    
+    # 5. Опционально: Попытка вывести сообщение в PyQt QMessageBox
+    # Используй это осторожно, так как сам QMessageBox может сгенерировать сбой, 
+    # если ошибка произошла в процессе закрытия или инициализации GUI.
+    try:
+        QMessageBox.critical(None, "Критическая ошибка приложения", user_message)
+    except Exception:
+        pass # Игнорируем ошибки при показе диалога, чтобы не вызвать новый сбой
+
+    # 6. Аварийное завершение работы
+    # sys.exit(1)
+
+
 
 class App(QMainWindow):
     """Основное окно приложения с боковым меню."""
@@ -194,6 +245,7 @@ class App(QMainWindow):
             app.setStyleSheet(style_sheet)
 
 if __name__ == '__main__':
+    sys.excepthook = handle_unhandled_exception
     app = QApplication(sys.argv)
     ex = App()
     ex.show()

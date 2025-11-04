@@ -173,9 +173,9 @@ def get_expense_category_by_name(conn: sqlite3.Connection, name: str) -> Optiona
     return None
 
 # Инициализация при первом импорте (для удобства)
-try:
-    conn = create_connection()
-    initialize_db(conn)
-    conn.close()
-except sqlite3.Error as e:
-    print(f"Ошибка при инициализации базы данных: {e}")
+#try:
+#    conn = create_connection()
+#    initialize_db(conn)
+#    conn.close()
+#except sqlite3.Error as e:
+#    print(f"Ошибка при инициализации базы данных: {e}")

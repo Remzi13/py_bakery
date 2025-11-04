@@ -84,32 +84,49 @@ class StockRepository:
         cursor.execute("SELECT * FROM stock")
         return [self._row_to_entity(row) for row in cursor.fetchall()]
 
-    def update(self, name: str, change_quantity: float):
+    def update(self, name: str, quantity_delta: float):
         """
-        Изменяет количество запаса: 
-        положительное число - оприходование, отрицательное - расход.
-        """
-        cursor = self._conn.cursor()
+        Изменяет количество элемента запаса на указанную величину (quantity_delta).
         
-        # Получаем текущий запас
-        item = self.get(name)
-        if not item:
+        Args:
+            name (str): Имя элемента запаса.
+            quantity_delta (float): Разница, на которую нужно изменить количество 
+                                    (положительная для прихода, отрицательная для расхода).
+                                    
+        Raises:
+            ValueError: Если в результате операции остаток становится отрицательным.
+            KeyError: Если элемент с таким именем не найден.
+        """
+        conn = self._conn
+        cursor = conn.cursor()
+        
+        # 1. Проверяем наличие и получаем текущее количество (для проверки остатка)
+        current_item = self.get(name) 
+        if current_item is None:
             raise KeyError(f"Элемент '{name}' не найден в инвентаре")
-
-        new_quantity = item.quantity + change_quantity
-
+    
+        new_quantity = current_item.quantity + quantity_delta
+        
+        # 2. Проверка бизнес-логики: Запрещаем отрицательный остаток
         if new_quantity < 0:
-            raise ValueError(f"Недостаточно запаса '{name}'. Требуется {abs(change_quantity)}, в наличии {item.quantity}.")
-
-        try:
-            cursor.execute(
-                "UPDATE stock SET quantity = ? WHERE name = ?", 
-                (new_quantity, name)
+            raise ValueError(
+                f"Недостаточно запаса для '{name}'. Требуется списание {abs(quantity_delta):.2f}, "
+                f"текущий остаток {current_item.quantity:.2f}."
             )
-            self._conn.commit()
-        except Exception as e:
-            self._conn.rollback()
-            raise e
+    
+        try:
+            # 3. Атомарное обновление (SET quantity = quantity + delta)
+            cursor.execute("""
+                UPDATE stock
+                SET quantity = quantity + ?
+                WHERE name = ?
+            """, (quantity_delta, name))
+            
+            conn.commit()
+            
+        except sqlite3.Error as e:
+            conn.rollback()
+            raise RuntimeError(f"Ошибка при обновлении запаса для '{name}': {e}")
         
     def set(self, name: str, new_quantity: float):
         """
