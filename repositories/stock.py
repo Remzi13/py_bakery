@@ -1,0 +1,132 @@
+import sqlite3
+import uuid
+from typing import Optional, List, Any
+
+from sql_model.entities import StockItem
+from sql_model.database import create_connection, get_unit_by_name
+from sql_model.database import INITIAL_STOCK_CATEGORIES # Для получения имен категорий
+
+
+class StockRepository:
+
+    def __init__(self, conn: sqlite3.Connection):
+        self._conn = conn
+
+    # --- Вспомогательные методы ---
+
+    def _row_to_entity(self, row: sqlite3.Row) -> Optional[StockItem]:
+        """Преобразует строку из БД в объект StockItem."""
+        if row is None:
+            return None
+        return StockItem(
+            id=row['id'],
+            name=row['name'],
+            category_id=row['category_id'],
+            quantity=row['quantity'],
+            unit_id=row['unit_id'],
+            uid=uuid.UUID(row['uid'])
+        )
+        
+    def _get_category_id(self, category_name: str) -> Optional[int]:
+        """Получает ID категории запасов по имени."""
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT id FROM stock_categories WHERE name = ?", 
+            (category_name,)
+        )
+        row = cursor.fetchone()
+        return row['id'] if row else None
+
+
+    # --- CRUD/Логические Методы ---
+
+    def add(self, name: str, category_name: str, quantity: float, unit_name: str):
+        """Добавляет новый элемент в инвентарь."""
+        cursor = self._conn.cursor()
+        
+        unit_id = get_unit_by_name(self._conn, unit_name)
+        category_id = self._get_category_id(category_name)
+        
+        if unit_id is None:
+            raise ValueError(f"Единица измерения '{unit_name}' не найдена.")
+        if category_id is None:
+            raise ValueError(f"Категория '{category_name}' не найдена.")
+        
+        new_uuid = uuid.uuid4()
+        
+        try:
+            cursor.execute(
+                """
+                INSERT INTO stock (name, category_id, quantity, unit_id, uid) 
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (name, category_id, quantity, unit_id, str(new_uuid))
+            )
+            self._conn.commit()
+        except sqlite3.IntegrityError:
+            self._conn.rollback()
+            raise ValueError(f"Элемент инвентаря с именем '{name}' уже существует.")
+        except Exception as e:
+            self._conn.rollback()
+            raise e
+
+
+    def get(self, name: str) -> Optional[StockItem]:
+        """Получает элемент инвентаря по имени."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT * FROM stock WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        return self._row_to_entity(row)
+
+    def data(self) -> List[StockItem]:
+        """Возвращает список всех элементов инвентаря."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT * FROM stock")
+        return [self._row_to_entity(row) for row in cursor.fetchall()]
+
+    def update(self, name: str, change_quantity: float):
+        """
+        Изменяет количество запаса: 
+        положительное число - оприходование, отрицательное - расход.
+        """
+        cursor = self._conn.cursor()
+        
+        # Получаем текущий запас
+        item = self.get(name)
+        if not item:
+            raise KeyError(f"Элемент '{name}' не найден в инвентаре")
+
+        new_quantity = item.quantity + change_quantity
+
+        if new_quantity < 0:
+            raise ValueError(f"Недостаточно запаса '{name}'. Требуется {abs(change_quantity)}, в наличии {item.quantity}.")
+
+        try:
+            cursor.execute(
+                "UPDATE stock SET quantity = ? WHERE name = ?", 
+                (new_quantity, name)
+            )
+            self._conn.commit()
+        except Exception as e:
+            self._conn.rollback()
+            raise e
+
+    def delete(self, name: str):
+        """Удаляет элемент из инвентаря по имени."""
+        cursor = self._conn.cursor()
+        try:
+            cursor.execute("DELETE FROM stock WHERE name = ?", (name,))
+            self._conn.commit()
+        except Exception as e:
+            self._conn.rollback()
+            raise e
+            
+    def len(self) -> int:
+        """Возвращает количество элементов в инвентаре."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM stock")
+        return cursor.fetchone()[0]
+
+    def empty(self) -> bool:
+        """Проверяет, пуст ли инвентарь."""
+        return self.len() == 0
