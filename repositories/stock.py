@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from typing import Optional, List, Any
 
 from sql_model.entities import StockItem
@@ -23,8 +22,7 @@ class StockRepository:
             name=row['name'],
             category_id=row['category_id'],
             quantity=row['quantity'],
-            unit_id=row['unit_id'],
-            uid=uuid.UUID(row['uid'])
+            unit_id=row['unit_id']
         )
         
     def _get_category_id(self, category_name: str) -> Optional[int]:
@@ -51,16 +49,14 @@ class StockRepository:
             raise ValueError(f"Единица измерения '{unit_name}' не найдена.")
         if category_id is None:
             raise ValueError(f"Категория '{category_name}' не найдена.")
-        
-        new_uuid = uuid.uuid4()
-        
+       
         try:
             cursor.execute(
                 """
-                INSERT INTO stock (name, category_id, quantity, unit_id, uid) 
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO stock (name, category_id, quantity, unit_id) 
+                VALUES (?, ?, ?, ?)
                 """,
-                (name, category_id, quantity, unit_id, str(new_uuid))
+                (name, category_id, quantity, unit_id)
             )
             self._conn.commit()
         except sqlite3.IntegrityError:

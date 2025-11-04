@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from typing import Optional, List, Any
 
 # Импортируем обновленные сущности
@@ -22,8 +21,7 @@ class IngredientsRepository:
         return Ingredient(
             id=row['id'],
             name=row['name'],
-            unit_id=row['unit_id'],
-            uid=uuid.UUID(row['uid'])
+            unit_id=row['unit_id']
         )
 
     # --- CRUD Методы ---
@@ -41,11 +39,10 @@ class IngredientsRepository:
             raise ValueError(f"Единица измерения '{unit_name}' не найдена.")
 
         # 2. Создаем ингредиент
-        new_uuid = uuid.uuid4()
         try:
             cursor.execute(
-                "INSERT INTO ingredients (name, unit_id, uid) VALUES (?, ?, ?)",
-                (name, unit_id, str(new_uuid))
+                "INSERT INTO ingredients (name, unit_id) VALUES (?, ?)",
+                (name, unit_id)
             )
             ingredient_id = cursor.lastrowid
             self._conn.commit()
@@ -67,7 +64,7 @@ class IngredientsRepository:
                 category_name='Сырьё'
             )
             
-            return Ingredient(id=ingredient_id, name=name, unit_id=unit_id, uid=new_uuid)
+            return Ingredient(id=ingredient_id, name=name, unit_id=unit_id)
 
         except sqlite3.IntegrityError:
             self._conn.rollback()

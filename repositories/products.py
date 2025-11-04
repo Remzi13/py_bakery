@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from typing import Optional, List, Dict, Any
 from types import SimpleNamespace
 
@@ -29,7 +28,7 @@ class ProductsRepository:
         # Но чтобы сохранить логику, как в исходной модели, будем возвращать словарь.
         
         # ВНИМАНИЕ: Если бы Product Entity не был 'frozen', мы бы делали так:
-        # p = Product(id=row['id'], name=row['name'], price=row['price'], uuid=uuid.UUID(row['uid']))
+        # p = Product(id=row['id'], name=row['name'], price=row['price']))
         # p.ingredients = ingredients_data # Но dataclass frozen=True не позволяет этого.
         
         # Возвращаем Product, но для дальнейшей работы с ним потребуется отдельный вызов
@@ -41,8 +40,7 @@ class ProductsRepository:
         return Product(
             id=row['id'], 
             name=row['name'], 
-            price=row['price'], 
-            uid=uuid.UUID(row['uid'])
+            price=row['price']
         )
 
     def get_ingredients_for_product(self, product_id: int) -> List[Dict[str, Any]]:
@@ -92,10 +90,9 @@ class ProductsRepository:
                 )
             else:
                 # 2. Добавление: Создаем новый продукт
-                new_uuid = uuid.uuid4()
                 cursor.execute(
-                    "INSERT INTO products (name, price, uid) VALUES (?, ?, ?)",
-                    (name, price, str(new_uuid))
+                    "INSERT INTO products (name, price) VALUES (?, ?)",
+                    (name, price)
                 )
                 product_id = cursor.lastrowid
 
@@ -193,7 +190,6 @@ class ProductsRepository:
             setattr(prod, "id", product.id)
             setattr(prod, "name", product.name)
             setattr(prod, "price", product.price)
-            setattr(prod, "uid", product.uid)
             setattr(prod, "ingredients", self.get_ingredients_for_product(product.id))            
             
             products.append(prod)

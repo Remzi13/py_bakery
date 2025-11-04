@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from typing import Optional, List, Any
 
 from sql_model.entities import Sale

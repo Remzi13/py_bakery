@@ -1,5 +1,4 @@
 import sqlite3
-import uuid
 from typing import Optional, List
 
 from sql_model.entities import ExpenseType
@@ -21,8 +20,7 @@ class ExpenseTypesRepository:
             id=row['id'],
             name=row['name'],
             default_price=row['default_price'],
-            category_id=row['category_id'],
-            uid=uuid.UUID(row['uid'])
+            category_id=row['category_id']
         )
 
     # --- CRUD Методы ---
@@ -35,15 +33,13 @@ class ExpenseTypesRepository:
         if category_id is None:
             raise ValueError(f"Категория расходов '{category_name}' не найдена.")
         
-        new_uuid = uuid.uuid4()
-        
         try:
             cursor.execute(
                 """
-                INSERT INTO expense_types (name, default_price, category_id, uid) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO expense_types (name, default_price, category_id) 
+                VALUES (?, ?, ?)
                 """,
-                (name, default_price, category_id, str(new_uuid))
+                (name, default_price, category_id)
             )
             self._conn.commit()
         except sqlite3.IntegrityError:
@@ -129,7 +125,7 @@ class ExpenseTypesRepository:
         cursor = self._conn.cursor()
         # Выбираем все необходимые поля для ExpenseType
         cursor.execute("""
-            SELECT id, uid, name, default_price, category_id 
+            SELECT id, name, default_price, category_id 
             FROM expense_types 
             WHERE category_id = ? 
             ORDER BY name

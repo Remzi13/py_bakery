@@ -65,7 +65,6 @@ def initialize_db(conn: sqlite3.Connection):
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
             unit_id INTEGER NOT NULL,
-            uid TEXT NOT NULL UNIQUE,
             FOREIGN KEY (unit_id) REFERENCES units (id)
         );
         """,
@@ -73,8 +72,7 @@ def initialize_db(conn: sqlite3.Connection):
         CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
-            price INTEGER NOT NULL,
-            uid TEXT NOT NULL UNIQUE
+            price INTEGER NOT NULL
         );
         """,
         # Таблица для связи Продукт-Ингредиент
@@ -95,7 +93,6 @@ def initialize_db(conn: sqlite3.Connection):
             category_id INTEGER NOT NULL,
             quantity REAL NOT NULL,
             unit_id INTEGER NOT NULL,
-            uid TEXT NOT NULL UNIQUE,
             FOREIGN KEY (category_id) REFERENCES stock_categories (id),
             FOREIGN KEY (unit_id) REFERENCES units (id)
         );
@@ -106,7 +103,6 @@ def initialize_db(conn: sqlite3.Connection):
             name TEXT NOT NULL UNIQUE,
             default_price INTEGER NOT NULL,
             category_id INTEGER NOT NULL,
-            uid TEXT NOT NULL UNIQUE,
             FOREIGN KEY (category_id) REFERENCES expense_categories (id)
         );
         """,
