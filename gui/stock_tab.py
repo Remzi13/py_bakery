@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import (
     QPushButton, QDialog, QMessageBox, QDoubleSpinBox, QLabel
 )
 
-import model.entities as entities
-
 class EditStockDialog(QDialog):
 
     def __init__(self, model, name):
@@ -82,8 +80,10 @@ class StorageWidget(QWidget):
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(entities.STOCK_CATEGORY_NAMES[row.category]))
-            self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))            
-            self.table.setItem(i, 3, QTableWidgetItem(entities.UNIT_NAMES[row.unit]))
+            category_name = self._model.utils().get_stock_category_name_by_id(row.category_id)
+            self.table.setItem(i, 1, QTableWidgetItem(category_name))
+            self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
+            unit_name = self._model.utils().get_unit_name_by_id(row.unit_id)
+            self.table.setItem(i, 3, QTableWidgetItem(unit_name))
 
 

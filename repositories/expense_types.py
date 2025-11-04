@@ -93,3 +93,54 @@ class ExpenseTypesRepository:
     def empty(self) -> bool:
         """Проверяет, пуст ли репозиторий."""
         return self.len() == 0
+    
+    def get_names_by_category_name(self, category_name: str) -> List[str]:
+        """
+        Возвращает список имен типов расходов, принадлежащих указанной категории.
+        
+        Сложность: Выполняется JOIN для поиска по имени категории и 
+        возвращаются только имена.
+        """
+        cursor = self._conn.cursor()
+        
+        # Сначала находим ID категории по ее имени
+        category_id = self._get_category_id(category_name)
+        
+        if category_id is None:
+            return [] # Возвращаем пустой список, если категория не найдена
+    
+        # Используем найденный ID для фильтрации типов расходов
+        cursor.execute("""
+            SELECT name FROM expense_types 
+            WHERE category_id = ? 
+            ORDER BY name
+        """, (category_id,))
+        
+        return [row[0] for row in cursor.fetchall()]
+    
+    def get_by_category_name(self, category_name: str) -> List[ExpenseType]:
+        """Возвращает все объекты ExpenseType для указанной категории, отфильтрованные в БД."""
+    
+        category_id = self._get_category_id(category_name)
+    
+        if category_id is None:
+            return []
+
+        cursor = self._conn.cursor()
+        # Выбираем все необходимые поля для ExpenseType
+        cursor.execute("""
+            SELECT id, uid, name, default_price, category_id 
+            FROM expense_types 
+            WHERE category_id = ? 
+            ORDER BY name
+        """, (category_id,))
+    
+        return [self._row_to_entity(row) for row in cursor.fetchall()]
+
+    # Вспомогательный метод (если его еще нет):
+    def _get_category_id(self, category_name: str) -> Optional[int]:
+        """Находит ID категории расходов по ее строковому имени."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT id FROM expense_categories WHERE name = ?", (category_name,))
+        row = cursor.fetchone()
+        return row[0] if row else None

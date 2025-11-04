@@ -73,6 +73,84 @@ class TestExpenseTypesRepository:
         assert repo.get('Зарплата') is None
         assert repo.empty() is True
 
+    def test_data(self, repo: ExpenseTypesRepository):
+        repo.add(name='Аренда', default_price=50000, category_name='Платежи')
+        repo.add(name='Свет', default_price=1000, category_name='Платежи')
+        
+        data = repo.data()
+        assert len(data) == 2
+        assert data[0].name == 'Аренда'
+        assert data[1].default_price == 1000
+
+    def test_get_names_by_category_name(self, repo: ExpenseTypesRepository, setup_ids: dict):
+        """
+        Проверяет, что get_names_by_category_name возвращает только имена типов 
+        расходов, принадлежащих указанной категории.
+        """
+        
+        # 1. Подготовка: Добавляем типы расходов в разные категории
+        # Предполагаем, что категории 'Платежи' и 'Сырьё' существуют в базе данных
+        repo.add(name='Аренда', default_price=50000, category_name='Платежи')
+        repo.add(name='Электричество', default_price=1000, category_name='Платежи')
+        repo.add(name='Мука', default_price=50, category_name='Сырьё')
+        
+        # 2. Действие: Запрашиваем типы для категории 'Платежи'
+        payment_names = repo.get_names_by_category_name('Платежи')
+        
+        # Проверка 1: Корректное количество и содержимое
+        assert len(payment_names) == 2
+        # Проверяем, что имена отсортированы (если мы добавили ORDER BY name в SQL)
+        assert payment_names == ['Аренда', 'Электричество'] 
+        
+        # 3. Действие: Запрашиваем типы для категории 'Сырьё'
+        ingredient_names = repo.get_names_by_category_name('Сырьё')
+        
+        # Проверка 2: Корректное содержимое
+        assert len(ingredient_names) == 1
+        assert ingredient_names[0] == 'Мука'
+        
+        # 4. Проверка на несуществующую категорию
+        unknown_names = repo.get_names_by_category_name('Несуществующая Категория')
+        assert len(unknown_names) == 0
+        assert unknown_names == []
+
+    def test_get_by_category_name(self, repo: ExpenseTypesRepository, setup_ids: dict):
+        """
+        Проверяет, что get_by_category_name возвращает полные объекты ExpenseType,
+        отфильтрованные по имени категории.
+        """
+        
+        # 1. Подготовка: Добавляем типы расходов в разные категории
+        # Предполагаем, что категории 'Платежи' и 'Сырьё' существуют в базе данных
+        repo.add(name='Аренда', default_price=50000, category_name='Платежи')
+        repo.add(name='Электричество', default_price=1000, category_name='Платежи')
+        repo.add(name='Мука', default_price=50, category_name='Сырьё')
+        
+        # 2. Действие: Запрашиваем типы для категории 'Платежи'
+        payment_expenses = repo.get_by_category_name('Платежи')
+        
+        # Проверка 1: Корректное количество и содержимое
+        assert len(payment_expenses) == 2
+        
+        # Проверяем, что вернулись полные объекты и они корректно отфильтрованы
+        # (Сортировка по имени: 'Аренда' идет раньше 'Электричество')
+        assert payment_expenses[0].name == 'Аренда'
+        assert payment_expenses[0].default_price == 50000
+        assert payment_expenses[1].name == 'Электричество'
+        assert payment_expenses[1].default_price == 1000
+        
+        # 3. Действие: Запрашиваем типы для категории 'Сырьё'
+        ingredient_expenses = repo.get_by_category_name('Сырьё')
+        
+        # Проверка 2: Корректное содержимое
+        assert len(ingredient_expenses) == 1
+        assert ingredient_expenses[0].name == 'Мука'
+        
+        # 4. Проверка на несуществующую категорию
+        unknown_expenses = repo.get_by_category_name('Несуществующая Категория')
+        assert len(unknown_expenses) == 0
+        assert unknown_expenses == []
+
 # --- 2. Тесты для StockRepository ---
 
 class TestStockRepository:
@@ -107,6 +185,32 @@ class TestStockRepository:
         # Попытка списать больше, чем есть
         with pytest.raises(ValueError, match="Недостаточно запаса 'Масло'"):
             repo.update('Масло', -100.0)
+
+    def test_data(self, repo: StockRepository):
+        repo.add(name='Мука', category_name='Сырье', quantity=100.0, unit_name='кг')
+        repo.add(name='Яйцо', category_name='Сырье', quantity=50.0, unit_name='штук')
+        
+        data = repo.data()
+        assert len(data) == 2
+        assert data[0].name == 'Мука'
+        assert data[1].quantity == 50.0
+
+    def test_set_quantity(self, repo: StockRepository):
+        """Проверяет, что метод set корректно устанавливает новое количество."""
+    
+        # 1. Подготовка: Добавляем элемент запаса
+        repo.add(name='Сахар', category_name='Сырье', quantity=100.0, unit_name='кг')
+    
+        # 2. Действие: Устанавливаем новое количество
+        repo.set('Сахар', 55.5)
+    
+        # 3. Проверка: Получаем элемент и проверяем его количество
+        updated_item = repo.get('Сахар')
+        assert updated_item.quantity == 55.5
+    
+        # 4. Проверка на ошибку при несуществующем элементе
+        with pytest.raises(KeyError):
+            repo.set('Несуществующий Товар', 10.0)
 
 # --- 3. Тесты для IngredientsRepository (Сложная логика) ---
 
@@ -162,7 +266,16 @@ class TestIngredientsRepository:
         with pytest.raises(ValueError, match="Ингредиент 'Сахар' используется в продукте"):
             repo.delete('Сахар')
         assert repo.has('Сахар') is True
-
+        
+    def test_data(self, model: SQLiteModel):
+        repo = model.ingredients()
+        repo.add(name='Сахар', unit_name='кг')
+        repo.add(name='Вода', unit_name='литр')
+        
+        data = repo.data()
+        assert len(data) == 2
+        assert data[0].name == 'Сахар'
+        assert data[1].unit_id == 3 # ID 'литр' (при условии, что 'литр' имеет id=3)
 
 # --- 4. Тесты для ProductsRepository (Рецепты) ---
 
@@ -214,6 +327,47 @@ class TestProductsRepository:
         repo.delete('Кекс')
         assert repo.has('Кекс') is False
 
+    def test_delete_cascades_to_recipes(self, model: SQLiteModel):
+        """
+        Проверяет, что при удалении продукта удаляются все его рецепты (записи в таблице recipes).
+        """
+        repo = model.products()
+        conn = model._conn # Доступ к соединению для проверки
+    
+        # 1. Подготовка: Добавляем ингредиенты
+        model.ingredients().add('Мука', 'кг')
+    
+        # 2. Добавление продукта с рецептом
+        recipe = [{'name': 'Мука', 'quantity': 1.0}]
+        repo.add(name='Пирог', price=500, ingredients=recipe)
+    
+        # Проверка: В таблице recipes должна быть 1 запись
+        initial_recipe_count = conn.execute("SELECT COUNT(*) FROM product_ingredients").fetchone()[0]
+        assert initial_recipe_count == 1
+    
+        # 3. Действие: Удаление продукта
+        repo.delete('Пирог')
+        assert repo.has('Пирог') is False
+    
+        # 4. Проверка: В таблице recipes должно быть 0 записей (Каскадное удаление сработало)
+        final_recipe_count = conn.execute("SELECT COUNT(*) FROM product_ingredients").fetchone()[0]
+        assert final_recipe_count == 0
+
+    def test_data(self, model: SQLiteModel):
+        repo = model.products()
+        
+        # Для добавления продукта нужны ингредиенты
+        model.ingredients().add('Инг1', 'кг')
+        
+        repo.add(name='Торт', price=1000, ingredients=[{'name': 'Инг1', 'quantity': 1.0}])
+        repo.add(name='Кекс', price=50, ingredients=[])
+        
+        data = repo.data()
+        assert len(data) == 2
+        assert data[0].name == 'Торт'
+        assert data[1].price == 50
+        assert len(data[0].ingredients) == 1 # Проверка, что рецепт загрузился
+
 # --- 5. Тесты для ExpensesRepository ---
 
 class TestExpensesRepository:
@@ -237,6 +391,19 @@ class TestExpensesRepository:
         
         with pytest.raises(ValueError, match="Тип расхода 'Неизвестно' не найден."):
             repo.add(name='Неизвестно', price=100, quantity=1.0)
+    
+    def test_data(self, model: SQLiteModel):
+        repo = model.expenses()
+        # Создаем тип расхода (Мука)
+        model.expense_types().add(name='Мука', default_price=100, category_name='Сырьё')
+        
+        repo.add(name='Мука', price=150, quantity=10.0)
+        
+        data = repo.data()
+        assert len(data) == 1
+        assert data[0].name == 'Мука'
+        assert data[0].price == 150
+        assert data[0].quantity == 10.0
 
 # --- 6. Тесты для SalesRepository (Сложная логика списания) ---
 
@@ -277,6 +444,19 @@ class TestSalesRepository:
         # Проверка, что транзакция была откатана
         assert model.sales().empty() is True
         assert model.stock().get('Мука').quantity == 10.0 # Запасы не должны измениться
+    
+    def test_data(self, model: SQLiteModel):
+        repo = model.sales()
+        # Используем продукт, созданный в setup_stock_and_products
+        
+        repo.add(name='Булочка', price=80, quantity=1.0, discount=0) 
+        repo.add(name='Булочка', price=80, quantity=2.0, discount=10) 
+        
+        data = repo.data()
+        assert len(data) == 2
+        assert data[0].quantity == 1.0
+        assert data[1].discount == 10
+        assert data[1].product_name == 'Булочка'
 
 # --- 7. Тесты для UtilsRepository (Справочники) ---
 

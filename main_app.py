@@ -9,7 +9,8 @@ from gui.products_tab import ProductsWidget
 from gui.stock_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget
-from model import model
+#from model import model
+from sql_model.model import SQLiteModel
 
 # НОВЫЙ ГЛУБОКИЙ ЯНТАРНЫЙ ЦВЕТ
 ACCENT_COLOR = "#FFB300"    # Насыщенный янтарный
@@ -24,10 +25,9 @@ class App(QMainWindow):
         self.setWindowTitle("Управление")
         self.setGeometry(100, 100, 1000, 700) 
 
-  
-
-        self.model = model.Model()
-        self.model.load_from_xml()
+        #self.model = model.Model()
+        #self.model.load_from_xml()
+        self.model = SQLiteModel("bakery.db")
 
         #self.load_stylesheet() # Применяем стили
 
@@ -94,7 +94,7 @@ class App(QMainWindow):
 
     def closeEvent(self, event):
         """Обработка закрытия приложения для отключения от БД."""
-        self.model.save_to_xml()    
+        #self.model.save_to_xml()    
         super().closeEvent(event)
 
     def load_stylesheet(self):

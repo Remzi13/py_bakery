@@ -5,8 +5,6 @@ from PyQt6.QtWidgets import (
     QDialog
 )
 
-import model.entities as entities
-
 class AddIngredientsDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -15,8 +13,9 @@ class AddIngredientsDialog(QDialog):
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
-        self.unit_combo = QComboBox()        
-        self.unit_combo.addItems(list(entities.UNIT_NAMES.values()))
+        self.unit_combo = QComboBox() 
+        unit_names = model.utils().get_unit_names()       
+        self.unit_combo.addItems(unit_names)
 
         save_button = QPushButton("Добавить")
         save_button.clicked.connect(self.accept)
@@ -37,7 +36,8 @@ class AddIngredientsDialog(QDialog):
         if self._model.ingredients().has(name):
             QMessageBox.warning(self, "Ошибка", "Введите название ингредиента который уже сушествует.")
             return
-        self._model.ingredients().add(self.name_input.text().strip(), entities.unit_by_name(self.unit_combo.currentText()))
+        self._model.ingredients().add(self.name_input.text().strip(), self.unit_combo.currentText()) 
+
         return super().accept()
 
 class IngredientsTab(QWidget):
@@ -115,7 +115,8 @@ class IngredientsTab(QWidget):
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(entities.UNIT_NAMES[row.unit]))
+            unit_name = self._model.utils().get_unit_name_by_id(row.unit_id)
+            self.table.setItem(i, 1, QTableWidgetItem(unit_name))
 
 class CreateProductDialog(QDialog):
     def __init__(self, model):
@@ -141,9 +142,10 @@ class CreateProductDialog(QDialog):
         self.add_ingredient_button = QPushButton("+")
         self.add_ingredient_button.clicked.connect(self.add_ingredient)
         self.del_ingredient_button = QPushButton("-")
-        self.del_ingredient_button.clicked.connect(self.del_ingredient)
+        self.del_ingredient_button.clicked.connect(self.del_ingredient)        
         ing = self._model.ingredients().by_name(model.ingredients().names()[0])        
-        self.ing_unit = QLabel(entities.UNIT_NAMES[ing.unit])
+        unit_name = self._model.utils().get_unit_name_by_id(ing.unit_id)            
+        self.ing_unit = QLabel(unit_name)
                 
         
         ing_layout.addWidget(QLabel("Ингредиент:"), 0, 0)
@@ -180,8 +182,8 @@ class CreateProductDialog(QDialog):
     def ing_combo_changed(self):
         name = self.ingredient_combo.currentText()
         ing = self._model.ingredients().by_name(name)
-        entities.UNIT_NAMES[ing.unit]
-        self.ing_unit.setText(entities.UNIT_NAMES[ing.unit])
+        unit_name = self._model.utils().get_unit_name_by_id(ing.unit_id)
+        self.ing_unit.setText(unit_name)
 
     def add_ingredient(self):
         ingredient_name = self.ingredient_combo.currentText()
@@ -202,7 +204,8 @@ class CreateProductDialog(QDialog):
         self.ing_table.insertRow(row_position)
         self.ing_table.setItem(row_position, 0, QTableWidgetItem(ingredient_name))
         self.ing_table.setItem(row_position, 1, QTableWidgetItem(str(round(quantity, 3))))
-        self.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing.unit]))
+        unit_name = self._model.utils().get_unit_name_by_id(ing.unit_id)
+        self.ing_table.setItem(row_position, 2, QTableWidgetItem(unit_name))
     
     def del_ingredient(self):
         row = self.ing_table.currentRow()
@@ -271,10 +274,13 @@ class ProductsTab(QWidget):
             print(f"Выбран продукт: {product_name}")    
 
     def add_product(self):
-        dialog = CreateProductDialog(self._model)
-        if dialog.exec() != QDialog.DialogCode.Accepted:
-            return
-        self.update_products_table()
+        if not self._model.ingredients().empty():
+            dialog = CreateProductDialog(self._model)
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                return
+            self.update_products_table()
+        else:
+            QMessageBox.warning(self, "Ошибка", "Нет ни одноги ингредиента.")
 
     def edit_product(self):
         selected_rows = self.products_table.selectionModel().selectedRows()
@@ -302,8 +308,9 @@ class ProductsTab(QWidget):
             dialog.ing_table.insertRow(row_position)
             dialog.ing_table.setItem(row_position, 0, QTableWidgetItem(ing['name'])) 
             dialog.ing_table.setItem(row_position, 1, QTableWidgetItem(str(ing['quantity'])))
-            ing_obj = self._model.ingredients().by_name(ing['name'])
-            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(entities.UNIT_NAMES[ing_obj.unit]))
+            ing_obj = self._model.ingredients().by_name(ing['name'])             
+            unit_name = self._model.utils().get_unit_name_by_id(ing_obj.unit_id)           
+            dialog.ing_table.setItem(row_position, 2, QTableWidgetItem(unit_name))
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return          

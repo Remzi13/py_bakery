@@ -110,6 +110,40 @@ class StockRepository:
         except Exception as e:
             self._conn.rollback()
             raise e
+        
+    def set(self, name: str, new_quantity: float):
+        """
+        Устанавливает новое конкретное значение количества для элемента запаса.
+        
+        Args:
+            name (str): Имя элемента запаса (например, 'Мука', 'Упаковка 100г').
+            new_quantity (float): Новое количество.
+        
+        Raises:
+            KeyError: Если элемент с таким именем не найден.
+        """
+        conn = self._conn
+        cursor = conn.cursor()
+        
+        # 1. Проверяем, существует ли элемент, чтобы избежать "слепого" UPDATE
+        item = self.get(name) 
+        if item is None:
+            # Воспроизводим поведение старого класса (KeyError)
+            raise KeyError(f"Элемент '{name}' не найден в инвентаре")
+
+        try:
+            # 2. Обновляем поле quantity
+            cursor.execute("""
+                UPDATE stock
+                SET quantity = ?
+                WHERE name = ?
+            """, (new_quantity, name))
+            
+            conn.commit()
+            
+        except sqlite3.Error as e:
+            conn.rollback()
+            raise RuntimeError(f"Ошибка при обновлении запаса для '{name}': {e}")
 
     def delete(self, name: str):
         """Удаляет элемент из инвентаря по имени."""

@@ -1,6 +1,8 @@
 import sqlite3
 import uuid
 from typing import Optional, List, Dict, Any
+from types import SimpleNamespace
+
 
 from sql_model.entities import Product
 # Мы импортируем IngredientsRepository для получения ID ингредиента по имени
@@ -151,28 +153,32 @@ class ProductsRepository:
         return self._row_to_entity(row, [])
 
     def delete(self, name: str):
-        """Удаляет продукт и его рецепт (каскадно)."""
+        """Удаляет продукт и все его связанные рецепты."""
         product = self.by_name(name)
         if not product:
             return
 
-        cursor = self._conn.cursor()
-        try:
-            # Сначала проверяем, не был ли продан этот продукт
+        conn = self._conn
+        cursor = conn.cursor()
+        
+        try:            
             cursor.execute("SELECT COUNT(*) FROM sales WHERE product_id = ?", (product.id,))
             if cursor.fetchone()[0] > 0:
                  raise ValueError(f"Продукт '{name}' был продан и не может быть удален.")
-
-            # Удаляем сам продукт. Благодаря ON DELETE CASCADE в product_ingredients,
-            # рецепт удалится автоматически.
+            # 1. Каскадное удаление: Удаляем все записи рецептов, связанные с этим product_id
+            cursor.execute("DELETE FROM product_ingredients WHERE product_id = ?", (product.id,))
+            
+            # 2. Удаляем сам продукт
             cursor.execute("DELETE FROM products WHERE id = ?", (product.id,))
-            self._conn.commit()
+            
+            conn.commit()
+            
+        except sqlite3.Error as e:
+            conn.rollback()
+            # В реальном приложении здесь можно логировать ошибку
+            raise RuntimeError(f"Ошибка при удалении продукта '{name}' и его рецептов: {e}")
 
-        except Exception as e:
-            self._conn.rollback()
-            raise e
-
-    def data(self) -> List[Dict[str, Any]]:
+    def data(self) -> List[Dict[str, SimpleNamespace]]:
         """
         Возвращает список всех продуктов в виде словарей, 
         включая их рецепты (для совместимости со старой моделью).
@@ -181,17 +187,16 @@ class ProductsRepository:
         cursor.execute("SELECT * FROM products")
         products = []
         for row in cursor.fetchall():
-            product = self._row_to_entity(row, [])
+            product = self._row_to_entity(row, [])            
             # Создаем словарь, чтобы добавить поле 'ingredients'
-            product_dict = {
-                'id': product.id,
-                'name': product.name,
-                'price': product.price,
-                'uid': product.uid,
-                # Получаем рецепт для каждого продукта
-                'ingredients': self.get_ingredients_for_product(product.id)
-            }
-            products.append(product_dict)
+            prod = SimpleNamespace()            
+            setattr(prod, "id", product.id)
+            setattr(prod, "name", product.name)
+            setattr(prod, "price", product.price)
+            setattr(prod, "uid", product.uid)
+            setattr(prod, "ingredients", self.get_ingredients_for_product(product.id))            
+            
+            products.append(prod)
             
         return products
     

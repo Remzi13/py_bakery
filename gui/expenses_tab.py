@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import (
     QLineEdit, QComboBox, QLabel, QDoubleSpinBox, QMessageBox, QSpinBox
 )
 
-import model.entities as entities
-
 class CreateExpenseTypeDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -13,8 +11,8 @@ class CreateExpenseTypeDialog(QDialog):
         layout =  QGridLayout()
 
         self.name_input = QLineEdit()
-        self.category_combo = QComboBox()
-        self.category_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
+        self.category_combo = QComboBox()        
+        self.category_combo.addItems(self._model.utils().get_expense_category_names())
         self.category_combo.currentIndexChanged.connect(self.update_table)
 
         self.price = QDoubleSpinBox()        
@@ -51,15 +49,28 @@ class CreateExpenseTypeDialog(QDialog):
         self.update_table()
 
     def update_table(self):
-        expense_types = self._model.expense_types().data()        
-        category = entities.category_by_name(self.category_combo.currentText())
-        expense_types = [expense for expense in expense_types if expense.category == category]
+        selected_category_name = self.category_combo.currentText()
+    
+        # 1. Загрузка отфильтрованных данных: Фильтрация выполняется в БД
+        expense_types = self._model.expense_types().get_by_category_name(selected_category_name)
+    
         self.table.clearContents()
         self.table.setRowCount(len(expense_types))
+    
+        # 2. Оптимизация: Так как все строки имеют ОДНУ и ту же категорию, 
+        # мы можем получить ее имя один раз, используя UtilsRepository.
+        # Если список пуст, name_for_display будет None.
+        name_for_display = self._model.utils().get_expense_category_name_by_id(
+            expense_types[0].category_id
+        ) if expense_types else ""
+
         for i, row in enumerate(expense_types):
+            # 3. Заполнение таблицы
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price)))              
-            self.table.setItem(i, 2, QTableWidgetItem(entities.EXPENSE_CATEGORY_NAMES[int(row.category)]))
+            self.table.setItem(i, 1, QTableWidgetItem(str(row.default_price))) 
+        
+            # 4. Использование заранее полученного имени категории
+            self.table.setItem(i, 2, QTableWidgetItem(name_for_display))
 
     def add_type(self):
         name = self.name_input.text()
@@ -79,10 +90,19 @@ class CreateExpenseTypeDialog(QDialog):
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
-            category = entities.category_by_name(self.table.item(selected_row, 2).text())
-            if category == entities.ExpenseCategory.INGREDIENT:
-                QMessageBox.warning(self, "Ошибка", "Нелья удалять ингредиенты.")
+        
+            # 1. Получаем строковое имя категории, которое отображается в таблице
+            category_name = self.table.item(selected_row, 2).text()
+        
+            # 2. Проверяем категорию напрямую по имени
+            # Мы знаем, что категория для ингредиентов называется 'Сырьё'
+            INGREDIENT_CATEGORY_NAME = 'Сырьё' 
+        
+            if category_name == INGREDIENT_CATEGORY_NAME:
+                QMessageBox.warning(self, "Ошибка", "Нелья удалять типы расходов, связанные с ингредиентами ('Сырьё').")
                 return
+            
+            # 3. Удаляем тип расхода по имени
             self._model.expense_types().delete(name)
 
             self.update_table()
@@ -104,7 +124,8 @@ class AddExpenseDialog(QDialog):
         
         self.category_combo = QComboBox()
         self.category_combo.addItem("Все")
-        self.category_combo.addItems(entities.EXPENSE_CATEGORY_NAMES.values())
+        names = self._model.utils().get_expense_category_names()
+        self.category_combo.addItems(names)
         self.category_combo.currentIndexChanged.connect(self.category_changed)
 
         self.price = QDoubleSpinBox()            
@@ -137,22 +158,33 @@ class AddExpenseDialog(QDialog):
         if selected_category == "Все":            
             names = [e.name for e in self._model.expense_types().data()]
         else:            
-            names = [e.name for e in self._model.expense_types().data() if e.category == entities.category_by_name(selected_category)]
+            names = self._model.expense_types().get_names_by_category_name(selected_category)            
 
         self.name_combo.addItems(names)
 
 
     def accept(self):
-        
         name = self.name_combo.currentText()
         price = self.price.value()
         quantity = self.quantity.value()
 
         expense_type = self._model.expense_types().get(name)
-        if expense_type.category == entities.ExpenseCategory.INGREDIENT:
+    
+        # Получаем ID категории "Сырьё" из модели (если нужно сравнение)
+        # Это можно сделать один раз при инициализации класса диалога, 
+        # но для простоты я делаю это здесь:
+        ingredient_category_id = self._model.utils().get_expense_category_id_by_name('Сырьё')
+    
+        if expense_type.category_id == ingredient_category_id: # <-- СРАВНЕНИЕ ПО ID!
+            # Если это покупка сырья, мы добавляем количество на склад
             self._model.stock().update(name, quantity)
 
-        self._model.expenses().add(name, price, quantity)
+        # 2. Фиксация расхода: Метод add() в ExpensesRepository должен быть обновлен,
+        # чтобы принимать name, price, quantity и самостоятельно извлекать category_id
+        # через expense_type.get(name).
+        # *Проверь свой ExpensesRepository, убедись, что он корректно использует category_id*
+        self._model.expenses().add(name, price, quantity) 
+    
         return super().accept()
 
 class ExpensesWidget(QWidget):
@@ -185,16 +217,23 @@ class ExpensesWidget(QWidget):
 
         self.update_table()
 
-    def update_table(self):           
+    def update_table(self): 
+        # Получаем все расходы (предполагаем, что expenses().data() возвращает Expense-объекты)
         expenses = self._model.expenses().data()
+    
         self.table.clearContents()
         self.table.setRowCount(len(expenses))
 
-        for i, row in enumerate(expenses):            
+        for i, row in enumerate(expenses): 
+        
+            # 1. Используем UtilsRepository для преобразования ID в имя.
+            # ПРИМЕЧАНИЕ: Мы используем row.category, предполагая, что теперь оно содержит числовой ID.
+            category_name = self._model.utils().get_expense_category_name_by_id(row.category) 
+
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
-            self.table.setItem(i, 1, QTableWidgetItem(str(row.price)))              
+            self.table.setItem(i, 1, QTableWidgetItem(str(row.price))) 
             self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
-            self.table.setItem(i, 3, QTableWidgetItem(entities.EXPENSE_CATEGORY_NAMES[int(row.category)]))
+            self.table.setItem(i, 3, QTableWidgetItem(category_name)) # <-- Используем полученное имя
             self.table.setItem(i, 4, QTableWidgetItem(row.date))
 
     def create_expense_type(self):
