@@ -245,7 +245,7 @@ class App(QMainWindow):
             app.setStyleSheet(style_sheet)
 
 if __name__ == '__main__':
-    sys.excepthook = handle_unhandled_exception
+    #sys.excepthook = handle_unhandled_exception
     app = QApplication(sys.argv)
     ex = App()
     ex.show()

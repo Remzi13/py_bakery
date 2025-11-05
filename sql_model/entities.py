@@ -62,9 +62,23 @@ class Expense:
     name: str
     price: int
     category_id: int
-    quantity: float    
+    quantity: float
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
+
+@dataclass(frozen=True)
+class WriteOff:
+    """Запись о списании (готового продукта или сырья/запаса)."""
+    quantity: float # <-- Изменили на FLOAT
+    reason: str 
+
+    id: Optional[int] = None # ID из БД (PRIMARY KEY)
+    # Списание: либо продукт, либо ингредиент/запас (не оба сразу)
+    product_id: Optional[int] = None # Ссылка на ID продукта (для готовой продукции)
+    stock_item_id: Optional[int] = None # Ссылка на ID StockItem (для сырья, упаковки, оборудования)
+    # Дополнительное поле для удобства:
+    unit_id: Optional[int] = None # Единица измерения списанного запаса
+    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
 # --- Структуры данных для справочников (новые, для работы с БД) ---
 

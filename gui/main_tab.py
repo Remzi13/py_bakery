@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import (
-    QWidget, QGridLayout, QPushButton, QDialog, QTableWidget,
-    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView
+    QWidget, QGridLayout, QPushButton, QDialog, QTableWidget, 
+    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView, QDoubleSpinBox, QGroupBox, QVBoxLayout, QTextEdit
 )
+
+from PyQt6.QtCore import QTimer
 class SaleDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -55,6 +57,49 @@ class SaleDialog(QDialog):
 
         return super().accept()
 
+class WriteoffDialog(QDialog):
+    def __init__(self, model):
+        super().__init__()
+        self.setWindowTitle("Cписание")
+        self._model = model
+
+        self.product_combo = QComboBox()
+        self.product_combo.addItems(model.products().names())        
+
+        self.quantity = QDoubleSpinBox()
+        self.quantity.setRange(1, 100)
+
+        save_button = QPushButton("Списать")
+        save_button.clicked.connect(self.save)
+
+        layout = QGridLayout()
+
+        text_group = QGroupBox("Причина")
+        text_layout = QVBoxLayout()
+        self.text_edit = QTextEdit()
+        self.text_edit.setPlaceholderText("Введите текст здесь...")
+        text_layout.addWidget(self.text_edit)
+        text_group.setLayout(text_layout)
+
+        
+        layout.addWidget( QLabel("Продукт:"), 0, 0)
+        layout.addWidget(self.product_combo, 0, 1)
+        layout.addWidget(QLabel("Количество:"), 1, 0)
+        layout.addWidget(self.quantity, 1, 1)
+        layout.addWidget(text_group, 2, 0, 1, 2)
+
+        layout.addWidget(save_button, 3, 0, 1, 2)
+
+        self.setLayout(layout)
+
+    def save(self):
+        prod_name = self.product_combo.currentText()
+        quantity = self.quantity.value()
+        reason = self.text_edit.toPlainText()
+        self._model.writeoffs().add(prod_name, "product", quantity, reason)
+        return super().accept()
+
+
 class MainWidget(QWidget):
     
     def __init__(self, model):
@@ -70,7 +115,12 @@ class MainWidget(QWidget):
 
         sale_button = QPushButton("Продажа")
         sale_button.clicked.connect(self.add_sale)
+
+        writeoff_button = QPushButton("Списание")
+        writeoff_button.clicked.connect(self.writeoff)
                 
+        sales_group = QGroupBox("Продажи")
+        sales_layout = QVBoxLayout()
         self.sales_table = QTableWidget()
         self.sales_table.setColumnCount(5)
         self.sales_table.setHorizontalHeaderLabels(["Названи", "Количество", "Цена", "Скидка", "Дата"])
@@ -78,17 +128,36 @@ class MainWidget(QWidget):
         self.sales_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.sales_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.sales_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        
+        sales_layout.addWidget(self.sales_table)        
+        sales_group.setLayout(sales_layout)
+
+        writeoff_group = QGroupBox("Списания")
+        writeoff_layout = QVBoxLayout(writeoff_group)
+        self.writeoff_table = QTableWidget()
+        self.writeoff_table.setColumnCount(3)
+        self.writeoff_table.setHorizontalHeaderLabels(["Названи", "Количество", "Дата"])
+        self.writeoff_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.writeoff_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.writeoff_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.writeoff_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+        writeoff_layout.addWidget(self.writeoff_table)
 
         layout.addWidget(self.income, 0, 0)
         layout.addWidget(self.expenses, 0, 1)
         layout.addWidget(self.profit, 0, 2)        
-        layout.addWidget(sale_button, 1, 0, 1, 3 )
-        layout.addWidget(self.sales_table, 2, 0, 1, 3)
+        layout.addWidget(sale_button, 1, 0, 1, 2 )
+        layout.addWidget(writeoff_button, 1, 2, 1, 1)
+        layout.addWidget(sales_group, 2, 0, 1, 3)        
+        layout.addWidget(writeoff_group, 3, 0, 1, 3)
 
         self.setLayout(layout)
-                
-        self.update_sales_table()
 
+        self.update_sales_table()
+        self.update_writeoff_table()
+
+        
     def update_sales_table(self):
         data = self.model.sales().data()
         self.sales_table.clearContents()
@@ -105,10 +174,27 @@ class MainWidget(QWidget):
         self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
         self.profit.setText("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
 
+    
+    def update_writeoff_table(self):
+        data = self.model.writeoffs().data()
+        self.writeoff_table.clearContents()
+        self.writeoff_table.setRowCount(len(data))
 
+        for i, row in enumerate(data):     
+            product_name = self.model.products().by_id(row.product_id).name
+            self.writeoff_table.setItem(i, 0, QTableWidgetItem(product_name))
+            self.writeoff_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))            
+            self.writeoff_table.setItem(i, 2, QTableWidgetItem(row.date))
+    
     def add_sale(self):
         dialog = SaleDialog(self.model)        
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return        
         self.update_sales_table()
+
+    def writeoff(self):
+        dialog = WriteoffDialog(self.model)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.update_writeoff_table()
         

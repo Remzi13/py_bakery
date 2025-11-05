@@ -8,6 +8,7 @@ from repositories.stock import StockRepository
 from repositories.sales import SalesRepository
 from repositories.expense_types import ExpenseTypesRepository
 from repositories.expenses import ExpensesRepository
+from repositories.write_offs import WriteOffsRepository
 from repositories.utils import UtilsRepository
 
 class SQLiteModel:
@@ -33,6 +34,7 @@ class SQLiteModel:
         self._sales_repo = SalesRepository(self._conn, self)
         self._expenses_repo = ExpensesRepository(self._conn, self)
         self._utils_repo = UtilsRepository(self._conn)
+        self._write_offs_repo = WriteOffsRepository(self._conn, self)
 
     def close(self):
         """Закрывает соединение с базой данных."""
@@ -62,9 +64,12 @@ class SQLiteModel:
     def expenses(self) -> ExpensesRepository:
         return self._expenses_repo
 
+    def writeoffs(self) -> WriteOffsRepository:
+        return self._write_offs_repo
+    
     # --- Бизнес-логика (расчеты) ---
 
-    def calculate_income(self) -> float:        
+    def calculate_income(self) -> float:
         """Рассчитывает общий доход от продаж."""
         cursor = self._conn.cursor()
         # Доход = Сумма (Цена * Количество * (1 - Скидка/100))
@@ -77,7 +82,7 @@ class SQLiteModel:
         result = cursor.fetchone()[0]
         return result if result is not None else 0.0
 
-    def calculate_expenses(self) -> float:        
+    def calculate_expenses(self) -> float:
         """Рассчитывает общие расходы."""
         cursor = self._conn.cursor()
         # Расходы = Сумма (Цена * Количество)

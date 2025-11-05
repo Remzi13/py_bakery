@@ -130,6 +130,28 @@ def initialize_db(conn: sqlite3.Connection):
             date TEXT NOT NULL,
             FOREIGN KEY (product_id) REFERENCES products (id)
         );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS writeoffs (
+            id INTEGER PRIMARY KEY,
+            product_id INTEGER, 
+            stock_item_id INTEGER, 
+            unit_id INTEGER,         -- Единица измерения
+    
+            quantity REAL NOT NULL,  -- <-- Изменили на REAL
+            reason TEXT NOT NULL,
+            date TEXT NOT NULL,
+    
+            
+            FOREIGN KEY (product_id) REFERENCES products (id),
+            FOREIGN KEY (stock_item_id) REFERENCES stock (id),
+            FOREIGN KEY (unit_id) REFERENCES units (id),
+
+            CHECK (
+                (product_id IS NOT NULL AND stock_item_id IS NULL) OR 
+                (product_id IS NULL AND stock_item_id IS NOT NULL)
+            )
+        );
         """
     ]
 
