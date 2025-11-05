@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
@@ -14,7 +13,6 @@ class Ingredient:
     name: str
     unit_id: int  # Ссылка на ID из таблицы 'units'
     id: Optional[int] = None # ID из БД (PRIMARY KEY), может быть None до сохранения
-    uid: uuid.UUID = field(default_factory=uuid.uuid4) # Для сохранения совместимости, если нужно
 
 @dataclass(frozen=True)
 class Product:
@@ -23,7 +21,6 @@ class Product:
     price: int
     # Ингредиенты хранятся в отдельной таблице 'product_ingredients'
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
-    uid: uuid.UUID = field(default_factory=uuid.uuid4) 
 
 @dataclass
 class StockItem:
@@ -33,7 +30,6 @@ class StockItem:
     quantity: float
     unit_id: int     # Ссылка на ID из таблицы 'units'
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
-    uid: uuid.UUID = field(default_factory=uuid.uuid4) 
 
 @dataclass(frozen=True)
 class Sale:
@@ -53,7 +49,6 @@ class ExpenseType:
     default_price: int
     category_id: int    # Ссылка на ID из таблицы 'expense_categories'
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
-    uid: uuid.UUID = field(default_factory=uuid.uuid4) 
 
 @dataclass(frozen=True)
 class Expense:

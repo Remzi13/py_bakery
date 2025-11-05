@@ -615,7 +615,7 @@ class TestWriteOffsRepository:
     def test_add_write_off_product_success(self, write_off_data: dict):
         """Проверяет успешное списание готового продукта (УМЕНЬШАЕТ Stock ингредиентов)."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         flour_name = write_off_data['flour_name']
         croissant_name = write_off_data['croissant_name']
@@ -648,7 +648,7 @@ class TestWriteOffsRepository:
     def test_add_write_off_stock_success(self, write_off_data: dict):
         """Проверяет успешное списание сырья (уменьшение Stock)."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         flour_name = write_off_data['flour_name']
         initial_stock = model.stock().get(flour_name).quantity # 10.0
@@ -683,7 +683,7 @@ class TestWriteOffsRepository:
         не хватает ингредиентов.
         """
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         flour_name = write_off_data['flour_name']
         
         # Текущий запас муки: 10.0 кг. Рецепт: 0.1 кг/шт.
@@ -713,7 +713,7 @@ class TestWriteOffsRepository:
     def test_write_off_insufficient_stock(self, write_off_data: dict):
         """Проверяет ошибку при попытке списать больше сырья, чем есть на складе."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         flour_name = write_off_data['flour_name']
         
         initial_stock = model.stock().get(flour_name).quantity # 10.0
@@ -740,7 +740,7 @@ class TestWriteOffsRepository:
     def test_write_off_non_existent_item_product(self, write_off_data: dict):
         """Проверяет ошибку при попытке списать несуществующий продукт."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         with pytest.raises(ValueError) as excinfo:
             w_repo.add(
@@ -756,7 +756,7 @@ class TestWriteOffsRepository:
     def test_write_off_non_existent_item_stock(self, write_off_data: dict):
         """Проверяет ошибку при попытке списать несуществующее сырье/запас."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         with pytest.raises(ValueError) as excinfo:
             w_repo.add(
@@ -773,7 +773,7 @@ class TestWriteOffsRepository:
     def test_write_off_invalid_item_type(self, write_off_data: dict):
         """Проверяет ошибку при недопустимом типе элемента."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         with pytest.raises(ValueError) as excinfo:
             w_repo.add(
@@ -789,7 +789,7 @@ class TestWriteOffsRepository:
     def test_write_off_non_positive_quantity(self, write_off_data: dict):
         """Проверяет ошибку при попытке списать нулевое или отрицательное количество."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         with pytest.raises(ValueError) as excinfo:
             w_repo.add(
@@ -809,7 +809,7 @@ class TestWriteOffsRepository:
     def test_data_and_len(self, write_off_data: dict):
         """Проверяет получение списка списаний и их количества."""
         model = write_off_data['model']
-        w_repo = model.write_offs()
+        w_repo = model.writeoffs()
         
         # Списание продукта (уменьшает ингредиенты, регистрирует продукт)
         w_repo.add("Круассан", "product", 2.0, "Тест 2")
