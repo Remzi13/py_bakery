@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (
     QDialog, QSpinBox
 )
 
+import gui.widgets as widgets
+
 class AddIngredientsDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -52,18 +54,11 @@ class IngredientsTab(QWidget):
         self.del_button = QPushButton("Удалить")
         self.del_button.clicked.connect(self.del_ingredient)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(2)
-        self.table.setHorizontalHeaderLabels(["Название", "Ед. изм."])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.itemSelectionChanged.connect(self.on_selection_changed)
+        self.table = widgets.TableWidget("Ингредиенты", ["Название", "Ед. изм."])        
+        self.table.itemSelection(self.on_selection_changed)
 
         add_layout.addWidget(self.add_button, 1, 0)        
-        add_layout.addWidget(self.del_button, 1, 1)
-        add_layout.addWidget(QLabel("Склад:"), 2, 0, 1, 2)
+        add_layout.addWidget(self.del_button, 1, 1)        
         add_layout.addWidget(self.table, 2, 0, 1, 2) 
 
         self.setLayout(add_layout)
@@ -110,8 +105,7 @@ class IngredientsTab(QWidget):
         
     def update_ingredients_table(self):
         data = self._model.ingredients().data()
-        self.table.clearContents()
-        self.table.setRowCount(len(data))
+        self.table.clear(len(data))
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
@@ -163,14 +157,8 @@ class EditProductDialog(QDialog):
         ing_layout.addWidget(self.add_ingredient_button, 1, 0, 1, 2)
         ing_layout.addWidget(self.del_ingredient_button, 1, 2, 1, 2)
 
-        self.ing_table = QTableWidget()
-        self.ing_table.setColumnCount(3)
-        self.ing_table.setHorizontalHeaderLabels(["Ингредиент", "Количество", "Ед. изм."])
-        self.ing_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.ing_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.ing_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.ing_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-
+        self.ing_table = widgets.TableWidget("Ингредиенты",["Ингредиент", "Количество", "Ед. изм."] )
+        
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
 
@@ -257,14 +245,8 @@ class ProductsTab(QWidget):
         self.edit_button = QPushButton("Редактировать")
         self.edit_button.clicked.connect(self.edit_product)
 
-        self.products_table = QTableWidget()
-        self.products_table.setColumnCount(2)
-        self.products_table.setHorizontalHeaderLabels(["Назавание", "Цена"])
-        self.products_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.products_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)  # выделение строк
-        self.products_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.products_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.products_table.itemSelectionChanged.connect(self.on_selection_changed)
+        self.products_table = widgets.TableWidget("Продукция",["Назавание", "Цена"])
+        self.products_table.itemSelection(self.on_selection_changed)
 
         add_layout.addWidget(self.add_button, 1, 0)  
         add_layout.addWidget(self.edit_button, 1, 1) 
@@ -276,7 +258,7 @@ class ProductsTab(QWidget):
         self.update_products_table()
 
     def on_selection_changed(self):
-        selected_rows = self.products_table.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
             product_name = self.products_table.item(selected_row, 0).text()
@@ -293,7 +275,7 @@ class ProductsTab(QWidget):
             QMessageBox.warning(self, "Ошибка", "Нет ни одноги ингредиента.")
 
     def edit_product(self):
-        selected_rows = self.products_table.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectedRows()
         if not selected_rows:
             QMessageBox.warning(self, "Ошибка", "Выберите продукт для редактирования.")
             return
@@ -357,8 +339,7 @@ class ProductsTab(QWidget):
 
     def update_products_table(self):
         data = self._model.products().data()
-        self.products_table.clearContents()
-        self.products_table.setRowCount(len(data))
+        self.products_table.clear(len(data))        
 
         for i, row in enumerate(data):
             self.products_table.setItem(i, 0, QTableWidgetItem(row.name))

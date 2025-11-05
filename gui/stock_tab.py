@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (
-    QWidget, QGridLayout, QTableWidget, QTableWidgetItem, QHeaderView,
-    QPushButton, QDialog, QMessageBox, QDoubleSpinBox, QLabel
+    QWidget, QGridLayout, QTableWidgetItem, QPushButton, QDialog, QMessageBox, QDoubleSpinBox, QLabel
 )
+
+import gui.widgets as widgets
 
 class EditStockDialog(QDialog):
 
@@ -42,14 +43,8 @@ class StorageWidget(QWidget):
         self.edit = QPushButton("Редактировать")
         self.edit.clicked.connect(self.edit_stock)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Название", "Категория", "Количество", "Ед. изм."])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-
+        self.table = widgets.TableWidget("Склад", ["Название", "Категория", "Количество", "Ед. изм."] )
+        
         layout.addWidget(self.edit, 0, 0)
         layout.addWidget(self.table, 1, 0)
 
@@ -58,7 +53,7 @@ class StorageWidget(QWidget):
         self.update_storage_table()
 
     def edit_stock(self):
-        selected_rows = self.table.selectionModel().selectedRows()
+        selected_rows = self.table.selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
@@ -75,8 +70,7 @@ class StorageWidget(QWidget):
 
     def update_storage_table(self):
         data = self._model.stock().data()
-        self.table.clearContents()
-        self.table.setRowCount(len(data))
+        self.table.clear(len(data))
 
         for i, row in enumerate(data):            
             self.table.setItem(i, 0, QTableWidgetItem(row.name))

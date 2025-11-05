@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import (
     QLineEdit, QComboBox, QLabel, QMessageBox, QSpinBox
 )
 
+import gui.widgets as widgets
+
 class CreateExpenseTypeDialog(QDialog):
     def __init__(self, model):
         super().__init__()
@@ -19,14 +21,8 @@ class CreateExpenseTypeDialog(QDialog):
         self.price.setRange(0, 1000000)        
         self.price.setSingleStep(1)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Назавание", "Цена", "Категория"])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-
+        self.table = widgets.TableWidget("Расходы",["Назавание", "Цена", "Категория"] )
+        
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.add_type)
 
@@ -53,8 +49,7 @@ class CreateExpenseTypeDialog(QDialog):
         # 1. Загрузка отфильтрованных данных: Фильтрация выполняется в БД
         expense_types = self._model.expense_types().get_by_category_name(selected_category_name)
     
-        self.table.clearContents()
-        self.table.setRowCount(len(expense_types))
+        self.table.clear(len(expense_types))        
     
         # 2. Оптимизация: Так как все строки имеют ОДНУ и ту же категорию, 
         # мы можем получить ее имя один раз, используя UtilsRepository.
@@ -85,7 +80,7 @@ class CreateExpenseTypeDialog(QDialog):
         self.update_table()
         
     def del_type(self):
-        selected_rows = self.table.selectionModel().selectedRows()
+        selected_rows = self.table.selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
@@ -206,14 +201,8 @@ class ExpensesWidget(QWidget):
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.add_expense)
         
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Назавание", "Цена", "Количество", "Категория", "Дата"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-
+        self.table = widgets.TableWidget("Расходы",["Назавание", "Цена", "Количество", "Категория", "Дата"] )
+        
         layout.addWidget(add_button, 0, 0)
         layout.addWidget(create_button, 0, 1)
         layout.addWidget(self.table, 1, 0, 1, 2)        
@@ -226,8 +215,7 @@ class ExpensesWidget(QWidget):
         # Получаем все расходы (предполагаем, что expenses().data() возвращает Expense-объекты)
         expenses = self._model.expenses().data()
     
-        self.table.clearContents()
-        self.table.setRowCount(len(expenses))
+        self.table.clear(len(expenses))
 
         for i, row in enumerate(expenses): 
         
