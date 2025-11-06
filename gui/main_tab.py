@@ -162,9 +162,14 @@ class MainWidget(QWidget):
         data = self.model.writeoffs().data()
         self.writeoff_table.clear(len(data))        
 
-        for i, row in enumerate(data):     
-            product_name = self.model.products().by_id(row.product_id).name
-            self.writeoff_table.setItem(i, 0, QTableWidgetItem(product_name))
+        for i, row in enumerate(data):
+            name = "ошибка"
+            if row.product_id is not None:
+                name = self.model.products().by_id(row.product_id).name                
+            elif row.stock_item_id is not None:
+                name = self.model.stock().by_id(row.stock_item_id).name
+
+            self.writeoff_table.setItem(i, 0, QTableWidgetItem(name))
             self.writeoff_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))            
             self.writeoff_table.setItem(i, 2, QTableWidgetItem(row.date))
     

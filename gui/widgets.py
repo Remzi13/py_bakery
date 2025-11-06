@@ -23,6 +23,9 @@ class TableWidget(QWidget):
         layout.addWidget(group)
         self.setLayout(layout)
 
+    def insertRow(self, pos):
+        self.table.insertRow(pos)
+
     def setItem(self, row, column, item):
         self.table.setItem(row, column, item)
 

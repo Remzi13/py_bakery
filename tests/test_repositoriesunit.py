@@ -196,6 +196,7 @@ class TestStockRepository:
         repo.add(name='Мешок', category_name='Упаковка', quantity=100.0, unit_name='штук')
         item = repo.get('Мешок')
         
+        assert repo.by_id(item.id).name == item.name
         assert item is not None
         assert item.name == 'Мешок'
         assert item.quantity == 100.0

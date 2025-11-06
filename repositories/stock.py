@@ -74,6 +74,13 @@ class StockRepository:
         row = cursor.fetchone()
         return self._row_to_entity(row)
 
+    def by_id(self, id: int) -> Optional[StockItem]:
+        """Получает продукт по ID (без рецепта)."""
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT * FROM stock WHERE id = ?", (id,))
+        row = cursor.fetchone()
+        return self._row_to_entity(row)
+    
     def data(self) -> List[StockItem]:
         """Возвращает список всех элементов инвентаря."""
         cursor = self._conn.cursor()

@@ -319,7 +319,7 @@ class ProductsTab(QWidget):
         self.update_products_table()    
 
     def delete_product(self):
-        selected_rows = self.products_table.selectionModel().selectedRows()
+        selected_rows = self.products_table.selectedRows()
         if not selected_rows:
             QMessageBox.warning(self, "Ошибка", "Выберите продукт для удаления.")
             return

@@ -6,11 +6,17 @@ import gui.widgets as widgets
 
 class EditStockDialog(QDialog):
 
-    def __init__(self, model, name):
+    def __init__(self, model, name : str, writeoff : bool):
         super().__init__()
-        self.setWindowTitle("Редактировать")
+        
         self._model = model
         self._name = name
+        self._writeoff = writeoff
+
+        if writeoff:
+            self.setWindowTitle("Списание")
+        else:
+            self.setWindowTitle("Редактировать")
         item = self._model.stock().get(name)
         
         self.quantity = QDoubleSpinBox()
@@ -29,7 +35,11 @@ class EditStockDialog(QDialog):
     
     def save(self):
         new_quantity = self.quantity.value()
-        self._model.stock().set(self._name, new_quantity)
+        if self._writeoff:
+            self._model.writeoffs().add(self._name, "stock", new_quantity,"спсание")
+        else:
+            new_quantity = self.quantity.value()
+            self._model.stock().set(self._name, new_quantity)
         return super().accept()
 
 class StorageWidget(QWidget):
@@ -40,24 +50,28 @@ class StorageWidget(QWidget):
         self._model = model
         layout =  QGridLayout()    
 
-        self.edit = QPushButton("Редактировать")
-        self.edit.clicked.connect(self.edit_stock)
+        edit_button = QPushButton("Редактировать")
+        edit_button.clicked.connect(lambda: self.edit_stock(False))
+
+        writeoff_button = QPushButton("Списание")        
+        writeoff_button.clicked.connect(lambda: self.edit_stock(True))
 
         self.table = widgets.TableWidget("Склад", ["Название", "Категория", "Количество", "Ед. изм."] )
         
-        layout.addWidget(self.edit, 0, 0)
-        layout.addWidget(self.table, 1, 0)
+        layout.addWidget(edit_button, 0, 0)
+        layout.addWidget(writeoff_button, 0, 1)
+        layout.addWidget(self.table, 1, 0, 1, 2)
 
         self.setLayout(layout)
 
         self.update_storage_table()
 
-    def edit_stock(self):
+    def edit_stock(self, writeoff):
         selected_rows = self.table.selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
             name = self.table.item(selected_row, 0).text()
-            dialog = EditStockDialog(self._model, name)
+            dialog = EditStockDialog(self._model, name, writeoff)
             if dialog.exec() == QDialog.DialogCode.Accepted:
                 self.update_storage_table()
                 return        
