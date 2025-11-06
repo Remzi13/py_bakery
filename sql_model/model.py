@@ -67,11 +67,21 @@ class SQLiteModel:
     def writeoffs(self) -> WriteOffsRepository:
         return self._write_offs_repo
     
+    def request(self, query):
+        cursor = self._conn.cursor()
+        cursor.execute(query)
+        if query.lower().startswith("select"):
+            rows = cursor.fetchall()
+            headers = [d[0] for d in cursor.description]
+            return rows, headers
+        
+        return None
+
     # --- Бизнес-логика (расчеты) ---
 
     def calculate_income(self) -> float:
         """Рассчитывает общий доход от продаж."""
-        cursor = self._conn.cursor()
+        cursor = self._conn.cursor()        
         # Доход = Сумма (Цена * Количество * (1 - Скидка/100))
         cursor.execute(
             """

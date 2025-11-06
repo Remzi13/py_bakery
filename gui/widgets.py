@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QGridLayout, QPushButton, QDialog, QTableWidget, 
-    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView, QDoubleSpinBox, QGroupBox, QVBoxLayout, QTextEdit
+    QWidget, QTableWidget,  QHeaderView, QGroupBox, QVBoxLayout
 )
 
 class TableWidget(QWidget):

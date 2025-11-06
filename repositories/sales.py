@@ -84,6 +84,11 @@ class SalesRepository:
         cursor.execute("SELECT * FROM sales ORDER BY date DESC")
         return [self._row_to_entity(row) for row in cursor.fetchall()]
     
+    def salesByProduct(self):
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT product_id, product_name, SUM(price * quantity) AS total_price FROM sales GROUP BY product_id, product_name;")
+        return cursor.fetchall()
+        
     def len(self) -> int:
         """Возвращает количество продаж."""
         cursor = self._conn.cursor()

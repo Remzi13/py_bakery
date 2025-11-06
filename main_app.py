@@ -13,6 +13,7 @@ from gui.products_tab import ProductsWidget
 from gui.stock_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget
+from gui.sqlrequest_tab import SQLRequestWidget
 #from model import model
 from sql_model.model import SQLiteModel
 
@@ -103,6 +104,7 @@ class App(QMainWindow):
             ("Расходы", ExpensesWidget(self.model)),
             ("Склад", StorageWidget(self.model)),
             ("Товары", ProductsWidget(self.model)),
+            ("Запросы", SQLRequestWidget(self.model)),
         ]
         
         self.menu_buttons = []
