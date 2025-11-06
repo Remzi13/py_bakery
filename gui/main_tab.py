@@ -141,21 +141,21 @@ class MainWidget(QWidget):
         data = self.model.sales().data()
         self.sales_table.clear(len(data))
 
-        dataByName = self.model.sales().salesByProduct()
-        for i, row in enumerate(dataByName):
-            self.sales_table.setItem(i, 0, QTableWidgetItem(row["product_name"]))
-            self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row["total_price"], 3))))
-        
-        #for i, row in enumerate(data):            
-        #    self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name))
-        #    self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))
-        #    self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price, 3))))
-        #    self.sales_table.setItem(i, 3, QTableWidgetItem(str(row.discount)))
-        #    self.sales_table.setItem(i, 4, QTableWidgetItem(row.date))
+        for i, row in enumerate(data):            
+            self.sales_table.setItem(i, 0, QTableWidgetItem(row.product_name))
+            self.sales_table.setItem(i, 1, QTableWidgetItem(str(row.quantity)))
+            self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row.price, 3))))
+            self.sales_table.setItem(i, 3, QTableWidgetItem(str(row.discount)))
+            self.sales_table.setItem(i, 4, QTableWidgetItem(row.date))
 
-        self.income.setText("Доход: {:.2f}.".format(self.model.calculate_income()))
-        self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
-        self.profit.setText("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
+        #dataByName = self.model.sales().salesByProduct()
+        #for i, row in enumerate(dataByName):
+        #    self.sales_table.setItem(i, 0, QTableWidgetItem(row["product_name"]))
+        #    self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row["total_price"], 3))))
+        #
+        #self.income.setText("Доход: {:.2f}.".format(self.model.calculate_income()))
+        #self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
+        #self.profit.setText("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
 
     
     def update_writeoff_table(self):
