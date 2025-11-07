@@ -52,8 +52,7 @@ class ExpensesRepository:
                     price, 
                     expense_type.category_id, 
                     quantity, 
-                    datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    #Expense.date # Использование default_factory
+                    datetime.now().strftime("%Y-%m-%d %H:%M"),                    
                 )
             )
             self._conn.commit()

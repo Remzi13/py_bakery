@@ -147,8 +147,11 @@ class AddExpenseDialog(QDialog):
     
     def name_changed(self):
         name = self.name_combo.currentText()
-        if name is not None:
-            self.price.setValue(self._model.expense_types().get(name).default_price)
+        if name is not None and name != "":
+            expense_type = self._model.expense_types().get(name)
+            if expense_type is None:
+                pass
+            self.price.setValue(expense_type.default_price)
 
     def category_changed(self):
         selected_category = self.category_combo.currentText()
@@ -169,6 +172,9 @@ class AddExpenseDialog(QDialog):
         quantity = self.quantity.value()
 
         expense_type = self._model.expense_types().get(name)
+
+        if expense_type is None:
+            return super().reject()
     
         # Получаем ID категории "Сырьё" из модели (если нужно сравнение)
         # Это можно сделать один раз при инициализации класса диалога, 

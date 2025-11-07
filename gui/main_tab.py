@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QPushButton, QDialog, QTableWidget, 
-    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView, QDoubleSpinBox, QGroupBox, QVBoxLayout, QTextEdit
+    QComboBox, QSpinBox, QLabel, QTableWidgetItem, QHeaderView, QDoubleSpinBox, QGroupBox, QVBoxLayout, QTextEdit,
+    QCompleter, QLineEdit
 )
 
 import gui.widgets as widgets
@@ -15,7 +16,10 @@ class SaleDialog(QDialog):
 
         self.product_combo = QComboBox()        
         self.product_combo.addItems(self._model.products().names())
+        compliter = QCompleter(self._model.products().names())
+        self.product_combo.setCompleter(compliter)
         self.product_combo.currentIndexChanged.connect(self.product_changed)
+
 
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.accept)    
@@ -64,8 +68,9 @@ class WriteoffDialog(QDialog):
         self.setWindowTitle("Cписание")
         self._model = model
 
-        self.product_combo = QComboBox()
-        self.product_combo.addItems(model.products().names())        
+        self.product_combo = QLineEdit()
+        compliter = QCompleter(self._model.products().names())
+        self.product_combo.setCompleter(compliter)
 
         self.quantity = QDoubleSpinBox()
         self.quantity.setRange(1, 100)
@@ -94,7 +99,7 @@ class WriteoffDialog(QDialog):
         self.setLayout(layout)
 
     def save(self):
-        prod_name = self.product_combo.currentText()
+        prod_name = self.product_combo.text()
         quantity = self.quantity.value()
         reason = self.text_edit.toPlainText()
         self._model.writeoffs().add(prod_name, "product", quantity, reason)

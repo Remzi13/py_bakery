@@ -306,8 +306,6 @@ class ProductsTab(QWidget):
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return          
 
-        # Удаляем старый продукт и добавляем новый с обновленными данными
-        self._model.products().delete(product.name)
         ingredients = []
         for row in range(dialog.ing_table.rowCount()):
             ing_name = dialog.ing_table.item(row, 0).text()

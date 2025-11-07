@@ -35,6 +35,13 @@ class TableWidget(QWidget):
     def rowCount(self):
         return self.table.rowCount()
     
+    def currentRow(self):
+        return self.table.currentRow()
+    
+    def removeRow(self, row):
+        self.table.removeRow(row)
+    
+    
     def clear(self, rows):
         self.table.clearContents()
         self.table.setRowCount(rows)

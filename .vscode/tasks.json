@@ -8,7 +8,9 @@
             "args": [
                 "-m", "PyInstaller",
                 "--onefile",
-                "${workspaceFolder}/main_app.py"
+                "--noconsole",
+                "${workspaceFolder}/main_app.py",
+                "--icon=${workspaceFolder}/bakery_manager.ico"
             ],
             "group": {
                 "kind": "build",

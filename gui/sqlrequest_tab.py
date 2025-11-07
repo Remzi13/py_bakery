@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QTextEdit, QPushButton, QTableWidget, QMessageBox, QTableWidgetItem
+    QWidget, QVBoxLayout, QTextEdit, QPushButton, QTableWidget, QMessageBox, QTableWidgetItem, QHeaderView
 )
 
 from PyQt6.QtCore import Qt, QRegularExpression
@@ -77,6 +77,10 @@ class SQLRequestWidget(QWidget):
         self.run_button.clicked.connect(self.execute_query)
 
         self.table = QTableWidget()
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         layout.addWidget(self.query_input)
         layout.addWidget(self.run_button)
