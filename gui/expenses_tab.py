@@ -133,25 +133,34 @@ class AddExpenseDialog(QDialog):
         save_button = QPushButton("Сохранить")
         save_button.clicked.connect(self.accept)
 
+        self.unit_label = QLabel("")
+
         layout.addWidget(QLabel("Категория:"), 0, 0)
-        layout.addWidget(self.category_combo, 0, 1)               
+        layout.addWidget(self.category_combo, 0, 1, 1, 2)               
         layout.addWidget(QLabel("Название:"), 1, 0)
-        layout.addWidget(self.name_combo, 1, 1)
+        layout.addWidget(self.name_combo, 1, 1, 1, 2)
         layout.addWidget(QLabel("Цена:"), 2, 0)
-        layout.addWidget(self.price, 2, 1)
+        layout.addWidget(self.price, 2, 1, 1, 2)
         layout.addWidget(QLabel("Количество:"), 3, 0)
         layout.addWidget(self.quantity, 3, 1)
-        layout.addWidget(save_button, 4, 0, 1, 2)
+        layout.addWidget(self.unit_label, 3, 2)
+        layout.addWidget(save_button, 4, 0, 1, 3)
 
         self.setLayout(layout)
+        self.name_changed()
     
     def name_changed(self):
         name = self.name_combo.currentText()
+        self.unit_label.setText("")
         if name is not None and name != "":
-            expense_type = self._model.expense_types().get(name)
-            if expense_type is None:
-                pass
+            expense_type = self._model.expense_types().get(name)            
             self.price.setValue(expense_type.default_price)
+            if self._model.ingredients().has(expense_type.name):
+                ing = self._model.ingredients().by_name(expense_type.name)    
+                unit = self._model.utils().get_unit_name_by_id(ing.unit_id)
+                self.unit_label.setText(unit)
+            
+                
 
     def category_changed(self):
         selected_category = self.category_combo.currentText()
@@ -165,6 +174,7 @@ class AddExpenseDialog(QDialog):
         if len(names) > 0:
             self.price.setValue(self._model.expense_types().get(names[0]).default_price)
         self.name_combo.addItems(names)
+        self.name_changed()
 
     def accept(self):
         name = self.name_combo.currentText()

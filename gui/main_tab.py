@@ -158,9 +158,9 @@ class MainWidget(QWidget):
         #    self.sales_table.setItem(i, 0, QTableWidgetItem(row["product_name"]))
         #    self.sales_table.setItem(i, 2, QTableWidgetItem(str(round(row["total_price"], 3))))
         #
-        #self.income.setText("Доход: {:.2f}.".format(self.model.calculate_income()))
-        #self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
-        #self.profit.setText("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
+        self.income.setText("Доход: {:.2f}.".format(self.model.calculate_income()))
+        self.expenses.setText("Расходы: {:.2f}.".format(self.model.calculate_expenses()))
+        self.profit.setText("Прибыль: {:.2f}.".format(self.model.calculate_profit()))   
 
     
     def update_writeoff_table(self):

@@ -66,7 +66,7 @@ class IngredientsTab(QWidget):
         self.update_ingredients_table()
 
     def on_selection_changed(self):
-        selected_rows = self.table.selectionModel().selectedRows()
+        selected_rows = self.table.selectedRows()
         if selected_rows:
             selected_row = selected_rows[0].row()
             ingredient_name = self.table.item(selected_row, 0).text()
@@ -138,7 +138,7 @@ class EditProductDialog(QDialog):
         self.ingredient_combo.addItems(model.ingredients().names())
         self.ingredient_combo.currentIndexChanged.connect(self.ing_combo_changed)
         self.ing_quantity = QDoubleSpinBox()
-        self.ing_quantity.setRange(0.0, 10.0)
+        self.ing_quantity.setRange(0.0, 100.0)
         self.ing_quantity.setDecimals(2)
         self.ing_quantity.setSingleStep(0.1)
         self.add_ingredient_button = QPushButton("+")

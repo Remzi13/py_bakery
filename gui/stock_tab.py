@@ -26,10 +26,12 @@ class EditStockDialog(QDialog):
         self.save_button = QPushButton("Сохранить")
         self.save_button.clicked.connect(self.save)
 
+        unit = self._model.utils().get_unit_name_by_id(item.unit_id)
         layout =  QGridLayout()
         layout.addWidget(QLabel(f"Название: {name}"), 0, 0)
-        layout.addWidget(self.quantity, 1, 0)
-        layout.addWidget(self.save_button, 2, 0)
+        layout.addWidget(QLabel(f"Ед.из: {unit}"), 1, 0)        
+        layout.addWidget(self.quantity, 2, 0)        
+        layout.addWidget(self.save_button, 3, 0)
 
         self.setLayout(layout)
     
