@@ -67,7 +67,7 @@ def populated_model(clean_model: SQLiteModel):
     model.products().add(name='Вода', price=50, ingredients=[])
 
     # 5. Добавляем расход
-    model.expenses().add(name='Мука', price=50, quantity=5.0) # Покупка 5 кг муки по 50
+    model.expenses().add(name='Мука', price=50, quantity=5.0, supplier_name=None) # Покупка 5 кг муки по 50
     
     return model
 
@@ -211,7 +211,7 @@ def test_finance_calculations(populated_model: SQLiteModel):
     
     # Добавляем еще один расход (другой тип)
     model.expense_types().add(name='Аренда', default_price=1000, category_name='Платежи')
-    model.expenses().add(name='Аренда', price=1000, quantity=1.0) # Расход: 1000
+    model.expenses().add(name='Аренда', price=1000, quantity=1.0, supplier_name=None) # Расход: 1000
     
     # Общий Расход = 250 + 1000 = 1250
     assert model.calculate_expenses() == 1250.0
