@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QDialog,
-    QLineEdit, QComboBox, QLabel, QMessageBox, QSpinBox
+    QLineEdit, QComboBox, QLabel, QMessageBox, QSpinBox, QCompleter
 )
 
 import gui.widgets as widgets
@@ -135,6 +135,10 @@ class AddExpenseDialog(QDialog):
 
         self.unit_label = QLabel("")
 
+        self.supplier_line = QLineEdit()
+        compliter = QCompleter(self._model.suppliers().names())
+        self.supplier_line.setCompleter(compliter)
+
         layout.addWidget(QLabel("Категория:"), 0, 0)
         layout.addWidget(self.category_combo, 0, 1, 1, 2)               
         layout.addWidget(QLabel("Название:"), 1, 0)
@@ -144,7 +148,10 @@ class AddExpenseDialog(QDialog):
         layout.addWidget(QLabel("Количество:"), 3, 0)
         layout.addWidget(self.quantity, 3, 1)
         layout.addWidget(self.unit_label, 3, 2)
-        layout.addWidget(save_button, 4, 0, 1, 3)
+        layout.addWidget(QLabel("Поставшик:"), 4, 0)
+        layout.addWidget(self.supplier_line, 4, 1, 1, 2)
+
+        layout.addWidget(save_button, 5, 0, 1, 3)
 
         self.setLayout(layout)
         self.name_changed()
@@ -199,7 +206,8 @@ class AddExpenseDialog(QDialog):
         # чтобы принимать name, price, quantity и самостоятельно извлекать category_id
         # через expense_type.get(name).
         # *Проверь свой ExpensesRepository, убедись, что он корректно использует category_id*
-        self._model.expenses().add(name, price, quantity) 
+        supplier_name = self.supplier_line.text()
+        self._model.expenses().add(name, price, quantity, supplier_name) 
     
         return super().accept()
 
@@ -217,7 +225,7 @@ class ExpensesWidget(QWidget):
         add_button = QPushButton("Добавить")
         add_button.clicked.connect(self.add_expense)
         
-        self.table = widgets.TableWidget("Расходы",["Назавание", "Цена", "Количество", "Категория", "Дата"] )
+        self.table = widgets.TableWidget("Расходы",["Назавание", "Цена", "Количество", "Категория", "Поставшик", "Дата"] )
         
         layout.addWidget(add_button, 0, 0)
         layout.addWidget(create_button, 0, 1)
@@ -235,15 +243,20 @@ class ExpensesWidget(QWidget):
 
         for i, row in enumerate(expenses): 
         
-            # 1. Используем UtilsRepository для преобразования ID в имя.
-            # ПРИМЕЧАНИЕ: Мы используем row.category, предполагая, что теперь оно содержит числовой ID.
+            
             category_name = self._model.utils().get_expense_category_name_by_id(row.category_id) 
+            supplier_name = ""
+            if row.supplier_id:
+                supplier = self._model.suppliers().get(row.supplier_id)                
+                supplier_name = supplier.name
+            
 
             self.table.setItem(i, 0, QTableWidgetItem(row.name))
             self.table.setItem(i, 1, QTableWidgetItem(str(row.price))) 
             self.table.setItem(i, 2, QTableWidgetItem(str(row.quantity)))
-            self.table.setItem(i, 3, QTableWidgetItem(category_name)) # <-- Используем полученное имя
-            self.table.setItem(i, 4, QTableWidgetItem(row.date))
+            self.table.setItem(i, 3, QTableWidgetItem(category_name)) 
+            self.table.setItem(i, 4, QTableWidgetItem(supplier_name))
+            self.table.setItem(i, 5, QTableWidgetItem(row.date))
 
     def create_expense_type(self):
         dialog = CreateExpenseTypeDialog(self._model)

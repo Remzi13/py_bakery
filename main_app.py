@@ -16,6 +16,8 @@ from gui.stock_tab import StorageWidget
 from gui.expenses_tab import ExpensesWidget
 from gui.main_tab import MainWidget
 from gui.sqlrequest_tab import SQLRequestWidget
+from gui.suppliers_tab import SuppliersWidget
+
 from sql_model.model import SQLiteModel
 
 
@@ -95,13 +97,16 @@ class App(QMainWindow):
         self.stock_tab = StorageWidget(self.model)
         self.expenses_tab = ExpensesWidget(self.model)
         self.sql_tab = SQLRequestWidget(self.model)
+        self.suppliers_tab = SuppliersWidget(self.model)
         
         # Добавление в стек
         self.stack.addWidget(self.main_tab)
         self.stack.addWidget(self.products_tab)
         self.stack.addWidget(self.stock_tab)
         self.stack.addWidget(self.expenses_tab)
+        self.stack.addWidget(self.suppliers_tab)
         self.stack.addWidget(self.sql_tab)
+        
         
         # Кнопки меню
         self.menu_buttons = []
@@ -110,7 +115,8 @@ class App(QMainWindow):
             ("Продукция", 1),
             ("Склад", 2),
             ("Расходы", 3),
-            ("SQL-Запрос", 4)
+            ("Поставшики", 4),
+            ("SQL-Запрос", 5)
         ]
         
         for name, index in self.tabs_info:
@@ -470,7 +476,7 @@ class App(QMainWindow):
 # ЗАПУСК ПРИЛОЖЕНИЯ
 # -----------------------------------------------------------
 def main():
-    sys.excepthook = handle_exception
+    #sys.excepthook = handle_exception
     
     app = QApplication(sys.argv)
     
@@ -485,16 +491,10 @@ def main():
                              f"Не удалось инициализировать базу данных. Проверьте логи: {e}")
         return
 
-    try:
-        window = App(model)
-        window.show()
-        sys.exit(app.exec())
-    except Exception as e:
-        logging.critical(f"Критическая ошибка при запуске приложения: {e}", exc_info=True)
-        QMessageBox.critical(None, "Критическая ошибка", 
-                             f"Приложение завершилось с ошибкой. Проверьте логи: {e}")
-        sys.exit(1)
-
+    window = App(model)
+    window.show()
+    sys.exit(app.exec())
+ 
 
 if __name__ == '__main__':
     main()

@@ -9,6 +9,7 @@ from repositories.sales import SalesRepository
 from repositories.expense_types import ExpenseTypesRepository
 from repositories.expenses import ExpensesRepository
 from repositories.write_offs import WriteOffsRepository
+from repositories.suppliers import SuppliersRepository
 from repositories.utils import UtilsRepository
 
 class SQLiteModel:
@@ -35,6 +36,7 @@ class SQLiteModel:
         self._expenses_repo = ExpensesRepository(self._conn, self)
         self._utils_repo = UtilsRepository(self._conn)
         self._write_offs_repo = WriteOffsRepository(self._conn, self)
+        self._suppliers_repo = SuppliersRepository(self._conn)
 
     def close(self):
         """Закрывает соединение с базой данных."""
@@ -66,6 +68,9 @@ class SQLiteModel:
 
     def writeoffs(self) -> WriteOffsRepository:
         return self._write_offs_repo
+    
+    def suppliers(self) -> SuppliersRepository:
+        return self._suppliers_repo
     
     def request(self, query):
         cursor = self._conn.cursor()

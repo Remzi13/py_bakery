@@ -13,6 +13,7 @@ from repositories.products import ProductsRepository
 from repositories.expenses import ExpensesRepository
 from repositories.sales import SalesRepository
 from repositories.write_offs import WriteOffsRepository
+from repositories.suppliers import SuppliersRepository
 from repositories.utils import UtilsRepository
 
 
@@ -76,6 +77,51 @@ def write_off_data(model: SQLiteModel):
         "croissant_name": "Круассан",
         "flour_name": "Мука",
         "model": model # Возвращаем модель для удобства доступа в тестах
+    }
+
+@pytest.fixture
+def expense_data(model: SQLiteModel) -> dict:
+    """Подготавливает данные для тестов ExpensesRepository."""
+    # 1. Создаем поставщиков (НОВЫЙ ШАГ)
+    supplier_repo = model.suppliers()
+    supplier_repo.add("Мукомольный завод №1", "Иван Иванов", "+71234567890", "ivan@mill.ru", "ул. Мельничная, 1")
+    supplier_repo.add("ООО 'Упаковка'", "Петр Петров", "88001234567")
+    
+    # 2. Создаем типы расходов (Сырье и Платежи)
+    model.expense_types().add("Мука пшеничная", 50, "Сырьё")
+    model.expense_types().add("Аренда", 50000, "Платежи")
+    
+    # 3. Добавляем ингредиент (он автоматически создаст StockItem и ExpenseType)
+    # Это важно, чтобы ExpenseTypesRepository мог найти "Мука пшеничная"
+    model.ingredients().add("Мука", "кг")
+    
+    # 4. Добавляем несколько расходов
+    # Расход, связанный с поставщиком
+    model.expenses().add("Мука", 45, 100.0, supplier_name="Мукомольный завод №1")
+    # Расход без поставщика
+    model.expenses().add("Аренда", 50000, 1.0, supplier_name=None)
+    
+    # 5. Возвращаем данные для теста
+    return {
+        'model': model
+    }
+
+@pytest.fixture
+def supplier_data(model: SQLiteModel):
+    """Предоставляет инициализированный репозиторий поставщиков с тестовыми данными."""
+    s_repo = model.suppliers()
+    s_repo.add(name="Мука и Зерно", contact_person="Иванов И.И.", phone="555-1234")
+    s_repo.add(name="Дрожжи и Добавки", contact_person="Петров П.П.")
+    
+    # ID для тестов
+    supplier1_id = s_repo.by_name("Мука и Зерно").id
+    supplier2_id = s_repo.by_name("Дрожжи и Добавки").id
+    
+    return {
+        'model': model,
+        'repo': s_repo,
+        'id1': supplier1_id,
+        'id2': supplier2_id
     }
 # --- 1. Тесты для ExpenseTypesRepository ---
 
@@ -444,7 +490,7 @@ class TestExpensesRepository:
         # Создаем тип расхода для теста
         model.expense_types().add(name='Свет', default_price=1000, category_name='Платежи')
         
-        repo.add(name='Свет', price=1200, quantity=1.0)
+        repo.add(name='Свет', price=1200, quantity=1.0, supplier_name = None)
         
         assert repo.len() == 1
         expense = repo.data()[0]
@@ -456,20 +502,56 @@ class TestExpensesRepository:
         repo = model.expenses()
         
         with pytest.raises(ValueError, match="Тип расхода 'Неизвестно' не найден."):
-            repo.add(name='Неизвестно', price=100, quantity=1.0)
+            repo.add(name='Неизвестно', price=100, quantity=1.0, supplier_name=None)
     
     def test_data(self, model: SQLiteModel):
         repo = model.expenses()
         # Создаем тип расхода (Мука)
         model.expense_types().add(name='Мука', default_price=100, category_name='Сырьё')
         
-        repo.add(name='Мука', price=150, quantity=10.0)
+        repo.add(name='Мука', price=150, quantity=10.0, supplier_name=None)
         
         data = repo.data()
         assert len(data) == 1
         assert data[0].name == 'Мука'
         assert data[0].price == 150
         assert data[0].quantity == 10.0
+
+    def test_add_expense_with_supplier(self, expense_data: dict):
+        """Проверяет корректное добавление расхода, привязанного к поставщику."""
+        model = expense_data['model']
+        e_repo = model.expenses()
+        
+        # Данные уже созданы в фикстуре expense_data:
+        # Расход "Мука" (привязан к "Мукомольный завод №1")
+        expenses = e_repo.data()
+        
+        # Находим расход с мукой
+        flour_expense = next(e for e in expenses if e.name == "Мука")
+        
+        # Получаем ID поставщика
+        supplier_id = model.suppliers().by_name("Мукомольный завод №1").id
+        
+        # Проверка привязки
+        assert flour_expense.supplier_id == supplier_id
+        
+        # Находим расход без поставщика
+        rent_expense = next(e for e in expenses if e.name == "Аренда")
+        assert rent_expense.supplier_id is None
+        
+    def test_add_expense_nonexistent_supplier_raises_error(self, expense_data: dict):
+        """Проверяет, что при попытке привязать расход к несуществующему поставщику, 
+        происходит откат и вызывается ошибка."""
+        model = expense_data['model']
+        e_repo = model.expenses()
+        original_len = e_repo.len()
+        
+        with pytest.raises(ValueError) as excinfo:
+            e_repo.add("Мука", 50, 5.0, supplier_name="Несуществующий Поставщик")
+            
+        assert "Поставщик 'Несуществующий Поставщик' не найден" in str(excinfo.value)
+        # Проверяем, что расход не был добавлен
+        assert e_repo.len() == original_len
 
 # --- 6. Тесты для SalesRepository (Сложная логика списания) ---
 
@@ -832,3 +914,222 @@ class TestWriteOffsRepository:
         # Проверяем, что второй элемент - это Круассан
         assert all_write_offs[0].quantity == 2.0
         assert all_write_offs[0].product_id == write_off_data['croissant_id'] # Круассан - продукт, product_id заполнен
+
+class TestSuppliersRepository:
+    """Тесты для репозитория SuppliersRepository."""
+
+    def test_add_supplier(self, model: SQLiteModel):
+        """Проверяет корректное добавление нового поставщика."""
+        repo = model.suppliers()
+        
+        # Добавляем нового поставщика с полными данными
+        supplier = repo.add(
+            name="Пекарское Оборудование", 
+            contact_person="Анна Смирнова", 
+            phone="89101112233", 
+            email="anna@equipment.com", 
+            address="г. Москва, ул. Пекарская, 5"
+        )
+        
+        assert supplier.id is not None
+        assert supplier.name == "Пекарское Оборудование"
+        assert supplier.contact_person == "Анна Смирнова"
+        assert supplier.phone == "89101112233"
+        assert supplier.email == "anna@equipment.com"
+        assert supplier.address == "г. Москва, ул. Пекарская, 5"
+        assert repo.len() == 1
+
+    def test_add_duplicate_supplier_raises_error(self, model: SQLiteModel):
+        """Проверяет, что добавление поставщика с существующим именем вызывает ошибку."""
+        repo = model.suppliers()
+        repo.add("Тестовый Поставщик", phone="1")
+        
+        with pytest.raises(ValueError) as excinfo:
+            repo.add("Тестовый Поставщик", phone="2") # Повтор
+            
+        assert "уже существует" in str(excinfo.value)
+        assert repo.len() == 1 # Проверяем, что дубликат не был добавлен
+
+    def test_get_by_id_and_by_name(self, model: SQLiteModel):
+        """Проверяет получение поставщика по ID и по имени."""
+        repo = model.suppliers()
+        
+        # Добавляем поставщика и запоминаем ID
+        supplier_added = repo.add("Молокозавод 'Свежий'", "Олег")
+        
+        # Получение по ID
+        supplier_by_id = repo.get(supplier_added.id)
+        assert supplier_by_id is not None
+        assert supplier_by_id.name == "Молокозавод 'Свежий'"
+        
+        # Получение по имени
+        supplier_by_name = repo.by_name("Молокозавод 'Свежий'")
+        assert supplier_by_name is not None
+        assert supplier_by_name.id == supplier_added.id
+        
+        # Тест на несуществующего
+        assert repo.get(999) is None
+        assert repo.by_name("Несуществующий") is None
+
+    def test_data_and_names(self, model: SQLiteModel):
+        """Проверяет получение списка всех поставщиков и списка только их имен."""
+        repo = model.suppliers()
+        
+        repo.add("Поставщик A", "A")
+        repo.add("Поставщик B", "B")
+        repo.add("Поставщик C", "C")
+        
+        # Проверка data()
+        all_suppliers = repo.data()
+        assert len(all_suppliers) == 3
+        # Проверяем сортировку по имени
+        assert all_suppliers[0].name == "Поставщик A"
+        
+        # Проверка names()
+        all_names = repo.names()
+        assert all_names == ["Поставщик A", "Поставщик B", "Поставщик C"]
+        
+    def test_delete_supplier(self, model: SQLiteModel):
+        """Проверяет удаление поставщика по имени."""
+        repo = model.suppliers()
+        repo.add("Удаляемый Поставщик")
+        repo.add("Остающийся Поставщик")
+        
+        assert repo.len() == 2
+        
+        # Удаляем
+        repo.delete("Удаляемый Поставщик")
+        
+        assert repo.len() == 1
+        assert repo.by_name("Удаляемый Поставщик") is None
+        assert repo.by_name("Остающийся Поставщик") is not None
+        
+        # Удаление несуществующего не вызывает ошибку
+        repo.delete("Несуществующий")
+        assert repo.len() == 1
+
+    def test_update_all_fields(self, supplier_data: dict):
+        """Проверяет успешное обновление всех полей поставщика."""
+        s_repo = supplier_data['repo']
+        supplier_id = supplier_data['id1']
+        
+        # Обновляем все поля
+        updated_supplier = s_repo.update(
+            supplier_id=supplier_id,
+            name="Новая Мука",
+            contact_person="Сидоров С.С.",
+            phone="999-0001",
+            email="sidorov@new.com",
+            address="ул. Обновленная, 10"
+        )
+        
+        # Проверяем, что объект обновлен
+        assert updated_supplier.name == "Новая Мука"
+        assert updated_supplier.contact_person == "Сидоров С.С."
+        assert updated_supplier.phone == "999-0001"
+        assert updated_supplier.email == "sidorov@new.com"
+        assert updated_supplier.address == "ул. Обновленная, 10"
+        
+        # Проверяем, что данные в БД корректны
+        db_supplier = s_repo.get(supplier_id)
+        assert db_supplier.name == "Новая Мука"
+
+
+    def test_update_only_name(self, supplier_data: dict):
+        """Проверяет обновление только имени, остальные поля должны сохраниться/обнулиться."""
+        s_repo = supplier_data['repo']
+        supplier_id = supplier_data['id2'] # ID поставщика "Дрожжи и Добавки"
+        
+        # --- ИСПРАВЛЕНИЕ: Получаем оригинальный объект для частичного обновления ---
+        original_supplier = s_repo.get(supplier_id)
+        
+        # Обновляем только имя. Для сохранения контактных данных передаем их обратно.
+        updated_supplier = s_repo.update(
+            supplier_id=supplier_id,
+            name="Новые Дрожжи",
+            # Передаем оригинальные значения, чтобы они не были обнулены
+            contact_person=original_supplier.contact_person, 
+            phone=original_supplier.phone,
+            email=original_supplier.email,
+            address=original_supplier.address
+        )
+        
+        assert updated_supplier.name == "Новые Дрожжи"
+        # Проверка, что оригинальное значение сохранилось
+        assert updated_supplier.contact_person == "Петров П.П." 
+        assert updated_supplier.phone is None 
+        assert updated_supplier.email is None 
+        assert updated_supplier.address is None
+        
+    def test_update_non_existent_supplier(self, supplier_data: dict):
+        """Проверяет ошибку при попытке обновить несуществующий ID."""
+        s_repo = supplier_data['repo']
+        
+        with pytest.raises(ValueError) as excinfo:
+            s_repo.update(
+                supplier_id=99999,
+                name="Фантомный поставщик"
+            )
+        
+        assert "Поставщик с ID 99999 не найден" in str(excinfo.value)
+
+    def test_update_duplicate_name(self, supplier_data: dict):
+        """Проверяет ошибку IntegrityError при попытке установить дублирующееся имя."""
+        s_repo = supplier_data['repo']
+        supplier_id = supplier_data['id2'] # ID "Дрожжи и Добавки"
+        
+        # Пытаемся переименовать в имя первого поставщика
+        with pytest.raises(ValueError) as excinfo:
+            s_repo.update(
+                supplier_id=supplier_id,
+                name="Мука и Зерно" # Имя уже занято
+            )
+        
+        assert "Поставщик с именем 'Мука и Зерно' уже существует" in str(excinfo.value)
+        
+    def test_delete_used_supplier(self, supplier_data: dict, model: SQLiteModel):
+        """Проверяет ошибку при попытке удалить поставщика, связанного с расходами."""
+        s_repo = supplier_data['repo']
+        supplier_id = supplier_data['id1'] # ID поставщика "Мука и Зерно"
+        supplier_name = "Мука и Зерно"
+
+        # 1. Добавляем тип расхода (например, "Закупка муки")
+        # Для простоты, ExpenseType не привязывается напрямую к Supplier,
+        # поэтому мы сразу создаем расход.
+        
+        # NOTE: В ExpensesRepository.add() нет параметра supplier_id,
+        # поэтому для теста мы должны выполнить прямой SQL запрос,
+        # чтобы связать расход с поставщиком. 
+        # Если вы хотите использовать add(), нужно его изменить.
+        
+        # Создаем тип расхода для использования
+        model.expense_types().add(
+            name="Закупка сырья у поставщика", 
+            default_price=1000, 
+            category_name="Сырьё"
+        )
+        
+        # Регистрируем расход, привязанный к поставщику
+        # Если бы ExpensesRepository.add() имел supplier_id, мы бы использовали его.
+        # Поскольку его нет, используем прямой SQL для имитации связи:
+        
+        expense_type_id = model.expense_types().get("Закупка сырья у поставщика").id
+
+        cursor = model._conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO expenses (type_id, name, price, category_id, quantity, date, supplier_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (expense_type_id, "Расход", 1000, 1, 10.0, "2025-10-01 10:00", supplier_id)
+        )
+        model._conn.commit()
+
+        # 2. Пытаемся удалить поставщика
+        with pytest.raises(ValueError) as excinfo:
+            s_repo.delete(supplier_name)
+        
+        assert f"Поставщик '{supplier_name}' связан с существующими расходами. Удаление невозможно." in str(excinfo.value)
+        
+        # Проверяем, что поставщик остался
+        assert s_repo.by_name(supplier_name) is not None

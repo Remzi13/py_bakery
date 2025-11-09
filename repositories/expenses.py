@@ -24,12 +24,13 @@ class ExpensesRepository:
             price=row['price'],
             category_id=row['category_id'],
             quantity=row['quantity'],
-            date=row['date']
+            date=row['date'],
+            supplier_id=row['supplier_id']
         )
 
     # --- CRUD Методы ---
 
-    def add(self, name: str, price: int, quantity: float):
+    def add(self, name: str, price: int, quantity: float, supplier_name : str ):
         """
         Регистрирует расход по имени типа расхода.
         """
@@ -39,12 +40,19 @@ class ExpensesRepository:
         expense_type = self._model.expense_types().get(name)
         if not expense_type:
             raise ValueError(f"Тип расхода '{name}' не найден.")
+        
+        supplier_id = None
+        if supplier_name:
+            supplier = self._model.suppliers().by_name(supplier_name)
+            if not supplier:
+                raise ValueError(f"Поставщик '{supplier_name}' не найден.")
+            supplier_id = supplier.id
             
         try:
             cursor.execute(
                 """
-                INSERT INTO expenses (type_id, name, price, category_id, quantity, date) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO expenses (type_id, name, price, category_id, quantity, date, supplier_id ) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     expense_type.id, 
@@ -52,7 +60,8 @@ class ExpensesRepository:
                     price, 
                     expense_type.category_id, 
                     quantity, 
-                    datetime.now().strftime("%Y-%m-%d %H:%M"),                    
+                    datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    supplier_id,
                 )
             )
             self._conn.commit()
