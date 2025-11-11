@@ -476,7 +476,7 @@ class App(QMainWindow):
 # ЗАПУСК ПРИЛОЖЕНИЯ
 # -----------------------------------------------------------
 def main():
-    #sys.excepthook = handle_exception
+    sys.excepthook = handle_exception
     
     app = QApplication(sys.argv)
     

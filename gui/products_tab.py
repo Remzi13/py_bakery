@@ -82,7 +82,7 @@ class IngredientsTab(QWidget):
         self.update_ingredients_table()
 
     def del_ingredient(self):
-        selected_rows = self.table.selectionModel().selectedRows()
+        selected_rows = self.table.selectedRows()
         if not selected_rows:
             QMessageBox.warning(self, "Ошибка", "Выберите ингредиент для удаления.")
             return
@@ -139,7 +139,7 @@ class EditProductDialog(QDialog):
         self.ingredient_combo.currentIndexChanged.connect(self.ing_combo_changed)
         self.ing_quantity = QDoubleSpinBox()
         self.ing_quantity.setRange(0.0, 100.0)
-        self.ing_quantity.setDecimals(2)
+        self.ing_quantity.setDecimals(5)
         self.ing_quantity.setSingleStep(0.1)
         self.add_ingredient_button = QPushButton("+")
         self.add_ingredient_button.clicked.connect(self.add_ingredient)
