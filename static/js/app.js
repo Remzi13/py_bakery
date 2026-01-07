@@ -35,6 +35,7 @@ function loadTab(tabId) {
     if (tabId === 'expenses') { loadExpenses(); loadExpenseTypesForSelect(); loadSuppliersForSelect(); }
     if (tabId === 'suppliers') loadSuppliers();
     if (tabId === 'ingredients') loadIngredients();
+    if (tabId === 'writeoffs') loadWriteOffs();
 }
 
 // --- Modals ---
@@ -58,12 +59,8 @@ function setupModals() {
 // --- Loading Data ---
 
 async function loadDashboard() {
-    // Determine sales today
     const sales = await fetchAPI('/sales');
     const today = new Date().toISOString().slice(0, 10);
-    // Simple mock logic for "Today" as backend stores string dates e.g. "2023-10-27 10:00"
-    // We'd ideally need a backend endpoint for stats.
-    // For now executing client side calc.
     let total = 0;
     sales.forEach(s => {
         if (s.date && s.date.startsWith(today)) {
@@ -72,9 +69,8 @@ async function loadDashboard() {
     });
     document.getElementById('stats-sales').innerText = `$${total.toFixed(2)}`;
 
-    // Low stock
     const stock = await fetchAPI('/stock');
-    const lowStock = stock.filter(item => item.quantity < 10).length; // Arbitrary threshold
+    const lowStock = stock.filter(item => item.quantity < 10).length;
     document.getElementById('stats-low-stock').innerText = lowStock;
 }
 
@@ -103,9 +99,9 @@ async function loadStock() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.name}</td>
-            <td>${item.category_id}</td> <!-- Showing ID for now, ideally Name -->
+            <td>${item.category_id}</td>
             <td>${item.quantity}</td>
-            <td>${item.unit_id}</td> <!-- Showing ID for now, ideally Name -->
+            <td>${item.unit_id}</td>
             <td><button onclick="deleteItem('stock', '${item.name}')">Delete</button></td>
         `;
         tbody.appendChild(tr);
@@ -136,12 +132,12 @@ async function loadExpenses() {
     data.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${item.name}</td>            
-            <td>${item.type_id}</td> 
+            <td>${item.date}</td>
+            <td>${item.name}</td>
+            <td>${item.category_name || '-'}</td>
             <td>${item.price}</td>
             <td>${item.quantity}</td>
-            <td>${item.supplier_id || '-'}</td>
-            <td>${item.date}</td>
+            <td>${item.supplier_name || '-'}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -163,11 +159,30 @@ async function loadSuppliers() {
     });
 }
 
+async function loadWriteOffs() {
+    const data = await fetchAPI('/writeoffs');
+    const tbody = document.querySelector('#writeoffs-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+        const tr = document.createElement('tr');
+        const type = item.product_id ? 'Product' : 'Stock';
+        tr.innerHTML = `
+            <td>${item.date}</td>
+            <td>${type}</td>
+            <td>${item.item_name || 'Unknown'}</td>
+            <td>${item.quantity}</td>
+            <td>${item.reason}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 // --- Helper loaders for selects ---
 
 async function loadProductsForSelect() {
     const data = await fetchAPI('/products');
     const select = document.getElementById('sale-product-select');
+    if (!select) return;
     select.innerHTML = '';
     data.forEach(p => {
         const opt = document.createElement('option');
@@ -177,11 +192,38 @@ async function loadProductsForSelect() {
     });
 }
 
+let allExpenseTypes = [];
+
+async function loadExpenseCategories() {
+    const categories = await fetchAPI('/expenses/categories');
+    const select = document.getElementById('expense-category-filter');
+    if (!select) return;
+    select.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        select.appendChild(opt);
+    });
+}
+
 async function loadExpenseTypesForSelect() {
     const data = await fetchAPI('/expenses/types');
+    allExpenseTypes = data;
+    handleExpenseCategoryChange();
+}
+
+window.handleExpenseCategoryChange = function () {
+    const categoryName = document.getElementById('expense-category-filter').value;
     const select = document.getElementById('expense-type-select');
+    if (!select) return;
     select.innerHTML = '';
-    data.forEach(t => {
+
+    const filtered = categoryName
+        ? allExpenseTypes.filter(t => t.category_name === categoryName)
+        : allExpenseTypes;
+
+    filtered.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.id;
         opt.innerText = t.name;
@@ -192,7 +234,7 @@ async function loadExpenseTypesForSelect() {
 async function loadSuppliersForSelect() {
     const data = await fetchAPI('/suppliers');
     const select = document.getElementById('expense-supplier-select');
-    // Clear but keep first "No Supplier" option
+    if (!select) return;
     select.innerHTML = '<option value="">No Supplier</option>';
     data.forEach(s => {
         const opt = document.createElement('option');
@@ -202,6 +244,68 @@ async function loadSuppliersForSelect() {
     });
 }
 
+let allStockItems = [];
+
+async function loadWriteOffModalData() {
+    const categories = await fetchAPI('/stock/categories');
+    const catSelect = document.getElementById('writeoff-category');
+    catSelect.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        catSelect.appendChild(opt);
+    });
+
+    const products = await fetchAPI('/products');
+    const stock = await fetchAPI('/stock');
+    allStockItems = stock;
+
+    handleWriteOffTypeChange();
+}
+
+window.handleWriteOffTypeChange = async function () {
+    const type = document.getElementById('writeoff-type').value;
+    const catGroup = document.getElementById('writeoff-category-group');
+    const itemSelect = document.getElementById('writeoff-item-select');
+
+    itemSelect.innerHTML = '';
+
+    if (type === 'product') {
+        catGroup.style.display = 'none';
+        const products = await fetchAPI('/products');
+        products.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.innerText = p.name;
+            itemSelect.appendChild(opt);
+        });
+    } else {
+        catGroup.style.display = 'block';
+        handleWriteOffCategoryChange();
+    }
+}
+
+window.handleWriteOffCategoryChange = async function () {
+    const categoryName = document.getElementById('writeoff-category').value;
+    const itemSelect = document.getElementById('writeoff-item-select');
+    itemSelect.innerHTML = '';
+
+    if (allStockItems.length === 0) {
+        allStockItems = await fetchAPI('/stock');
+    }
+
+    const filtered = categoryName
+        ? allStockItems.filter(i => i.category_name === categoryName)
+        : allStockItems;
+
+    filtered.forEach(i => {
+        const opt = document.createElement('option');
+        opt.value = i.name;
+        opt.innerText = i.name;
+        itemSelect.appendChild(opt);
+    });
+}
 
 // --- Forms ---
 
@@ -266,6 +370,15 @@ function setupForms() {
         closeModal('supplier-modal');
         loadSuppliers();
     };
+
+    document.getElementById('writeoff-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        await postAPI('/writeoffs/', data);
+        closeModal('writeoff-modal');
+        loadWriteOffs();
+    };
 }
 
 // --- Ingredients & Recipe Logic ---
@@ -284,21 +397,19 @@ async function loadIngredients() {
     });
 }
 
-
 let currentRecipe = [];
 
 async function loadIngredientsForRecipe() {
     const data = await fetchAPI('/ingredients');
     const select = document.getElementById('recipe-ingredient-select');
+    if (!select) return;
     select.innerHTML = '<option value="">Select Ingredient...</option>';
     data.forEach(i => {
         const opt = document.createElement('option');
-        opt.value = i.name; // Product API expects name, not ID in ingredients list
+        opt.value = i.name;
         opt.innerText = i.name;
         select.appendChild(opt);
     });
-
-    // Reset recipe state
     currentRecipe = [];
     updateRecipeList();
 }
@@ -308,16 +419,12 @@ window.addIngredientToRecipe = function () {
     const name = select.value;
     const qtyInput = document.getElementById('recipe-quantity');
     const quantity = parseFloat(qtyInput.value);
-
     if (!name || isNaN(quantity) || quantity <= 0) {
         alert("Please select an ingredient and enter a valid quantity.");
         return;
     }
-
     currentRecipe.push({ name, quantity });
     updateRecipeList();
-
-    // Reset inputs
     select.value = "";
     qtyInput.value = "";
 }
@@ -329,6 +436,7 @@ window.removeIngredientFromRecipe = function (index) {
 
 function updateRecipeList() {
     const list = document.getElementById('recipe-list');
+    if (!list) return;
     list.innerHTML = '';
     currentRecipe.forEach((ing, index) => {
         const li = document.createElement('li');
@@ -338,15 +446,21 @@ function updateRecipeList() {
         `;
         list.appendChild(li);
     });
-    document.getElementById('recipe-json').value = JSON.stringify(currentRecipe);
+    const jsonInput = document.getElementById('recipe-json');
+    if (jsonInput) jsonInput.value = JSON.stringify(currentRecipe);
 }
 
-// Hook into openModal to init recipe editor
+// Hook into openModal to init modals
 const _originalOpenModal = window.openModal;
 window.openModal = function (modalId) {
     _originalOpenModal(modalId);
     if (modalId === 'product-modal') {
         loadIngredientsForRecipe();
+    } else if (modalId === 'writeoff-modal') {
+        loadWriteOffModalData();
+    } else if (modalId === 'expense-modal') {
+        loadExpenseCategories();
+        loadExpenseTypesForSelect();
     }
 }
 
@@ -381,7 +495,6 @@ window.deleteItem = async function (resource, id) {
         method: 'DELETE'
     });
     if (res.ok) {
-        // Refresh current tab
         const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
         loadTab(activeTab);
     } else {

@@ -9,7 +9,23 @@ router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 @router.get("/", response_model=List[Expense])
 def get_expenses(model: SQLiteModel = Depends(get_model)):
     try:
-        return model.expenses().data()
+        data = model.expenses().data()
+        results = []
+        utils = model.utils()
+        for exp in data:
+            cat_name = utils.get_expense_category_name_by_id(exp.category_id)
+            
+            supplier_name = "None"
+            if exp.supplier_id:
+                supplier = model.suppliers().get_by_id(exp.supplier_id)
+                if supplier:
+                    supplier_name = supplier.name
+            
+            exp_dict = exp.__dict__.copy()
+            exp_dict['category_name'] = cat_name
+            exp_dict['supplier_name'] = supplier_name
+            results.append(exp_dict)
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -17,14 +33,6 @@ def get_expenses(model: SQLiteModel = Depends(get_model)):
 def create_expense(expense: ExpenseCreate, model: SQLiteModel = Depends(get_model)):
     try:
         # We need to find the ExpenseType by ID to get its name
-        # Since ExpenseTypesRepository doesn't have by_id, we do it manually via cursor
-        # or we could iterate data() (less efficient but works for now)
-        
-        # Using raw SQL for efficiency since we have access to connection via model._conn if needed,
-        # but model doesn't expose conn directly publicly, only via repos.
-        # But actually model._conn is accessible.
-        
-        # Let's use a quick query
         cursor = model._conn.cursor()
         cursor.execute("SELECT name FROM expense_types WHERE id = ?", (expense.type_id,))
         row = cursor.fetchone()
@@ -34,7 +42,7 @@ def create_expense(expense: ExpenseCreate, model: SQLiteModel = Depends(get_mode
         
         supplier_name = None
         if expense.supplier_id:
-            supplier = model.suppliers().get(expense.supplier_id)
+            supplier = model.suppliers().get_by_id(expense.supplier_id)
             if supplier:
                 supplier_name = supplier.name
         
@@ -48,6 +56,21 @@ def create_expense(expense: ExpenseCreate, model: SQLiteModel = Depends(get_mode
 @router.get("/types", response_model=List[ExpenseType])
 def get_expense_types(model: SQLiteModel = Depends(get_model)):
     try:
-        return model.expense_types().data()
+        data = model.expense_types().data()
+        results = []
+        utils = model.utils()
+        for et in data:
+            cat_name = utils.get_expense_category_name_by_id(et.category_id)
+            et_dict = et.__dict__.copy()
+            et_dict['category_name'] = cat_name
+            results.append(et_dict)
+        return results
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/categories", response_model=List[str])
+def get_expense_categories(model: SQLiteModel = Depends(get_model)):
+    try:
+        return model.utils().get_expense_category_names()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

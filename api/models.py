@@ -35,8 +35,10 @@ class StockItem(BaseModel):
     id: Optional[int]
     name: str
     category_id: int
+    category_name: Optional[str] = None
     quantity: float
     unit_id: int
+    unit_name: Optional[str] = None
 
 class StockCreate(BaseModel):
     name: str
@@ -73,6 +75,7 @@ class ExpenseType(BaseModel):
     name: str
     default_price: int
     category_id: int
+    category_name: Optional[str] = None
 
 class Expense(BaseModel):
     id: Optional[int]
@@ -80,8 +83,10 @@ class Expense(BaseModel):
     name: str
     price: int
     category_id: int
+    category_name: Optional[str] = None
     quantity: float
     supplier_id: Optional[int]
+    supplier_name: Optional[str] = None
     date: str
 
 class ExpenseCreate(BaseModel):
