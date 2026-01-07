@@ -1,5 +1,14 @@
 const API_BASE = '/api';
 
+function normalizeEndpoint(endpoint) {
+    if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
+    // count path segments (ignore leading/trailing slashes)
+    const segments = endpoint.split('/').filter(Boolean);
+    // If it's a collection root (one segment) and not already trailing slash, add '/'
+    if (segments.length === 1 && !endpoint.endsWith('/')) return endpoint + '/';
+    return endpoint;
+}
+
 // --- UI Logic ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupForms();
     loadDashboard();
 });
+
+window.editingProductId = null;
+window.ingredientsMap = {}; // name -> unit (e.g., 'kg', 'g')
 
 function setupTabs() {
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -41,17 +53,21 @@ function loadTab(tabId) {
 // --- Modals ---
 
 window.openModal = function (modalId) {
-    document.getElementById(modalId).style.display = 'block';
+    const modal = document.getElementById(modalId);
+    modal.classList.add('show');
+    // move focus to first focusable element for accessibility
+    const focusable = modal.querySelector('input, select, button, [tabindex]:not([tabindex="-1"])');
+    if (focusable) focusable.focus();
 }
 
 window.closeModal = function (modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    document.getElementById(modalId).classList.remove('show');
 }
 
 function setupModals() {
     window.onclick = function (event) {
         if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
+            event.target.classList.remove('show');
         }
     }
 }
@@ -79,15 +95,33 @@ async function loadProducts() {
     const tbody = document.querySelector('#products-table tbody');
     tbody.innerHTML = '';
     data.forEach(item => {
-        const ingredients = item.ingredients.map(i => `${i.name}: ${i.quantity}`).join(', ');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.price}</td>
-            <td>${ingredients}</td>
-            <td><button onclick="deleteItem('products', '${item.name}')">Delete</button></td>
-        `;
-        tbody.appendChild(tr);
+        (async () => {
+            let ingredientsList = [];
+            try {
+                if (item.ingredients && item.ingredients.length) {
+                    ingredientsList = item.ingredients;
+                } else {
+                    // Try to fetch detailed product (may include ingredients)
+                    const details = await fetchAPI(`/products/${item.id}`);
+                    ingredientsList = details.ingredients || [];
+                }
+            } catch (err) {
+                ingredientsList = [];
+            }
+
+            const ingredients = ingredientsList.map(i => `${i.name}: ${i.quantity}${i.unit ? ' ' + i.unit : ''}`).join(', ') || '-';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.price} ₽</td>
+                <td>${ingredients}</td>
+                <td>
+                    <button onclick="editProduct(${item.id})">Edit</button>
+                    <button onclick="deleteItem('products', '${item.name}')">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        })();
     });
 }
 
@@ -320,7 +354,17 @@ function setupForms() {
             alert("Invalid ingredients");
             return;
         }
-        await postAPI('/products/', data);
+        try {
+            if (window.editingProductId) {
+                await putAPI(`/products/${window.editingProductId}`, data);
+                window.editingProductId = null;
+            } else {
+                await postAPI('/products/', data);
+            }
+        } catch (err) {
+            // postAPI/putAPI will have alerted
+            return;
+        }
         closeModal('product-modal');
         loadProducts();
     };
@@ -404,13 +448,24 @@ async function loadIngredientsForRecipe() {
     const select = document.getElementById('recipe-ingredient-select');
     if (!select) return;
     select.innerHTML = '<option value="">Select Ingredient...</option>';
+    // populate select and ingredientsMap
+    window.ingredientsMap = {};
     data.forEach(i => {
         const opt = document.createElement('option');
         opt.value = i.name;
         opt.innerText = i.name;
+        const unit = i.unit_name || i.unit_id || '';
+        if (unit) opt.dataset.unit = unit;
         select.appendChild(opt);
+        window.ingredientsMap[i.name] = unit;
     });
-    currentRecipe = [];
+
+    // update unit display when changing selection
+    const qtyUnit = document.getElementById('recipe-quantity-unit');
+    select.addEventListener('change', () => {
+        const u = select.selectedOptions[0] && select.selectedOptions[0].dataset.unit ? select.selectedOptions[0].dataset.unit : '';
+        if (qtyUnit) qtyUnit.textContent = u;
+    });
     updateRecipeList();
 }
 
@@ -423,7 +478,8 @@ window.addIngredientToRecipe = function () {
         alert("Please select an ingredient and enter a valid quantity.");
         return;
     }
-    currentRecipe.push({ name, quantity });
+    const unit = window.ingredientsMap[name] || '';
+    currentRecipe.push({ name, quantity, unit });
     updateRecipeList();
     select.value = "";
     qtyInput.value = "";
@@ -440,8 +496,9 @@ function updateRecipeList() {
     list.innerHTML = '';
     currentRecipe.forEach((ing, index) => {
         const li = document.createElement('li');
+        const unitText = ing.unit ? ` ${ing.unit}` : '';
         li.innerHTML = `
-            <span>${ing.name} - ${ing.quantity}</span>
+            <span>${ing.name} - ${ing.quantity}${unitText}</span>
             <button type="button" class="btn-small-danger" onclick="removeIngredientFromRecipe(${index})">Remove</button>
         `;
         list.appendChild(li);
@@ -455,7 +512,11 @@ const _originalOpenModal = window.openModal;
 window.openModal = function (modalId) {
     _originalOpenModal(modalId);
     if (modalId === 'product-modal') {
-        loadIngredientsForRecipe();
+        // Only auto-load ingredients when creating a new product.
+        if (!window.editingProductId) {
+            currentRecipe = [];
+            loadIngredientsForRecipe();
+        }
     } else if (modalId === 'writeoff-modal') {
         loadWriteOffModalData();
     } else if (modalId === 'expense-modal') {
@@ -464,10 +525,47 @@ window.openModal = function (modalId) {
     }
 }
 
+// PUT helper
+async function putAPI(endpoint, data) {
+    const url = `${API_BASE}${normalizeEndpoint(endpoint)}`;
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        alert(`Error: ${err.detail || res.statusText}`);
+        throw new Error(err.detail || res.statusText);
+    }
+    return await res.json();
+}
+
+window.editProduct = async function (id) {
+    try {
+        const prod = await fetchAPI(`/products/${id}`);
+        // Populate form
+        const form = document.getElementById('product-form');
+        form.elements['name'].value = prod.name;
+        form.elements['price'].value = prod.price;
+        // Set current recipe and editing id
+        currentRecipe = prod.ingredients || [];
+        window.editingProductId = id;
+        // Load ingredient options and update recipe list
+        await loadIngredientsForRecipe();
+        updateRecipeList();
+        openModal('product-modal');
+    } catch (err) {
+        console.error(err);
+        alert('Failed to load product for editing');
+    }
+}
+
 // --- API Helpers ---
 
 async function fetchAPI(endpoint) {
-    const res = await fetch(`${API_BASE}${endpoint}`);
+    const url = `${API_BASE}${normalizeEndpoint(endpoint)}`;
+    const res = await fetch(url);
     if (!res.ok) {
         alert(`Error: ${res.statusText}`);
         return [];
@@ -476,7 +574,8 @@ async function fetchAPI(endpoint) {
 }
 
 async function postAPI(endpoint, data) {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const url = `${API_BASE}${normalizeEndpoint(endpoint)}`;
+    const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -491,7 +590,7 @@ async function postAPI(endpoint, data) {
 
 window.deleteItem = async function (resource, id) {
     if (!confirm('Are you sure?')) return;
-    const res = await fetch(`${API_BASE}/${resource}/${id}`, {
+    const res = await fetch(`${API_BASE}${normalizeEndpoint(resource + '/' + id)}`, {
         method: 'DELETE'
     });
     if (res.ok) {

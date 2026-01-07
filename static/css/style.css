@@ -1,40 +1,69 @@
 :root {
-    --bg-color: #f5f5f5;
-    --sidebar-bg: #fff;
-    --text-color: #333;
-    --accent-color: #333;
-    --accent-hover: #555;
-    --border-color: #e0e0e0;
-    --card-bg: #fff;
+    --bg-color: #f7f8fb;
+    --sidebar-bg: #ffffff;
+    --text-color: #222b2f;
+    --accent-color: #1f4b6b;
+    --accent-hover: #16384f;
+    --border-color: #e6e9ef;
+    --card-bg: #ffffff;
+    --base-radius: 6px;
+    --max-content-width: 1200px;
 }
+
+html { font-size: 16px; }
 
 body {
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     background-color: var(--bg-color);
     color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.skip-link:focus {
+    left: 16px;
+    top: 16px;
+    width: auto;
+    height: auto;
+    padding: 8px 12px;
+    background: var(--accent-color);
+    color: #fff;
+    border-radius: 6px;
+    z-index: 9999;
 }
 
 .app-container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .sidebar {
-    width: 250px;
+    width: 260px;
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--border-color);
     padding: 20px 0;
     display: flex;
     flex-direction: column;
+    gap: 8px;
 }
 
 .logo {
-    font-size: 1.2rem;
-    font-weight: bold;
-    padding: 0 20px 20px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    padding: 0 20px 18px;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .nav-btn {
@@ -47,32 +76,42 @@ body {
     font-family: inherit;
     font-size: 0.95rem;
     color: var(--text-color);
-    transition: background 0.2s;
+    transition: background 0.12s, color 0.12s;
+    border-left: 3px solid transparent;
 }
-
-.nav-btn:hover {
-    background-color: #f0f0f0;
+.nav-btn:hover,
+.nav-btn:focus {
+    background-color: #fbfbfe;
+    outline: none;
 }
-
 .nav-btn.active {
-    background-color: #e0e0e0;
-    font-weight: 500;
-    border-left: 3px solid var(--accent-color);
+    background-color: #f1f6ff;
+    font-weight: 600;
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
+}
+
+.nav-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(11, 95, 255, 0.12);
+    border-left-color: var(--accent-color);
 }
 
 .content {
     flex: 1;
-    padding: 30px;
+    padding: 16px 20px;
     overflow-y: auto;
+    max-width: none; /* allow content to fill available width next to sidebar */
+    margin: 0; /* remove centering to use full space */
 }
 
 header {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 h1 {
     margin: 0;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.5rem;
 }
 
 .view {
@@ -87,60 +126,68 @@ h1 {
     width: 100%;
     border-collapse: collapse;
     background: var(--card-bg);
-    border-radius: 8px;
+    border-radius: var(--base-radius);
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.05);
 }
 
 .data-table th,
 .data-table td {
-    padding: 12px 20px;
+    padding: 8px 12px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
 }
 
 .data-table th {
-    background-color: #fafafa;
-    font-weight: 600;
-    color: #666;
+    background-color: #fbfcff;
+    font-weight: 700;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #fbfbfe;
 }
 
 .actions {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .btn-primary {
     background-color: var(--accent-color);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
     cursor: pointer;
     font-family: inherit;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-primary:focus {
     background-color: var(--accent-hover);
+    outline: none;
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; /* tighter spacing to reduce empty areas */
 }
 
 .card {
     background: var(--card-bg);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 18px;
+    border-radius: var(--base-radius);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.04);
 }
 
 .card h3 {
     margin-top: 0;
     color: #666;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .stat-value {
@@ -158,47 +205,55 @@ h1 {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(3, 7, 18, 0.45);
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
+    background-color: #fff;
+    margin: 0 16px;
     padding: 20px;
-    border: 1px solid #888;
-    width: 500px;
-    border-radius: 8px;
+    border: 1px solid rgba(16,24,40,0.06);
+    width: 540px;
+    max-width: calc(100% - 48px);
+    border-radius: var(--base-radius);
+}
+
+/* show state for modal: centers content */
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close {
-    color: #aaa;
+    color: #9aa4b2;
     float: right;
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 22px;
+    font-weight: 700;
     cursor: pointer;
+    background: transparent;
+    border: none;
 }
 
 .close:hover,
 .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+    color: #374151;
 }
 
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 input,
 select,
 textarea {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 10px 12px;
+    border: 1px solid #e6ecf2;
+    border-radius: 6px;
     font-family: inherit;
+    background: #fff;
 }
 
 .large-modal {
@@ -206,10 +261,10 @@ textarea {
 }
 
 .recipe-editor {
-    border: 1px solid #ddd;
+    border: 1px solid #eef2f8;
     padding: 10px;
-    border-radius: 4px;
-    background: #fafafa;
+    border-radius: 6px;
+    background: #fbfcff;
 }
 
 .recipe-controls {
@@ -227,16 +282,16 @@ textarea {
 }
 
 .btn-secondary {
-    background-color: #e0e0e0;
-    color: #333;
+    background-color: #e9eefb;
+    color: #102a43;
     border: none;
     padding: 8px 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
 }
 
 .btn-secondary:hover {
-    background-color: #d0d0d0;
+    background-color: #dfe9ff;
 }
 
 .recipe-list {
@@ -246,28 +301,28 @@ textarea {
 }
 
 .recipe-list li {
-    background: white;
-    border: 1px solid #eee;
-    padding: 8px;
-    margin-bottom: 5px;
+    background: #fff;
+    border: 1px solid #f0f4fb;
+    padding: 8px 10px;
+    margin-bottom: 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .btn-small-danger {
-    background: #ffebee;
-    color: #c62828;
+    background: #fff1f2;
+    color: #b91c1c;
     border: none;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 .btn-small-danger:hover {
-    background: #ffcdd2;
+    background: #ffd6d6;
 }
 
 .form-group {
@@ -277,7 +332,43 @@ textarea {
 }
 
 .form-group label {
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #666;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.form-row label { width: 160px; font-weight: 600; color: #374151; }
+/* Ensure inputs, selects and any input-wrapping containers stretch and can shrink on small screens */
+.form-row input,
+.form-row select,
+.form-row textarea,
+.form-row .input-with-suffix {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-help { margin: 6px 0 12px; color: #6b7280; font-size: 0.95rem; }
+
+.sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
+/* input with suffix (currency) */
+.input-with-suffix { display: flex; align-items: center; width: 100%; gap: 8px; }
+.input-with-suffix input { flex: 1; padding-right: 0.75rem; min-width: 120px; }
+.input-suffix { display: inline-block; color: #475569; font-weight: 600; padding: 6px 8px; background: rgba(71,85,105,0.05); border-radius: 6px; height: calc(2.25em + 8px); display: flex; align-items: center; }
+
+.input-suffix-small { margin-left: 6px; color: #475569; font-weight: 600; font-size: 0.95rem; }
+
+/* Responsive: collapse sidebar to top on small screens */
+@media (max-width: 800px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; display: flex; flex-direction: row; gap: 0; padding: 8px; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+    .logo { display: none; }
+    .nav-btn { white-space: nowrap; padding: 10px 14px; }
+    .content { padding: 16px; }
 }

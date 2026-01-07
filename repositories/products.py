@@ -49,18 +49,26 @@ class ProductsRepository:
         Возвращает список словарей в формате: [{'name': 'Мука', 'quantity': 500.0}].
         """
         cursor = self._conn.cursor()
-        # Соединяем product_ingredients с таблицей ingredients, чтобы получить имя
+        # Явное указание алиасов защищает от конфликтов имён колонок
         cursor.execute(
             """
-            SELECT i.name, pi.quantity
+            SELECT i.name AS ingredient_name, pi.quantity AS qty, u.name AS unit_name
             FROM product_ingredients pi
             JOIN ingredients i ON pi.ingredient_id = i.id
+            LEFT JOIN units u ON i.unit_id = u.id
             WHERE pi.product_id = ?
             """,
             (product_id,)
         )
-        # Преобразуем результат в список словарей, как было в старой модели
-        return [{'name': row['name'], 'quantity': row['quantity']} for row in cursor.fetchall()]
+        rows = cursor.fetchall()
+        result = []
+        for row in rows:
+            # sqlite3.Row поддерживает доступ по имени
+            name = row['ingredient_name'] if 'ingredient_name' in row.keys() else row[0]
+            qty = row['qty'] if 'qty' in row.keys() else row[1]
+            unit = row['unit_name'] if 'unit_name' in row.keys() else (row[2] if len(row) > 2 else None)
+            result.append({'name': name, 'quantity': qty, 'unit': unit})
+        return result
 
     # --- CRUD Методы ---
 
@@ -174,6 +182,57 @@ class ProductsRepository:
             conn.rollback()
             # В реальном приложении здесь можно логировать ошибку
             raise RuntimeError(f"Ошибка при удалении продукта '{name}' и его рецептов: {e}")
+
+    def update(self, product_id: int, name: str, price: int, ingredients: List[Dict[str, Any]]):
+        """
+        Обновляет продукт по ID: изменяет имя/цену и пересоздаёт рецепт.
+        Проверяет коллизию имени с другими продуктами.
+        """
+        cursor = self._conn.cursor()
+
+        # Проверяем, существует ли продукт
+        existing = self.by_id(product_id)
+        if not existing:
+            raise ValueError(f"Продукт с id={product_id} не найден.")
+
+        try:
+            # Проверка на дублирование имени у другого продукта
+            cursor.execute("SELECT id FROM products WHERE name = ?", (name,))
+            row = cursor.fetchone()
+            if row and row['id'] != product_id:
+                raise ValueError(f"Продукт с именем '{name}' уже существует.")
+
+            # Обновляем сам продукт
+            cursor.execute(
+                "UPDATE products SET name = ?, price = ? WHERE id = ?",
+                (name, price, product_id)
+            )
+
+            # Удаляем старый рецепт
+            cursor.execute("DELETE FROM product_ingredients WHERE product_id = ?", (product_id,))
+
+            # Добавляем новый рецепт
+            ingredient_repo = self._model.ingredients()
+            for item in ingredients:
+                ing_name = item['name']
+                ing_quantity = item['quantity']
+                ingredient_entity = ingredient_repo.by_name(ing_name)
+                if not ingredient_entity:
+                    raise ValueError(f"Ингредиент '{ing_name}' не найден. Продукт не сохранен.")
+
+                cursor.execute(
+                    "INSERT INTO product_ingredients (product_id, ingredient_id, quantity) VALUES (?, ?, ?)",
+                    (product_id, ingredient_entity.id, ing_quantity)
+                )
+
+            self._conn.commit()
+            return self.by_id(product_id)
+        except sqlite3.Error as e:
+            self._conn.rollback()
+            raise e
+        except Exception:
+            self._conn.rollback()
+            raise
 
     def data(self) -> List[Dict[str, SimpleNamespace]]:
         """

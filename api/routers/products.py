@@ -49,6 +49,33 @@ def create_product(product: ProductCreate, model: SQLiteModel = Depends(get_mode
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(product_id: int, model: SQLiteModel = Depends(get_model)):
+    try:
+        p = model.products().by_id(product_id)
+        if not p:
+            raise HTTPException(status_code=404, detail="Product not found")
+        ingredients = model.products().get_ingredients_for_product(p.id)
+        return {"id": p.id, "name": p.name, "price": p.price, "ingredients": ingredients}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/{product_id}", response_model=ProductResponse)
+def update_product(product_id: int, product: ProductCreate, model: SQLiteModel = Depends(get_model)):
+    try:
+        ingredients_list = [i.dict() for i in product.ingredients]
+        updated = model.products().update(product_id, product.name, product.price, ingredients_list)
+        ingredients = model.products().get_ingredients_for_product(updated.id)
+        return {"id": updated.id, "name": updated.name, "price": updated.price, "ingredients": ingredients}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/{product_name}")
 def delete_product(product_name: str, model: SQLiteModel = Depends(get_model)):
     try:

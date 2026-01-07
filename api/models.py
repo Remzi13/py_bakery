@@ -17,6 +17,7 @@ class Ingredient(BaseModel):
 class ProductIngredient(BaseModel):
     name: str
     quantity: float
+    unit: Optional[str] = None
 
 class ProductBase(BaseModel):
     name: str
