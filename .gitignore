@@ -1,5 +1,8 @@
 *.pyc
 *.spec
-__pycache__/
+*.log
+*.db
+*.sqlite
+__pycache__
 dist/
 build/
