@@ -20,7 +20,7 @@ function setupTabs() {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             const tabId = btn.getAttribute('data-tab');
             document.getElementById(`${tabId}-view`).classList.add('active');
-            
+
             // Load Data
             loadTab(tabId);
         });
@@ -34,20 +34,21 @@ function loadTab(tabId) {
     if (tabId === 'sales') { loadSales(); loadProductsForSelect(); }
     if (tabId === 'expenses') { loadExpenses(); loadExpenseTypesForSelect(); loadSuppliersForSelect(); }
     if (tabId === 'suppliers') loadSuppliers();
+    if (tabId === 'ingredients') loadIngredients();
 }
 
 // --- Modals ---
 
-window.openModal = function(modalId) {
+window.openModal = function (modalId) {
     document.getElementById(modalId).style.display = 'block';
 }
 
-window.closeModal = function(modalId) {
+window.closeModal = function (modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
 function setupModals() {
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = "none";
         }
@@ -65,12 +66,12 @@ async function loadDashboard() {
     // For now executing client side calc.
     let total = 0;
     sales.forEach(s => {
-         if (s.date && s.date.startsWith(today)) {
-             total += (s.price * s.quantity * (1 - s.discount/100));
-         }
+        if (s.date && s.date.startsWith(today)) {
+            total += (s.price * s.quantity * (1 - s.discount / 100));
+        }
     });
     document.getElementById('stats-sales').innerText = `$${total.toFixed(2)}`;
-    
+
     // Low stock
     const stock = await fetchAPI('/stock');
     const lowStock = stock.filter(item => item.quantity < 10).length; // Arbitrary threshold
@@ -192,7 +193,7 @@ async function loadSuppliersForSelect() {
     const data = await fetchAPI('/suppliers');
     const select = document.getElementById('expense-supplier-select');
     // Clear but keep first "No Supplier" option
-    select.innerHTML = '<option value="">No Supplier</option>'; 
+    select.innerHTML = '<option value="">No Supplier</option>';
     data.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.id;
@@ -212,14 +213,23 @@ function setupForms() {
         try {
             data.ingredients = JSON.parse(data.ingredients_json || '[]');
         } catch (err) {
-            alert("Invalid JSON for ingredients");
+            alert("Invalid ingredients");
             return;
         }
         await postAPI('/products/', data);
         closeModal('product-modal');
         loadProducts();
     };
-    
+
+    document.getElementById('ingredient-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        await postAPI('/ingredients/', data);
+        closeModal('ingredient-modal');
+        loadIngredients();
+    };
+
     document.getElementById('stock-form').onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -228,7 +238,7 @@ function setupForms() {
         closeModal('stock-modal');
         loadStock();
     };
-    
+
     document.getElementById('sale-form').onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -237,7 +247,7 @@ function setupForms() {
         closeModal('sale-modal');
         loadSales();
     };
-    
+
     document.getElementById('expense-form').onsubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -256,6 +266,88 @@ function setupForms() {
         closeModal('supplier-modal');
         loadSuppliers();
     };
+}
+
+// --- Ingredients & Recipe Logic ---
+
+async function loadIngredients() {
+    const data = await fetchAPI('/ingredients');
+    const tbody = document.querySelector('#ingredients-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.unit_name || item.unit_id}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+
+let currentRecipe = [];
+
+async function loadIngredientsForRecipe() {
+    const data = await fetchAPI('/ingredients');
+    const select = document.getElementById('recipe-ingredient-select');
+    select.innerHTML = '<option value="">Select Ingredient...</option>';
+    data.forEach(i => {
+        const opt = document.createElement('option');
+        opt.value = i.name; // Product API expects name, not ID in ingredients list
+        opt.innerText = i.name;
+        select.appendChild(opt);
+    });
+
+    // Reset recipe state
+    currentRecipe = [];
+    updateRecipeList();
+}
+
+window.addIngredientToRecipe = function () {
+    const select = document.getElementById('recipe-ingredient-select');
+    const name = select.value;
+    const qtyInput = document.getElementById('recipe-quantity');
+    const quantity = parseFloat(qtyInput.value);
+
+    if (!name || isNaN(quantity) || quantity <= 0) {
+        alert("Please select an ingredient and enter a valid quantity.");
+        return;
+    }
+
+    currentRecipe.push({ name, quantity });
+    updateRecipeList();
+
+    // Reset inputs
+    select.value = "";
+    qtyInput.value = "";
+}
+
+window.removeIngredientFromRecipe = function (index) {
+    currentRecipe.splice(index, 1);
+    updateRecipeList();
+}
+
+function updateRecipeList() {
+    const list = document.getElementById('recipe-list');
+    list.innerHTML = '';
+    currentRecipe.forEach((ing, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${ing.name} - ${ing.quantity}</span>
+            <button type="button" class="btn-small-danger" onclick="removeIngredientFromRecipe(${index})">Remove</button>
+        `;
+        list.appendChild(li);
+    });
+    document.getElementById('recipe-json').value = JSON.stringify(currentRecipe);
+}
+
+// Hook into openModal to init recipe editor
+const _originalOpenModal = window.openModal;
+window.openModal = function (modalId) {
+    _originalOpenModal(modalId);
+    if (modalId === 'product-modal') {
+        loadIngredientsForRecipe();
+    }
 }
 
 // --- API Helpers ---
@@ -283,7 +375,7 @@ async function postAPI(endpoint, data) {
     return await res.json();
 }
 
-window.deleteItem = async function(resource, id) {
+window.deleteItem = async function (resource, id) {
     if (!confirm('Are you sure?')) return;
     const res = await fetch(`${API_BASE}/${resource}/${id}`, {
         method: 'DELETE'

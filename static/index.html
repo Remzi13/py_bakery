@@ -22,6 +22,7 @@
                 <button class="nav-btn" data-tab="sales">Sales</button>
                 <button class="nav-btn" data-tab="expenses">Expenses</button>
                 <button class="nav-btn" data-tab="suppliers">Suppliers</button>
+                <button class="nav-btn" data-tab="ingredients">Ingredients</button>
             </nav>
         </aside>
 
@@ -133,21 +134,71 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div id="ingredients-view" class="view">
+                    <div class="actions">
+                        <button class="btn-primary" onclick="openModal('ingredient-modal')">Add Ingredient</button>
+                    </div>
+                    <table class="data-table" id="ingredients-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Modals -->
     <div id="product-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content large-modal">
             <span class="close" onclick="closeModal('product-modal')">&times;</span>
             <h2>Add Product</h2>
             <form id="product-form">
-                <input type="text" name="name" placeholder="Product Name" required>
-                <input type="number" name="price" placeholder="Price" required>
-                <!-- Simplified ingredients input for now -->
-                <textarea name="ingredients_json"
-                    placeholder='Ingredients JSON e.g. [{"name":"Flour", "quantity":0.5}]'></textarea>
+                <div class="form-group">
+                    <label>Product Details</label>
+                    <input type="text" name="name" placeholder="Product Name" required>
+                    <input type="number" name="price" placeholder="Price" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Recipe (Ingredients)</label>
+                    <div class="recipe-editor">
+                        <div class="recipe-controls">
+                            <select id="recipe-ingredient-select">
+                                <option value="">Select Ingredient...</option>
+                            </select>
+                            <input type="number" step="0.001" id="recipe-quantity" placeholder="Qty">
+                            <button type="button" class="btn-secondary" onclick="addIngredientToRecipe()">Add</button>
+                        </div>
+                        <ul id="recipe-list" class="recipe-list">
+                            <!-- Added ingredients show here -->
+                        </ul>
+                        <!-- Hidden input to store JSON for submission -->
+                        <input type="hidden" name="ingredients_json" id="recipe-json">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="ingredient-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('ingredient-modal')">&times;</span>
+            <h2>Add New Ingredient</h2>
+            <form id="ingredient-form">
+                <input type="text" name="name" placeholder="Ingredient Name" required>
+                <select name="unit_name">
+                    <option value="кг">кг</option>
+                    <option value="грамм">грамм</option>
+                    <option value="литр">литр</option>
+                    <option value="штук">штук</option>
+                </select>
                 <button type="submit" class="btn-primary">Save</button>
             </form>
         </div>
