@@ -8,7 +8,7 @@ class TestIngredientsRepository:
         """Проверка, что добавление ингредиента создает связанные StockItem и ExpenseType."""
         repo = model.ingredients()
         
-        repo.add(name='Мука', unit_name='кг')
+        repo.add(name='Мука', unit_name='kg')
 
         # 1. Проверка Ingredients
         assert repo.len() == 1
@@ -19,7 +19,7 @@ class TestIngredientsRepository:
         stock_item = model.stock().get('Мука')
         assert stock_item is not None
         assert stock_item.quantity == 0.0
-        assert stock_item.category_id == model.stock()._get_category_id('Сырье')
+        assert stock_item.category_id == model.stock()._get_category_id('Materials')
 
         # 3. Проверка ExpenseType
         expense_type = model.expense_types().get('Мука')
@@ -28,7 +28,7 @@ class TestIngredientsRepository:
         
     def test_delete_allowed(self, model: SQLiteModel):
         repo = model.ingredients()
-        repo.add(name='Соль', unit_name='кг')
+        repo.add(name='Соль', unit_name='kg')
         
         # Проверка, что удаление разрешено
         assert repo.can_delete('Соль') is True
@@ -39,7 +39,7 @@ class TestIngredientsRepository:
 
     def test_delete_denied(self, model: SQLiteModel):
         repo = model.ingredients()
-        repo.add(name='Сахар', unit_name='кг')
+        repo.add(name='Сахар', unit_name='kg')
         
         # Искусственно создаем продукт, использующий Сахар, 
         # чтобы проверить запрет на удаление.
@@ -57,10 +57,10 @@ class TestIngredientsRepository:
         
     def test_data(self, model: SQLiteModel):
         repo = model.ingredients()
-        repo.add(name='Сахар', unit_name='кг')
-        repo.add(name='Вода', unit_name='литр')
+        repo.add(name='Сахар', unit_name='kg')
+        repo.add(name='Вода', unit_name='l')
         
         data = repo.data()
         assert len(data) == 2
         assert data[0].name == 'Сахар'
-        assert data[1].unit_id == 3 # ID 'литр' (при условии, что 'литр' имеет id=3)
+        assert data[1].unit_id == 3 # ID 'l' (при условии, что 'l' имеет id=3)

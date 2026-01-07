@@ -16,7 +16,7 @@ class TestUtilsRepository:
         names = repo.get_unit_names()
         
         # Ожидаемые имена из model/database.py: INITIAL_UNITS
-        expected_names = ['кг', 'грамм', 'литр', 'штук']
+        expected_names = ['kg', 'g', 'l', 'pc']
         
         assert len(names) == len(expected_names)
         assert names == expected_names
@@ -26,7 +26,7 @@ class TestUtilsRepository:
         names = repo.get_stock_category_names()
         
         # Ожидаемые имена из model/database.py: INITIAL_STOCK_CATEGORIES
-        expected_names = ['Сырье', 'Упаковка', 'Оборудование']
+        expected_names = ['Materials', 'Packaging', 'Equipment']
         
         assert len(names) == len(expected_names)
         assert names == expected_names
@@ -36,7 +36,7 @@ class TestUtilsRepository:
         names = repo.get_expense_category_names()
         
         # Ожидаемые имена из model/database.py: INITIAL_EXPENSE_CATEGORIES
-        expected_names = ['Сырьё', 'Оборудование', 'Платежи', 'Другое']
+        expected_names = ['Materials', 'Equipment', 'Utilities', 'Other']
         
         assert len(names) == len(expected_names)
         assert names == expected_names
@@ -57,8 +57,8 @@ class TestUtilsRepository:
     def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
         """Проверяет успешное получение ID для известной категории."""
                
-        # Мы знаем, что 'Сырьё' (INGREDIENT) должна быть в БД после инициализации
-        ingredient_id = repo.get_expense_category_id_by_name('Сырьё')
+        # Мы знаем, что 'Materials' (INGREDIENT) должна быть в БД после инициализации
+        ingredient_id = repo.get_expense_category_id_by_name('Materials')
         
         # ID категории должны быть > 0
         assert isinstance(ingredient_id, int)
@@ -74,13 +74,13 @@ class TestUtilsRepository:
     def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
         """Проверяет, что поиск чувствителен к регистру (по умолчанию в SQLite)."""
         
-        # Если в базе 'Сырьё', то 'сырьё' должно вернуть None
-        lowercase_id = repo.get_expense_category_id_by_name('сырьё')
+        # Если в базе 'Materials', то 'Materials' должно вернуть None
+        lowercase_id = repo.get_expense_category_id_by_name('materials')
         
         # Примечание: В SQLite по умолчанию сравнение строк без учета регистра, 
         # но для русских букв может работать как чувствительное, 
         # поэтому мы просто проверяем, что оно корректно находит точное имя.
         assert lowercase_id is None
         
-        # Если очень хочется убедиться, что 'Сырьё' существует:
-        assert repo.get_expense_category_id_by_name('Сырьё') is not None
+        # Если очень хочется убедиться, что 'Materials' существует:
+        assert repo.get_expense_category_id_by_name('Materials') is not None

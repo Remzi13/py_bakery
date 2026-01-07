@@ -136,12 +136,12 @@ async function loadExpenses() {
     data.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${item.date}</td>
+            <td>${item.name}</td>            
             <td>${item.type_id}</td> 
-            <td>${item.name}</td>
             <td>${item.price}</td>
             <td>${item.quantity}</td>
             <td>${item.supplier_id || '-'}</td>
+            <td>${item.date}</td>
         `;
         tbody.appendChild(tr);
     });

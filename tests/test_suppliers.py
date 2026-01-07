@@ -29,7 +29,7 @@ class TestSuppliersRepository:
         
         # Добавляем нового поставщика с полными данными
         supplier = repo.add(
-            name="Пекарское Оборудование", 
+            name="Пекарское Equipment", 
             contact_person="Анна Смирнова", 
             phone="89101112233", 
             email="anna@equipment.com", 
@@ -37,7 +37,7 @@ class TestSuppliersRepository:
         )
         
         assert supplier.id is not None
-        assert supplier.name == "Пекарское Оборудование"
+        assert supplier.name == "Пекарское Equipment"
         assert supplier.contact_person == "Анна Смирнова"
         assert supplier.phone == "89101112233"
         assert supplier.email == "anna@equipment.com"
@@ -211,7 +211,7 @@ class TestSuppliersRepository:
         model.expense_types().add(
             name="Закупка сырья у поставщика", 
             default_price=1000, 
-            category_name="Сырьё"
+            category_name="Materials"
         )
         
         # Регистрируем расход, привязанный к поставщику

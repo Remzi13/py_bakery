@@ -45,12 +45,12 @@ def populated_model(clean_model: SQLiteModel):
     
     # Вспомогательная функция для получения ID
     with setup_test_db() as conn:
-        kg_id = get_unit_by_name(conn, 'кг')
-        штук_id = get_unit_by_name(conn, 'штук')
+        kg_id = get_unit_by_name(conn, 'kg')
+        штук_id = get_unit_by_name(conn, 'pc')
 
     # 1. Добавляем ингредиенты (автоматически создаются StockItem и ExpenseType)
-    model.ingredients().add(name='Мука', unit_name='кг')
-    model.ingredients().add(name='Яйцо', unit_name='штук')
+    model.ingredients().add(name='Мука', unit_name='kg')
+    model.ingredients().add(name='Яйцо', unit_name='pc')
     
     # 2. Оприходуем запас (Мука: 10 кг, Яйцо: 50 штук)
     model.stock().update('Мука', 10.0)
@@ -78,7 +78,7 @@ def populated_model(clean_model: SQLiteModel):
 def test_ingredient_add_and_relations(clean_model: SQLiteModel):
     """Тестирование добавления ингредиента и его автоматических связей."""
     model = clean_model
-    model.ingredients().add(name='Сахар', unit_name='кг')
+    model.ingredients().add(name='Сахар', unit_name='kg')
 
     # Проверка, что ингредиент добавлен
     assert model.ingredients().len() == 1
@@ -103,7 +103,7 @@ def test_ingredient_delete(populated_model: SQLiteModel):
     # Проверка: 'Вода' - это ингредиент, но не используется в продуктах (он был добавлен 
     # в 'populated_model' как продукт, но не как ингредиент). Добавим его как ингредиент 
     # для чистоты теста.
-    model.ingredients().add(name='Соль', unit_name='кг')
+    model.ingredients().add(name='Соль', unit_name='kg')
     assert model.ingredients().can_delete('Соль')
 
     # Удаление 'Соль'
@@ -210,7 +210,7 @@ def test_finance_calculations(populated_model: SQLiteModel):
     assert model.calculate_profit() == 310.0
     
     # Добавляем еще один расход (другой тип)
-    model.expense_types().add(name='Аренда', default_price=1000, category_name='Платежи')
+    model.expense_types().add(name='Аренда', default_price=1000, category_name='Utilities')
     model.expenses().add(name='Аренда', price=1000, quantity=1.0, supplier_name=None) # Расход: 1000
     
     # Общий Расход = 250 + 1000 = 1250

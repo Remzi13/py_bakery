@@ -7,7 +7,7 @@ class TestSalesRepository:
     @pytest.fixture(autouse=True)
     def setup_stock_and_products(self, model: SQLiteModel):
         # 1. Зависимости
-        model.ingredients().add('Мука', 'кг')
+        model.ingredients().add('Мука', 'kg')
         model.stock().update('Мука', 10.0) # Запас: 10 кг
         
         # 2. Продукт: 1 Булочка = 0.5 кг Муки

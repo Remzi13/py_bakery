@@ -8,15 +8,15 @@ def expense_data(model: SQLiteModel) -> dict:
     # 1. Создаем поставщиков (НОВЫЙ ШАГ)
     supplier_repo = model.suppliers()
     supplier_repo.add("Мукомольный завод №1", "Иван Иванов", "+71234567890", "ivan@mill.ru", "ул. Мельничная, 1")
-    supplier_repo.add("ООО 'Упаковка'", "Петр Петров", "88001234567")
+    supplier_repo.add("ООО 'Packaging'", "Петр Петров", "88001234567")
     
-    # 2. Создаем типы расходов (Сырье и Платежи)
-    model.expense_types().add("Мука пшеничная", 50, "Сырьё")
-    model.expense_types().add("Аренда", 50000, "Платежи")
+    # 2. Создаем типы расходов (Materials и Платежи)
+    model.expense_types().add("Мука пшеничная", 50, "Materials")
+    model.expense_types().add("Аренда", 50000, "Utilities")
     
     # 3. Добавляем ингредиент (он автоматически создаст StockItem и ExpenseType)
-    # Это важно, чтобы ExpenseTypesRepository мог найти "Мука пшеничная"
-    model.ingredients().add("Мука", "кг")
+    # This is important so that ExpenseTypesRepository can find "Мука пшеничная"
+    model.ingredients().add("Мука", "kg")
     
     # 4. Добавляем несколько расходов
     # Расход, связанный с поставщиком
@@ -35,7 +35,7 @@ class TestExpensesRepository:
         repo = model.expenses()
         
         # Создаем тип расхода для теста
-        model.expense_types().add(name='Свет', default_price=1000, category_name='Платежи')
+        model.expense_types().add(name='Свет', default_price=1000, category_name='Utilities')
         
         repo.add(name='Свет', price=1200, quantity=1.0, supplier_name = None)
         
@@ -54,7 +54,7 @@ class TestExpensesRepository:
     def test_data(self, model: SQLiteModel):
         repo = model.expenses()
         # Создаем тип расхода (Мука)
-        model.expense_types().add(name='Мука', default_price=100, category_name='Сырьё')
+        model.expense_types().add(name='Мука', default_price=100, category_name='Materials')
         
         repo.add(name='Мука', price=150, quantity=10.0, supplier_name=None)
         

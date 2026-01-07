@@ -48,10 +48,10 @@ class IngredientsRepository:
             self._conn.commit()
             
             # 3. Добавляем связанный StockItem (используем репозиторий Stock)
-            # Мы используем строковое имя категории 'Сырье', чтобы найти ее ID в БД.
+            # Мы используем строковое имя категории 'Materials', чтобы найти ее ID в БД.
             self._model.stock().add(
                 name=name, 
-                category_name='Сырье', 
+                category_name='Materials', 
                 quantity=0, # Изначально 0
                 unit_name=unit_name 
             )
@@ -61,7 +61,7 @@ class IngredientsRepository:
             self._model.expense_types().add(
                 name=name, 
                 default_price=100, 
-                category_name='Сырьё'
+                category_name='Materials'
             )
             
             return Ingredient(id=ingredient_id, name=name, unit_id=unit_id)

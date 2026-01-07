@@ -4,8 +4,8 @@ class TestProductsRepository:
 
     def test_add_and_get_recipe(self, model: SQLiteModel):
         repo = model.products()
-        model.ingredients().add('Мука', 'кг')
-        model.ingredients().add('Вода', 'литр')
+        model.ingredients().add('Мука', 'kg')
+        model.ingredients().add('Вода', 'l')
 
         recipe = [
             {'name': 'Мука', 'quantity': 1.5}, 
@@ -24,8 +24,8 @@ class TestProductsRepository:
         
     def test_update_product_and_recipe(self, model: SQLiteModel):
         repo = model.products()
-        model.ingredients().add('Мука', 'кг')
-        model.ingredients().add('Соль', 'грамм')
+        model.ingredients().add('Мука', 'kg')
+        model.ingredients().add('Соль', 'g')
         
         repo.add(name='Пирог', price=500, ingredients=[{'name': 'Мука', 'quantity': 1.0}])
         
@@ -56,7 +56,7 @@ class TestProductsRepository:
         conn = model._conn # Доступ к соединению для проверки
     
         # 1. Подготовка: Добавляем ингредиенты
-        model.ingredients().add('Мука', 'кг')
+        model.ingredients().add('Мука', 'kg')
     
         # 2. Добавление продукта с рецептом
         recipe = [{'name': 'Мука', 'quantity': 1.0}]
@@ -78,7 +78,7 @@ class TestProductsRepository:
         repo = model.products()
         
         # Для добавления продукта нужны ингредиенты
-        model.ingredients().add('Инг1', 'кг')
+        model.ingredients().add('Инг1', 'kg')
         
         repo.add(name='Торт', price=1000, ingredients=[{'name': 'Инг1', 'quantity': 1.0}])
         repo.add(name='Кекс', price=50, ingredients=[])

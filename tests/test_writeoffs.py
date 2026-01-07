@@ -6,13 +6,13 @@ from tests.core import SQLiteModel, model, conn
 def write_off_data(model: SQLiteModel):
     """
     Настраивает минимальные данные для тестов списаний: 
-    Ингредиент 'Мука' (сырье) и Продукт 'Круассан' (с рецептом).
+    Ингредиент 'Мука' (Materials) и Продукт 'Круассан' (с рецептом).
     Использует фикстуру model (SQLiteModel) для доступа к репозиториям.
     """
     
-    # 1. Сырье/Запас (Мука)
+    # 1. Materials/Запас (Мука)
     # model.ingredients().add() создает запись в ingredients, stock и expense_types
-    model.ingredients().add(name="Мука", unit_name="кг")
+    model.ingredients().add(name="Мука", unit_name="kg")
     # Устанавливаем начальный запас: 10 кг
     model.stock().set("Мука", 10.0) 
     
@@ -178,7 +178,7 @@ class TestWriteOffsRepository:
         assert "не найден в списке продуктов" in str(excinfo.value)
         
     def test_write_off_non_existent_item_stock(self, write_off_data: dict):
-        """Проверяет ошибку при попытке списать несуществующее сырье/запас."""
+        """Проверяет ошибку при попытке списать несуществующее Materials/запас."""
         model = write_off_data['model']
         w_repo = model.writeoffs()
         
@@ -237,7 +237,7 @@ class TestWriteOffsRepository:
         
         # Списание продукта (уменьшает ингредиенты, регистрирует продукт)
         w_repo.add("Круассан", "product", 2.0, "Тест 2")
-        # Списание сырья (уменьшает сырье, регистрирует сырье)
+        # Списание сырья (уменьшает Materials, регистрирует Materials)
 
         #time.sleep(6)
 
@@ -250,7 +250,7 @@ class TestWriteOffsRepository:
         
         # Проверяем, что первый элемент (самый новый, т.к. ORDER BY date DESC) - это Мука
         assert all_write_offs[1].quantity == 1.0
-        assert all_write_offs[1].product_id is None # Мука - сырье, product_id пуст
+        assert all_write_offs[1].product_id is None # Мука - Materials, product_id пуст
         
         # Проверяем, что второй элемент - это Круассан
         assert all_write_offs[0].quantity == 2.0

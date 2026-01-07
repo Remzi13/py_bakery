@@ -6,15 +6,15 @@ DB_PATH = 'bakery_management.db'
 
 # Начальные данные для справочников (Unit, Categories)
 INITIAL_UNITS = [
-    ('кг',), ('грамм',), ('литр',), ('штук',)
+    ('kg',), ('g',), ('l',), ('pc',)
 ]
 
 INITIAL_STOCK_CATEGORIES = [
-    ('Сырье',), ('Упаковка',), ('Оборудование',)
+    ('Materials',), ('Packaging',), ('Equipment',)
 ]
 
 INITIAL_EXPENSE_CATEGORIES = [
-    ('Сырьё',), ('Оборудование',), ('Платежи',), ('Другое',)
+    ('Materials',), ('Equipment',), ('Utilities',), ('Other',)
 ]
 
 
@@ -28,7 +28,7 @@ def execute_scripts(conn: sqlite3.Connection, scripts: List[str]):
 
 def create_connection(db_file=DB_PATH) -> sqlite3.Connection:
     """Создает и возвращает соединение с базой данных SQLite."""
-    conn = sqlite3.connect(db_file)
+    conn = sqlite3.connect(db_file, check_same_thread=False)
     conn.row_factory = sqlite3.Row  # Это позволит получать данные в виде словарей
     return conn
 

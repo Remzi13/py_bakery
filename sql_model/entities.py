@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 
 @dataclass(frozen=True)
 class Ingredient:
-    """Сырье для производства."""
+    """Materials для производства."""
     name: str
     unit_id: int  # Ссылка на ID из таблицы 'units'
     id: Optional[int] = None # ID из БД (PRIMARY KEY), может быть None до сохранения

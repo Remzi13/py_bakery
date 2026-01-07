@@ -11,7 +11,7 @@ class TestStockRepository:
         return StockRepository(conn)
 
     def test_add_and_get(self, repo: StockRepository):
-        repo.add(name='Мешок', category_name='Упаковка', quantity=100.0, unit_name='штук')
+        repo.add(name='Мешок', category_name='Packaging', quantity=100.0, unit_name='pc')
         item = repo.get('Мешок')
         
         assert repo.by_id(item.id).name == item.name
@@ -21,7 +21,7 @@ class TestStockRepository:
         assert repo.len() == 1
         
     def test_update_quantity(self, repo: StockRepository):
-        repo.add(name='Вода', category_name='Сырье', quantity=50.0, unit_name='литр')
+        repo.add(name='Вода', category_name='Materials', quantity=50.0, unit_name='l')
         
         # Оприходование
         repo.update('Вода', 10.0)
@@ -32,15 +32,15 @@ class TestStockRepository:
         assert repo.get('Вода').quantity == 40.0
         
     def test_update_negative_balance(self, repo: StockRepository):
-        repo.add(name='Масло', category_name='Сырье', quantity=10.0, unit_name='кг')
+        repo.add(name='Масло', category_name='Materials', quantity=10.0, unit_name='kg')
         
         # Попытка списать больше, чем есть
         with pytest.raises(ValueError, match="Недостаточно запаса для 'Масло'. Требуется списание 100.00, текущий остаток 10.00."):
             repo.update('Масло', -100.0)
 
     def test_data(self, repo: StockRepository):
-        repo.add(name='Мука', category_name='Сырье', quantity=100.0, unit_name='кг')
-        repo.add(name='Яйцо', category_name='Сырье', quantity=50.0, unit_name='штук')
+        repo.add(name='Мука', category_name='Materials', quantity=100.0, unit_name='kg')
+        repo.add(name='Яйцо', category_name='Materials', quantity=50.0, unit_name='pc')
         
         data = repo.data()
         assert len(data) == 2
@@ -51,7 +51,7 @@ class TestStockRepository:
         """Проверяет, что метод set корректно устанавливает новое количество."""
     
         # 1. Подготовка: Добавляем элемент запаса
-        repo.add(name='Сахар', category_name='Сырье', quantity=100.0, unit_name='кг')
+        repo.add(name='Сахар', category_name='Materials', quantity=100.0, unit_name='kg')
     
         # 2. Действие: Устанавливаем новое количество
         repo.set('Сахар', 55.5)
@@ -66,7 +66,7 @@ class TestStockRepository:
 
     def test_update_quantity_positive(self, repo: StockRepository):
         """Проверяет, что update корректно увеличивает запас."""
-        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+        repo.add(name='Мука', category_name='Materials', quantity=10.0, unit_name='kg')
     
         # Увеличение (покупка)
         repo.update('Мука', 5.5)
@@ -76,7 +76,7 @@ class TestStockRepository:
 
     def test_update_quantity_negative_success(self, repo: StockRepository):
         """Проверяет, что update корректно уменьшает запас при достаточном остатке."""
-        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+        repo.add(name='Мука', category_name='Materials', quantity=10.0, unit_name='kg')
 
         # Уменьшение (продажа)
         repo.update('Мука', -3.0)
@@ -86,7 +86,7 @@ class TestStockRepository:
 
     def test_update_quantity_negative_failure(self, repo: StockRepository):
         """Проверяет, что update вызывает ValueError при попытке уйти в минус."""
-        repo.add(name='Мука', category_name='Сырье', quantity=10.0, unit_name='кг')
+        repo.add(name='Мука', category_name='Materials', quantity=10.0, unit_name='kg')
 
         # Попытка списания больше, чем есть на складе
         with pytest.raises(ValueError, match="Недостаточно запаса"):
