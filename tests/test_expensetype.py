@@ -9,7 +9,7 @@ from repositories.expense_types import ExpenseTypesRepository
 def setup_ids(conn: sqlite3.Connection):
     """Предоставляет ID справочных сущностей для тестов."""
     return {
-        'kg_id': get_unit_by_name(conn, 'кг'),
+        'kg_id': get_unit_by_name(conn, 'kg'),
         'expense_cat_id': conn.execute("SELECT id FROM expense_categories WHERE name = 'Materials'").fetchone()[0],
         'stock_cat_id': conn.execute("SELECT id FROM stock_categories WHERE name = 'Materials'").fetchone()[0]
     }

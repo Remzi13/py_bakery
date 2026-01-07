@@ -46,20 +46,20 @@ def populated_model(clean_model: SQLiteModel):
     # Вспомогательная функция для получения ID
     with setup_test_db() as conn:
         kg_id = get_unit_by_name(conn, 'kg')
-        штук_id = get_unit_by_name(conn, 'pc')
+        pc_id = get_unit_by_name(conn, 'pc')
 
     # 1. Добавляем ингредиенты (автоматически создаются StockItem и ExpenseType)
     model.ingredients().add(name='Мука', unit_name='kg')
     model.ingredients().add(name='Яйцо', unit_name='pc')
     
-    # 2. Оприходуем запас (Мука: 10 кг, Яйцо: 50 штук)
+    # 2. Оприходуем запас (Мука: 10 kg, Яйцо: 50 pc)
     model.stock().update('Мука', 10.0)
     model.stock().update('Яйцо', 50.0)
     
-    # 3. Добавляем продукт (1 Хлеб = 1 кг Муки + 2 Яйца)
+    # 3. Добавляем продукт (1 Хлеб = 1 kg Муки + 2 Яйца)
     recipe = [
-        {'name': 'Мука', 'quantity': 1.0}, # 1 кг
-        {'name': 'Яйцо', 'quantity': 2.0}  # 2 штуки
+        {'name': 'Мука', 'quantity': 1.0}, # 1 kg
+        {'name': 'Яйцо', 'quantity': 2.0}  # 2 pcи
     ]
     model.products().add(name='Хлеб', price=200, ingredients=recipe)
 
@@ -67,7 +67,7 @@ def populated_model(clean_model: SQLiteModel):
     model.products().add(name='Вода', price=50, ingredients=[])
 
     # 5. Добавляем расход
-    model.expenses().add(name='Мука', price=50, quantity=5.0, supplier_name=None) # Покупка 5 кг муки по 50
+    model.expenses().add(name='Мука', price=50, quantity=5.0, supplier_name=None) # Покупка 5 kg муки по 50
     
     return model
 
@@ -156,7 +156,7 @@ def test_stock_update_negative(populated_model: SQLiteModel):
     """Тестирование запрета отрицательного остатка на складе."""
     model = populated_model
     
-    # Попытка списать больше, чем есть (Мука: 10 кг)
+    # Попытка списать больше, чем есть (Мука: 10 kg)
     with pytest.raises(ValueError, match="Недостаточно запаса"):
         model.stock().update('Мука', -100.0)
 
@@ -165,11 +165,11 @@ def test_sales_and_stock_logic(populated_model: SQLiteModel):
     model = populated_model
     
     # Начальный запас
-    initial_flour = model.stock().get('Мука').quantity # 10.0 кг
-    initial_egg = model.stock().get('Яйцо').quantity   # 50.0 штук
+    initial_flour = model.stock().get('Мука').quantity # 10.0 kg
+    initial_egg = model.stock().get('Яйцо').quantity   # 50.0 pc
     
-    # Продажа 2-х единиц "Хлеб" (1 Хлеб = 1 кг Муки + 2 Яйца)
-    # Списание: Мука: 1*2=2 кг, Яйца: 2*2=4 шт.
+    # Продажа 2-х единиц "Хлеб" (1 Хлеб = 1 kg Муки + 2 Яйца)
+    # Списание: Мука: 1*2=2 kg, Яйца: 2*2=4 шт.
     model.sales().add(name='Хлеб', price=200, quantity=2.0, discount=0)
     
     # Проверка списания
@@ -181,7 +181,7 @@ def test_sales_and_stock_logic(populated_model: SQLiteModel):
     assert final_egg == initial_egg - 4.0      # 50.0 - 4.0 = 46.0
     
     # Проверка ошибки при недостатке запаса
-    # Попытка продать 30 шт. "Хлеб" (нужно 30*1=30 кг Муки, есть 8.0)
+    # Попытка продать 30 шт. "Хлеб" (нужно 30*1=30 kg Муки, есть 8.0)
     with pytest.raises(ValueError, match="Недостаточно запаса для 'Мука'. Требуется списание 30.00, текущий остаток 8.00."):
         model.sales().add(name='Хлеб', price=200, quantity=30.0, discount=0)
 

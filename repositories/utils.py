@@ -8,7 +8,7 @@ class UtilsRepository:
         self._conn = conn
 
     def get_unit_names(self) -> List[str]:
-        """Возвращает список имен всех единиц измерения (например, ['кг', 'грамм'])."""
+        """Возвращает список имен всех единиц измерения (например, ['kg', 'g'])."""
         cursor = self._conn.cursor()
         cursor.execute("SELECT name FROM units ORDER BY id")
         # Извлекаем только первый элемент (имя) из каждой строки

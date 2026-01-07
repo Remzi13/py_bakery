@@ -13,10 +13,10 @@ def write_off_data(model: SQLiteModel):
     # 1. Materials/Запас (Мука)
     # model.ingredients().add() создает запись в ingredients, stock и expense_types
     model.ingredients().add(name="Мука", unit_name="kg")
-    # Устанавливаем начальный запас: 10 кг
+    # Устанавливаем начальный запас: 10 kg
     model.stock().set("Мука", 10.0) 
     
-    # 2. Продукт (Круассан) с рецептом: 0.1 кг муки на 1 шт.
+    # 2. Продукт (Круассан) с рецептом: 0.1 kg муки на 1 шт.
     croissant = model.products().add(
         name="Круассан", 
         price=150, 
@@ -44,10 +44,10 @@ class TestWriteOffsRepository:
         flour_name = write_off_data['flour_name']
         croissant_name = write_off_data['croissant_name']
         
-        initial_flour_stock = model.stock().get(flour_name).quantity # 10.0 кг
+        initial_flour_stock = model.stock().get(flour_name).quantity # 10.0 kg
         write_off_qty = 5.0 # Списываем 5 круассанов
         
-        # Ожидаемое списание: 5 * 0.1 кг = 0.5 кг муки
+        # Ожидаемое списание: 5 * 0.1 kg = 0.5 kg муки
         expected_flour_decrease = write_off_qty * 0.1 
         
         w_repo.add(
@@ -110,8 +110,8 @@ class TestWriteOffsRepository:
         w_repo = model.writeoffs()
         flour_name = write_off_data['flour_name']
         
-        # Текущий запас муки: 10.0 кг. Рецепт: 0.1 кг/шт.
-        # Для 101 круассана нужно 101 * 0.1 = 10.1 кг.
+        # Текущий запас муки: 10.0 kg. Рецепт: 0.1 kg/шт.
+        # Для 101 круассана нужно 101 * 0.1 = 10.1 kg.
         write_off_qty = 101.0 
         
         initial_stock = model.stock().get(flour_name).quantity 

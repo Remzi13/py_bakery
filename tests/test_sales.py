@@ -8,9 +8,9 @@ class TestSalesRepository:
     def setup_stock_and_products(self, model: SQLiteModel):
         # 1. Зависимости
         model.ingredients().add('Мука', 'kg')
-        model.stock().update('Мука', 10.0) # Запас: 10 кг
+        model.stock().update('Мука', 10.0) # Запас: 10 kg
         
-        # 2. Продукт: 1 Булочка = 0.5 кг Муки
+        # 2. Продукт: 1 Булочка = 0.5 kg Муки
         recipe = [{'name': 'Мука', 'quantity': 0.5}]
         model.products().add(name='Булочка', price=80, ingredients=recipe)
         
@@ -18,7 +18,7 @@ class TestSalesRepository:
         repo = model.sales()
         initial_stock = model.stock().get('Мука').quantity # 10.0
         
-        # Продажа 4-х Булочек. Списание: 4 * 0.5 кг = 2.0 кг
+        # Продажа 4-х Булочек. Списание: 4 * 0.5 kg = 2.0 kg
         repo.add(name='Булочка', price=80, quantity=4.0, discount=10) 
         
         final_stock = model.stock().get('Мука').quantity # 10.0 - 2.0 = 8.0
@@ -31,7 +31,7 @@ class TestSalesRepository:
         
     def test_sale_denied_insufficient_stock(self, model: SQLiteModel):
         repo = model.sales()
-        # Попытка продать 30 Булочек. Списание: 30 * 0.5 кг = 15.0 кг (есть 10.0 кг)
+        # Попытка продать 30 Булочек. Списание: 30 * 0.5 kg = 15.0 kg (есть 10.0 kg)
         
         with pytest.raises(ValueError, match=r"Недостаточно запаса для 'Мука'. Требуется списание 15.00, текущий остаток 10.00."):
             repo.add(name='Булочка', price=80, quantity=30.0, discount=0)
