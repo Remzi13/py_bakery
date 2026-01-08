@@ -31,10 +31,15 @@ function setupTabs() {
 
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             const tabId = btn.getAttribute('data-tab');
+            const i18nKey = btn.getAttribute('data-i18n');
             document.getElementById(`${tabId}-view`).classList.add('active');
             
-            // Update Page Title
-            document.getElementById('page-title').innerText = btn.innerText;
+            // Update Page Title with translation
+            if (i18nKey) {
+                document.getElementById('page-title').innerText = t(i18nKey);
+            } else {
+                document.getElementById('page-title').innerText = btn.innerText;
+            }
 
             loadTab(tabId);
         });
