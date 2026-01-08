@@ -31,7 +31,7 @@ async def get_writeoffs(model: SQLiteModel = Depends(get_model)):
         for wo in data:
             item_name = "Unknown"
             if wo.product_id:
-                p = model.products().get_by_id(wo.product_id)
+                p = model.products().by_id(wo.product_id)
                 item_name = p.name if p else f"Product #{wo.product_id}"
             elif wo.stock_item_id:
                 # Need a method to get stock item by ID or name

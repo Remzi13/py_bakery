@@ -63,7 +63,7 @@ class TestSuppliersRepository:
         supplier_added = repo.add("Молокозавод 'Свежий'", "Олег")
         
         # Получение по ID
-        supplier_by_id = repo.get(supplier_added.id)
+        supplier_by_id = repo.by_id(supplier_added.id)
         assert supplier_by_id is not None
         assert supplier_by_id.name == "Молокозавод 'Свежий'"
         
@@ -73,7 +73,7 @@ class TestSuppliersRepository:
         assert supplier_by_name.id == supplier_added.id
         
         # Тест на несуществующего
-        assert repo.get(999) is None
+        assert repo.by_id(999) is None
         assert repo.by_name("Несуществующий") is None
 
     def test_data_and_names(self, model: SQLiteModel):
@@ -136,7 +136,7 @@ class TestSuppliersRepository:
         assert updated_supplier.address == "ул. Обновленная, 10"
         
         # Проверяем, что данные в БД корректны
-        db_supplier = s_repo.get(supplier_id)
+        db_supplier = s_repo.by_id(supplier_id)
         assert db_supplier.name == "Новая Мука"
 
 
@@ -146,7 +146,7 @@ class TestSuppliersRepository:
         supplier_id = supplier_data['id2'] # ID поставщика "Дрожжи и Добавки"
         
         # --- ИСПРАВЛЕНИЕ: Получаем оригинальный объект для частичного обновления ---
-        original_supplier = s_repo.get(supplier_id)
+        original_supplier = s_repo.by_id(supplier_id)
         
         # Обновляем только имя. Для сохранения контактных данных передаем их обратно.
         updated_supplier = s_repo.update(

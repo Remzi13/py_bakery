@@ -39,7 +39,7 @@ class SuppliersRepository:
                 (name, contact_person, phone, email, address)
             )
             self._conn.commit()
-            return self.get(cursor.lastrowid) # Возвращаем созданный объект
+            return self.by_id(cursor.lastrowid) # Возвращаем созданный объект
         except sqlite3.IntegrityError as e:
             self._conn.rollback()
             raise ValueError(f"Поставщик с именем '{name}' уже существует.")
@@ -47,7 +47,7 @@ class SuppliersRepository:
             self._conn.rollback()
             raise e
 
-    def get(self, supplier_id: int) -> Optional[Supplier]:
+    def by_id(self, supplier_id: int) -> Optional[Supplier]:
         """Возвращает поставщика по ID."""
         cursor = self._conn.cursor()
         cursor.execute("SELECT * FROM suppliers WHERE id = ?", (supplier_id,))
@@ -118,7 +118,7 @@ class SuppliersRepository:
             if cursor.rowcount == 0:
                 raise ValueError(f"Поставщик с ID {supplier_id} не найден.")
             
-            return self.get(supplier_id) # Возвращаем обновленный объект
+            return self.by_id(supplier_id) # Возвращаем обновленный объект
             
         except sqlite3.IntegrityError as e:
             self._conn.rollback()

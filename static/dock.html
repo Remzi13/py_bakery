@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bakery Manager - Documentation</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .docs-container {
+            max-width: var(--max-content-width);
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .docs-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--base-radius);
+            box-shadow: 0 4px 12px rgba(16, 24, 40, 0.04);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        .docs-section h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+            border-bottom: 2px solid #f1f6ff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .docs-section h3 {
+            color: #374151;
+            margin-top: 25px;
+        }
+        .docs-section p {
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        .docs-section ul, .docs-section ol {
+            padding-left: 20px;
+            color: #4b5563;
+        }
+        .docs-section li {
+            margin-bottom: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .feature-tag {
+            display: inline-block;
+            background: #e9eefb;
+            color: #102a43;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.9em;
+        }
+        .docs-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+        }
+        .docs-nav {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        @media (max-width: 900px) {
+            .docs-grid {
+                grid-template-columns: 1fr;
+            }
+            .docs-nav {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-container">
+        <a href="/" class="back-link">&larr; Back to Dashboard</a>
+        <header>
+            <h1>Bakery Manager Documentation</h1>
+            <p class="form-help">Your guide to managing production, stock, and sales efficiently.</p>
+        </header>
+
+        <div class="docs-grid">
+            <aside class="docs-nav">
+                <div class="card">
+                    <h3>Contents</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li><a href="#introduction" class="nav-btn" style="border: none; padding: 8px 0;">Introduction</a></li>
+                        <li><a href="#dashboard" class="nav-btn" style="border: none; padding: 8px 0;">Dashboard</a></li>
+                        <li><a href="#products" class="nav-btn" style="border: none; padding: 8px 0;">Products & Recipes</a></li>
+                        <li><a href="#stock" class="nav-btn" style="border: none; padding: 8px 0;">Stock & Ingredients</a></li>
+                        <li><a href="#sales" class="nav-btn" style="border: none; padding: 8px 0;">Sales Tracking</a></li>
+                        <li><a href="#expenses" class="nav-btn" style="border: none; padding: 8px 0;">Expenses & Suppliers</a></li>
+                        <li><a href="#writeoffs" class="nav-btn" style="border: none; padding: 8px 0;">Write-offs</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main>
+                <section id="introduction" class="docs-section">
+                    <h2>Introduction</h2>
+                    <p>Bakery Manager is a lightweight web application designed to help small bakeries track their raw materials, product recipes, sales, and expenses. By integrating recipes with stock management, the app automatically calculates material usage when sales are recorded.</p>
+                </section>
+
+                <section id="dashboard" class="docs-section">
+                    <h2>Dashboard</h2>
+                    <p>The Dashboard provides a bird's-eye view of your bakery's performance today and highlights items that need attention.</p>
+                    <ul>
+                        <li><strong>Total Sales Today:</strong> Shows the total revenue generated from all sales recorded since 00:00.</li>
+                        <li><strong>Low Stock Items:</strong> Alerts you to ingredients or materials that have fallen below a safe threshold.</li>
+                    </ul>
+                </section>
+
+                <section id="products" class="docs-section">
+                    <h2>Products & Recipes</h2>
+                    <p>This is where you define what you sell and how it's made.</p>
+                    <h3>Adding a Product</h3>
+                    <ol>
+                        <li>Go to the <strong>Products</strong> tab.</li>
+                        <li>Click <strong>Add Product</strong>.</li>
+                        <li>Enter a Name and Sale Price.</li>
+                        <li>Select ingredients from the list and specify the quantity used for <strong>one unit</strong> of this product.</li>
+                        <li>Click <strong>Save</strong>.</li>
+                    </ol>
+                    <p><span class="feature-tag">Pro Tip</span> When you sell a product, the system automatically subtracts the required ingredients from your stock according to the recipe.</p>
+                </section>
+
+                <section id="stock" class="docs-section">
+                    <h2>Stock & Ingredients</h2>
+                    <p>Manage your raw materials and packaging here.</p>
+                    <h3>Ingredients</h3>
+                    <p>Before adding products, define your ingredients in the <strong>Ingredients</strong> tab. Specify the unit of measurement (kg, g, l, pcs).</p>
+                    <h3>Stock Management</h3>
+                    <p>The <strong>Stock</strong> tab tracks the current physical quantity of your items. You can manually adjust stock here if needed, but primary consumption happens via Sales.</p>
+                </section>
+
+                <section id="sales" class="docs-section">
+                    <h2>Sales Tracking</h2>
+                    <p>Every time a customer buys something, register it in the <strong>Sales</strong> tab.</p>
+                    <ul>
+                        <li><strong>Discounts:</strong> You can apply a percentage discount at the moment of sale. The total price will adjust automatically.</li>
+                        <li><strong>Stock Impact:</strong> As mentioned, recording a sale triggers a check on the product's recipe and reduces ingredient quantities.</li>
+                    </ul>
+                </section>
+
+                <section id="expenses" class="docs-section">
+                    <h2>Expenses & Suppliers</h2>
+                    <p>Track where your money is going beyond just raw materials.</p>
+                    <ul>
+                        <li><strong>Suppliers:</strong> Maintain a contact list of your vendors in the <strong>Suppliers</strong> tab.</li>
+                        <li><strong>Expenses:</strong> Record utility bills, rent, or large material purchases. Expenses can be linked to specific suppliers for better accounting.</li>
+                    </ul>
+                </section>
+
+                <section id="writeoffs" class="docs-section">
+                    <h2>Write-offs</h2>
+                    <p>Use the <strong>Write-offs</strong> tab to record waste, spoilage, or expired products.</p>
+                    <ul>
+                        <li>Selecting <strong>Product</strong> write-off will reduce finished product stock (if tracked separately) or simply record the loss.</li>
+                        <li>Selecting <strong>Stock Item</strong> will directly reduce the quantity of a specific ingredient (e.g., if a bag of flour was damaged).</li>
+                    </ul>
+                </section>
+            </main>
+        </div>
+
+        <footer style="text-align: center; margin-top: 40px; color: #9aa4b2; font-size: 0.9rem;">
+            &copy; 2026 Bakery Manager Admin. All rights reserved.
+        </footer>
+    </div>
+</body>
+</html>

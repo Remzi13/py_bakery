@@ -17,7 +17,7 @@ def get_expenses(model: SQLiteModel = Depends(get_model)):
             
             supplier_name = "None"
             if exp.supplier_id:
-                supplier = model.suppliers().get_by_id(exp.supplier_id)
+                supplier = model.suppliers().by_id(exp.supplier_id)
                 if supplier:
                     supplier_name = supplier.name
             
@@ -42,7 +42,7 @@ def create_expense(expense: ExpenseCreate, model: SQLiteModel = Depends(get_mode
         
         supplier_name = None
         if expense.supplier_id:
-            supplier = model.suppliers().get_by_id(expense.supplier_id)
+            supplier = model.suppliers().by_id(expense.supplier_id)
             if supplier:
                 supplier_name = supplier.name
         

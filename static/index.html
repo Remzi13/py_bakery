@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -26,275 +26,367 @@
                 <button class="nav-btn" data-tab="suppliers">Suppliers</button>
                 <button class="nav-btn" data-tab="ingredients">Ingredients</button>
                 <button class="nav-btn" data-tab="writeoffs">Write-offs</button>
+
+                <div
+                    style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center;">
+                    <a href="/static/dock.html" class="nav-btn"
+                        style="text-decoration: none; display: inline-block; width: 80%;">Documentation</a>
+                </div>
             </nav>
         </aside>
 
         <main class="content" role="main">
             <header>
                 <h1 id="page-title">Dashboard</h1>
+                <div id="header-actions"></div>
             </header>
 
             <div id="tab-content">
-                <!-- Content will be loaded here via JS -->
+                <!-- Dashboard View -->
                 <section id="dashboard-view" class="view active" aria-labelledby="page-title">
                     <div class="stats-grid">
                         <div class="card">
-                            <h3>Total Sales Today</h3>
+                            <h3>Total Revenue</h3>
                             <p class="stat-value" id="stats-sales">Loading...</p>
+                            <div class="stat-trend trend-up">↑ 12% vs last week</div>
                         </div>
                         <div class="card">
                             <h3>Low Stock Items</h3>
                             <p class="stat-value" id="stats-low-stock">Loading...</p>
+                            <div class="stat-trend" id="low-stock-desc">Items to restock</div>
+                        </div>
+                        <div class="card">
+                            <h3>Profit Margin</h3>
+                            <p class="stat-value" id="stats-profit">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="widget">
+                            <h4>Sales Trend (Last 7 Days)</h4>
+                            <div class="chart-container" id="sales-chart">
+                                <!-- Bars added via JS -->
+                            </div>
+                        </div>
+                        <div class="widget">
+                            <h4>Recent Activity</h4>
+                            <div id="recent-activity" style="display: flex; flex-direction: column; gap: 12px;">
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No recent activity</p>
+                            </div>
                         </div>
                     </div>
                 </section>
 
+                <!-- Products View -->
                 <section id="products-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('product-modal')">Add Product</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search products..."
+                                    onkeyup="filterTable('products-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('product-modal')">Add Product</button>
+                        </div>
+                        <table class="data-table" id="products-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Ingredients</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="products-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Price</th>
-                                <th>Ingredients</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
 
+                <!-- Stock View -->
                 <section id="stock-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('stock-modal')">Add Stock Item</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search stock..."
+                                    onkeyup="filterTable('stock-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('stock-modal')">Add Stock Item</button>
+                        </div>
+                        <table class="data-table" id="stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Unit</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="stock-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Quantity</th>
-                                <th>Unit</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
 
+                <!-- Sales View -->
                 <section id="sales-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('sale-modal')">New Sale</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search sales..."
+                                    onkeyup="filterTable('sales-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('sale-modal')">New Sale</button>
+                        </div>
+                        <table class="data-table" id="sales-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="sales-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
 
+                <!-- Expenses View -->
                 <section id="expenses-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('expense-modal')">Add Expense</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search expenses..."
+                                    onkeyup="filterTable('expenses-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('expense-modal')">Add Expense</button>
+                        </div>
+                        <table class="data-table" id="expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Supplier</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="expenses-table">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Supplier</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
 
+                <!-- Suppliers View -->
                 <section id="suppliers-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('supplier-modal')">Add Supplier</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search suppliers..."
+                                    onkeyup="filterTable('suppliers-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('supplier-modal')">Add Supplier</button>
+                        </div>
+                        <table class="data-table" id="suppliers-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Contact</th>
+                                    <th>Phone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="suppliers-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Contact</th>
-                                <th>Phone</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
+
+                <!-- Ingredients View -->
                 <section id="ingredients-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('ingredient-modal')">Add Ingredient</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search ingredients..."
+                                    onkeyup="filterTable('ingredients-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('ingredient-modal')">Add Ingredient</button>
+                        </div>
+                        <table class="data-table" id="ingredients-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Unit</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="ingredients-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Unit</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
+
+                <!-- Write-offs View -->
                 <section id="writeoffs-view" class="view">
-                    <div class="actions">
-                        <button class="btn-primary" onclick="openModal('writeoff-modal')">Add Record</button>
+                    <div class="table-container">
+                        <div class="table-header-actions">
+                            <div class="search-wrapper">
+                                <input type="text" placeholder="Search write-offs..."
+                                    onkeyup="filterTable('writeoffs-table', this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('writeoff-modal')">Add Record</button>
+                        </div>
+                        <table class="data-table" id="writeoffs-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="data-table" id="writeoffs-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Item</th>
-                                <th>Quantity</th>
-                                <th>Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
                 </section>
             </div>
         </main>
     </div>
 
     <!-- Modals -->
-    <div id="product-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+    <div id="product-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content large-modal">
-            <button class="close" onclick="closeModal('product-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="product-modal-title">Add Product</h2>
-            <form id="product-form" aria-describedby="product-form-desc">
-                <p id="product-form-desc" class="form-help">Enter product name, price (₽) and the recipe — ingredients and quantities per item.</p>
-
+            <button class="close" onclick="closeModal('product-modal')">&times;</button>
+            <h2>Add Product</h2>
+            <form id="product-form">
                 <div class="form-row">
-                    <label for="product-name">Product name</label>
-                    <input id="product-name" type="text" name="name" placeholder="e.g., Sourdough Loaf" required>
-                </div>
-
-                <div class="form-row">
-                    <label for="product-price">Price</label>
-                    <div class="input-with-suffix">
+                    <div class="form-group">
+                        <label for="product-name">Product Name</label>
+                        <input id="product-name" type="text" name="name" placeholder="e.g., Sourdough Loaf" required>
+                    </div>
+                    <div class="form-group small">
+                        <label for="product-price">Price (₽)</label>
                         <input id="product-price" type="number" name="price" placeholder="0.00" step="0.01" required>
-                        <span class="input-suffix">₽</span>
                     </div>
                 </div>
-
-                <fieldset class="form-group">
+                <fieldset>
                     <legend>Recipe (Ingredients)</legend>
-                    <p class="form-help">Add each ingredient and the amount used for one unit of the product.</p>
                     <div class="recipe-editor">
                         <div class="recipe-controls">
-                            <label for="recipe-ingredient-select" class="sr-only">Ingredient</label>
-                            <select id="recipe-ingredient-select">
-                                <option value="">Select Ingredient...</option>
-                            </select>
-                            <label for="recipe-quantity" class="sr-only">Quantity</label>
-                            <input id="recipe-quantity" type="number" step="0.001" placeholder="Qty"
-                                aria-label="Ingredient quantity">
-                            <span id="recipe-quantity-unit" class="input-suffix-small" aria-hidden="true"></span>
+                            <div class="form-group" style="min-width: 150px;">
+                                <select id="recipe-ingredient-select">
+                                    <option value="">Select Ingredient...</option>
+                                </select>
+                            </div>
+                            <div class="form-group small" style="min-width: 100px;">
+                                <input id="recipe-quantity" type="number" step="0.001" placeholder="Qty">
+                            </div>
+                            <span id="recipe-quantity-unit" class="input-suffix-small"></span>
                             <button type="button" class="btn-secondary" onclick="addIngredientToRecipe()">Add</button>
                         </div>
-                        <ul id="recipe-list" class="recipe-list" aria-live="polite">
-                            <!-- Added ingredients show here -->
-                        </ul>
-                        <!-- Hidden input to store JSON for submission -->
+                        <ul id="recipe-list" class="recipe-list"></ul>
                         <input type="hidden" name="ingredients_json" id="recipe-json">
                     </div>
                 </fieldset>
-
-                <div class="form-row" style="justify-content: flex-end; gap:12px;">
+                <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('product-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="submit" class="btn-primary">Save Product</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="ingredient-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="ingredient-modal-title">
+    <!-- Simplified Modal Structure for others -->
+    <div id="ingredient-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('ingredient-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="ingredient-modal-title">Add New Ingredient</h2>
+            <button class="close" onclick="closeModal('ingredient-modal')">&times;</button>
+            <h2>Add Ingredient</h2>
             <form id="ingredient-form">
-                <input type="text" name="name" placeholder="Ingredient Name" required>
-                <select name="unit_name">
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="l">l</option>
-                    <option value="pc">pc</option>
-                </select>
-                <button type="submit" class="btn-primary">Save</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ingredient Name</label>
+                        <input type="text" name="name" placeholder="e.g., Wheat Flour" required>
+                    </div>
+                    <div class="form-group small">
+                        <label>Base Unit</label>
+                        <select name="unit_name">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="l">l</option>
+                            <option value="pc">pc</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('ingredient-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Ingredient</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="stock-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stock-modal-title">
+    <div id="stock-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('stock-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="stock-modal-title">Add Stock Item</h2>
+            <button class="close" onclick="closeModal('stock-modal')">&times;</button>
+            <h2>Add Stock Item</h2>
             <form id="stock-form">
-                <input type="text" name="name" placeholder="Name" required>
-                <select name="category_name">
-                    <option value="Materials">Materials</option>
-                    <option value="Packaging">Packaging</option>
-                    <option value="Equipment">Equipment</option>
-                </select>
-                <input type="number" step="0.01" name="quantity" placeholder="Quantity" required>
-                <select name="unit_name">
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="l">l</option>
-                    <option value="pc">pc</option>
-                </select>
-                <button type="submit" class="btn-primary">Save</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" name="name" placeholder="e.g., Flour Bag" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="category_name">
+                            <option value="Materials">Materials</option>
+                            <option value="Packaging">Packaging</option>
+                            <option value="Equipment">Equipment</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Initial Quantity</label>
+                        <input type="number" step="0.01" name="quantity" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group small">
+                        <label>Unit</label>
+                        <select name="unit_name">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="l">l</option>
+                            <option value="pc">pc</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('stock-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Item</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="sale-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">
+    <div id="sale-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('sale-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="sale-modal-title">New Sale</h2>
-            <form id="sale-form" aria-describedby="sale-form-desc">
-                <p id="sale-form-desc" class="form-help">Select product, enter quantity and optional discount (%).</p>
-
+            <button class="close" onclick="closeModal('sale-modal')">&times;</button>
+            <h2>New Sale</h2>
+            <form id="sale-form">
                 <div class="form-row">
-                    <label for="sale-product-select">Product</label>
-                    <select name="product_id" id="sale-product-select" required>
-                        <!-- Populated by JS -->
-                    </select>
-                </div>
-
-                <div class="form-row">
-                    <label for="sale-quantity">Quantity</label>
-                    <div class="input-with-suffix">
-                        <input id="sale-quantity" type="number" step="1" name="quantity" placeholder="1" required>
-                        <span class="input-suffix-small">pcs</span>
+                    <div class="form-group">
+                        <label>Select Product</label>
+                        <select name="product_id" id="sale-product-select" required></select>
                     </div>
                 </div>
-
                 <div class="form-row">
-                    <label for="sale-discount">Discount</label>
-                    <div class="input-with-suffix">
-                        <input id="sale-discount" type="number" name="discount" placeholder="0" value="0">
-                        <span class="input-suffix-small">%</span>
+                    <div class="form-group">
+                        <label>Quantity (pcs)</label>
+                        <input type="number" step="1" name="quantity" placeholder="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount (%)</label>
+                        <input type="number" name="discount" placeholder="0" value="0">
                     </div>
                 </div>
-
-                <div class="form-row" style="justify-content: flex-end; gap:12px;">
+                <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('sale-modal')">Cancel</button>
                     <button type="submit" class="btn-primary">Register Sale</button>
                 </div>
@@ -302,92 +394,132 @@
         </div>
     </div>
 
-    <div id="expense-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+    <div id="expense-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('expense-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="expense-modal-title">Add Expense</h2>
+            <button class="close" onclick="closeModal('expense-modal')">&times;</button>
+            <h2>Add Expense</h2>
             <form id="expense-form">
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="expense-category-filter" onchange="handleExpenseCategoryChange()">
-                        <option value="">All Categories</option>
-                        <!-- Populated by JS -->
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="expense-category-filter" onchange="handleExpenseCategoryChange()"></select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Type</label>
-                    <select name="type_id" id="expense-type-select" required>
-                        <!-- Populated by JS -->
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Expense Type</label>
+                        <select name="type_id" id="expense-type-select" required></select>
+                    </div>
                 </div>
-                <input type="number" name="price" placeholder="Price" required>
-                <input type="number" step="0.01" name="quantity" placeholder="Quantity" required>
-                <select name="supplier_id" id="expense-supplier-select">
-                    <option value="">No Supplier</option>
-                    <!-- Populated by JS -->
-                </select>
-                <button type="submit" class="btn-primary">Save</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Amount (₽)</label>
+                        <input type="number" name="price" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" step="0.01" name="quantity" placeholder="1.00" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Supplier (Optional)</label>
+                        <select name="supplier_id" id="expense-supplier-select"></select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('expense-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Expense</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="supplier-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="supplier-modal-title">
+    <div id="supplier-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('supplier-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="supplier-modal-title">Add Supplier</h2>
+            <button class="close" onclick="closeModal('supplier-modal')">&times;</button>
+            <h2>Add Supplier</h2>
             <form id="supplier-form">
-                <input type="text" name="name" placeholder="Company Name" required>
-                <input type="text" name="contact_person" placeholder="Contact Person">
-                <input type="text" name="phone" placeholder="Phone">
-                <input type="email" name="email" placeholder="Email">
-                <input type="text" name="address" placeholder="Address">
-                <button type="submit" class="btn-primary">Save</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" name="name" placeholder="e.g., Global Flour Co" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" name="contact_person" placeholder="Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="phone" placeholder="+7...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" name="address" placeholder="Full address">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('supplier-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Supplier</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="writeoff-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="writeoff-modal-title">
+    <div id="writeoff-modal" class="modal">
         <div class="modal-content">
-            <button class="close" onclick="closeModal('writeoff-modal')" aria-label="Close dialog">&times;</button>
-            <h2 id="writeoff-modal-title">New Write-off</h2>
+            <button class="close" onclick="closeModal('writeoff-modal')">&times;</button>
+            <h2>New Write-off</h2>
             <form id="writeoff-form">
-                <div class="form-group">
-                    <label>Type</label>
-                    <select name="item_type" id="writeoff-type" required onchange="handleWriteOffTypeChange()">
-                        <option value="product">Product</option>
-                        <option value="stock">Stock Item</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Type</label>
+                        <select name="item_type" id="writeoff-type" required onchange="handleWriteOffTypeChange()">
+                            <option value="product">Product</option>
+                            <option value="stock">Stock Item</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="writeoff-category-group" style="display: none;">
+                        <label>Category</label>
+                        <select id="writeoff-category" onchange="handleWriteOffCategoryChange()"></select>
+                    </div>
                 </div>
-
-                <div id="writeoff-category-group" class="form-group" style="display: none;">
-                    <label>Category</label>
-                    <select id="writeoff-category" onchange="handleWriteOffCategoryChange()">
-                        <option value="">All Categories</option>
-                        <!-- Populated by JS -->
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Select Item</label>
+                        <select name="item_name" id="writeoff-item-select" required></select>
+                    </div>
+                    <div class="form-group small">
+                        <label>Quantity</label>
+                        <input type="number" step="0.01" name="quantity" placeholder="0.00" required>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Item</label>
-                    <select name="item_name" id="writeoff-item-select" required>
-                        <!-- Populated by JS -->
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <input type="text" name="reason" placeholder="e.g., Expired" required>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Quantity</label>
-                    <input type="number" step="0.01" name="quantity" placeholder="Quantity" required>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('writeoff-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Record Write-off</button>
                 </div>
-
-                <div class="form-group">
-                    <label>Reason</label>
-                    <input type="text" name="reason" placeholder="Reason (e.g., Expired, Damaged)" required>
-                </div>
-
-                <button type="submit" class="btn-primary">Record Write-off</button>
             </form>
         </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="/static/js/app.js"></script>
 </body>
