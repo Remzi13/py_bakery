@@ -7,7 +7,7 @@ const translations = {
         cancel: "Cancel",
         save: "Save",
         actions: "Actions",
-        
+
         // Dashboard
         dashboard: "Dashboard",
         totalRevenue: "Total Revenue",
@@ -19,17 +19,31 @@ const translations = {
         addExpense: "➕ Add Expense",
         salesTrendLastWeek: "Sales Trend (Last 7 Days)",
         recentActivity: "Recent Activity",
-        
+
         // Navigation
         products: "Products",
         stock: "Stock",
         sales: "Sales",
+        orders: "Orders",
         expenses: "Expenses",
         suppliers: "Suppliers",
         ingredients: "Ingredients",
         writeoffs: "Write-offs",
         documentation: "Documentation",
-        
+
+        // Orders
+        orderId: "Order ID",
+        created: "Created",
+        completionDate: "Completion Date",
+        status: "Status",
+        items: "Items",
+        pendingOrders: "Pending Orders",
+        noPendingOrders: "No pending orders",
+        completeOrder: "Complete",
+        statusPending: "Pending",
+        statusCompleted: "Completed",
+        confirmCompleteOrder: "Are you sure you want to mark this order as completed? This will deduct ingredients from stock and create sale records.",
+
         // Products
         addProduct: "Add Product",
         searchProducts: "Search products...",
@@ -40,14 +54,14 @@ const translations = {
         addIngredient: "Add",
         recipe: "Recipe (Ingredients)",
         saveProduct: "Save Product",
-        
+
         // Ingredients
         addIngredientButton: "Add Ingredient",
         searchIngredients: "Search ingredients...",
         ingredientName: "Ingredient Name",
         baseUnit: "Base Unit",
         saveIngredient: "Save Ingredient",
-        
+
         // Stock
         addStockItem: "Add Stock Item",
         searchStock: "Search stock...",
@@ -57,7 +71,7 @@ const translations = {
         unit: "Unit",
         initialQuantity: "Initial Quantity",
         saveStockItem: "Add Item",
-        
+
         // Sales
         newSale: "New Sale",
         searchSales: "Search sales...",
@@ -68,7 +82,7 @@ const translations = {
         discount: "Discount (%)",
         total: "Total",
         registerSale: "Register Sale",
-        
+
         // Expenses
         addExpenseButton: "Add Expense",
         searchExpenses: "Search expenses...",
@@ -78,7 +92,7 @@ const translations = {
         supplier: "Supplier",
         optionalSupplier: "Supplier (Optional)",
         saveExpense: "Save Expense",
-        
+
         // Suppliers
         addSupplier: "Add Supplier",
         searchSuppliers: "Search suppliers...",
@@ -89,7 +103,7 @@ const translations = {
         address: "Address",
         contact: "Contact",
         saveSupplier: "Save Supplier",
-        
+
         // Write-offs
         addWriteoff: "Add Record",
         searchWriteoffs: "Search write-offs...",
@@ -99,7 +113,7 @@ const translations = {
         recordWriteoff: "Record Write-off",
         itemTypeProduct: "Product",
         itemTypeStock: "Stock Item",
-        
+
         // Language Switch
         language: "Language",
         english: "English",
@@ -112,7 +126,7 @@ const translations = {
         cancel: "Отмена",
         save: "Сохранить",
         actions: "Действия",
-        
+
         // Dashboard
         dashboard: "Панель управления",
         totalRevenue: "Общие доходы",
@@ -124,17 +138,31 @@ const translations = {
         addExpense: "➕ Добавить расход",
         salesTrendLastWeek: "Тренд продаж (последние 7 дней)",
         recentActivity: "Недавняя деятельность",
-        
+
         // Navigation
         products: "Товары",
         stock: "Запасы",
         sales: "Продажи",
+        orders: "Заказы",
         expenses: "Расходы",
         suppliers: "Поставщики",
         ingredients: "Ингредиенты",
         writeoffs: "Списания",
         documentation: "Документация",
-        
+
+        // Orders
+        orderId: "ID Заказа",
+        created: "Создан",
+        completionDate: "Дата выполнения",
+        status: "Статус",
+        items: "Позиции",
+        pendingOrders: "Ожидающие заказы",
+        noPendingOrders: "Нет ожидающих заказов",
+        completeOrder: "Выполнить",
+        statusPending: "Ожидает",
+        statusCompleted: "Выполнен",
+        confirmCompleteOrder: "Вы уверены, что хотите отметить этот заказ как выполненный? Это приведет к списанию ингредиентов со склада и созданию записей о продажах.",
+
         // Products
         addProduct: "Добавить товар",
         searchProducts: "Поиск товаров...",
@@ -145,14 +173,14 @@ const translations = {
         addIngredient: "Добавить",
         recipe: "Рецепт (Ингредиенты)",
         saveProduct: "Сохранить товар",
-        
+
         // Ingredients
         addIngredientButton: "Добавить ингредиент",
         searchIngredients: "Поиск ингредиентов...",
         ingredientName: "Название ингредиента",
         baseUnit: "Базовая единица",
         saveIngredient: "Сохранить ингредиент",
-        
+
         // Stock
         addStockItem: "Добавить товар на складе",
         searchStock: "Поиск на складе...",
@@ -162,7 +190,7 @@ const translations = {
         unit: "Единица",
         initialQuantity: "Начальное количество",
         saveStockItem: "Добавить товар",
-        
+
         // Sales
         newSale: "Новая продажа",
         searchSales: "Поиск продаж...",
@@ -173,7 +201,7 @@ const translations = {
         discount: "Скидка (%)",
         total: "Итого",
         registerSale: "Зарегистрировать продажу",
-        
+
         // Expenses
         addExpenseButton: "Добавить расход",
         searchExpenses: "Поиск расходов...",
@@ -183,7 +211,7 @@ const translations = {
         supplier: "Поставщик",
         optionalSupplier: "Поставщик (необязательно)",
         saveExpense: "Сохранить расход",
-        
+
         // Suppliers
         addSupplier: "Добавить поставщика",
         searchSuppliers: "Поиск поставщиков...",
@@ -194,7 +222,7 @@ const translations = {
         address: "Адрес",
         contact: "Контакт",
         saveSupplier: "Сохранить поставщика",
-        
+
         // Write-offs
         addWriteoff: "Добавить запись",
         searchWriteoffs: "Поиск списаний...",
@@ -204,7 +232,7 @@ const translations = {
         recordWriteoff: "Зарегистрировать списание",
         itemTypeProduct: "Товар",
         itemTypeStock: "Товар на складе",
-        
+
         // Language Switch
         language: "Язык",
         english: "English",
@@ -248,13 +276,13 @@ function updatePageLanguage() {
             el.textContent = t(key);
         }
     });
-    
+
     // Update page title
     const activeTab = document.querySelector('.nav-btn.active');
     if (activeTab) {
         document.getElementById('page-title').innerText = t(activeTab.getAttribute('data-i18n') || activeTab.innerText);
     }
-    
+
     // Update html lang attribute
     document.documentElement.lang = currentLanguage;
 }

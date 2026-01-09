@@ -144,6 +144,27 @@ def initialize_db(conn: sqlite3.Connection):
         );
         """,
         """
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_date TEXT NOT NULL,
+            completion_date TEXT,
+            status TEXT NOT NULL CHECK(status IN ('pending', 'completed')),
+            additional_info TEXT
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            quantity REAL NOT NULL,
+            price INTEGER NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES products (id)
+        );
+        """,
+        """
         CREATE TABLE IF NOT EXISTS writeoffs (
             id INTEGER PRIMARY KEY,
             product_id INTEGER, 

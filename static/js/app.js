@@ -33,7 +33,7 @@ function setupTabs() {
             const tabId = btn.getAttribute('data-tab');
             const i18nKey = btn.getAttribute('data-i18n');
             document.getElementById(`${tabId}-view`).classList.add('active');
-            
+
             // Update Page Title with translation
             if (i18nKey) {
                 document.getElementById('page-title').innerText = t(i18nKey);
@@ -55,6 +55,7 @@ function loadTab(tabId) {
     if (tabId === 'suppliers') loadSuppliers();
     if (tabId === 'ingredients') loadIngredients();
     if (tabId === 'writeoffs') loadWriteOffs();
+    if (tabId === 'orders') loadOrders();
 }
 
 // --- Modals ---
@@ -86,7 +87,7 @@ async function loadDashboard() {
     try {
         const sales = await fetchAPI('/sales');
         const today = new Date().toISOString().slice(0, 10);
-        
+
         let dailyTotal = 0;
         let weeklySales = Array(7).fill(0);
         const now = new Date();
@@ -94,7 +95,7 @@ async function loadDashboard() {
         sales.forEach(s => {
             const saleDate = new Date(s.date.replace(' ', 'T'));
             const saleTotal = s.price * s.quantity * (1 - s.discount / 100);
-            
+
             // Daily Total
             if (s.date && s.date.startsWith(today)) {
                 dailyTotal += saleTotal;
@@ -109,22 +110,25 @@ async function loadDashboard() {
 
         document.getElementById('stats-sales').innerText = `${dailyTotal.toFixed(2)} ${CURRENCY}`;
 
-        // Render Chart
+        // Render Chart — ensure left-to-right order: oldest -> newest
         const chart = document.getElementById('sales-chart');
         chart.innerHTML = '';
-        const maxSale = Math.max(...weeklySales) || 100;
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const todayIdx = now.getDay();
+        const maxSale = Math.max(...weeklySales, 1);
 
-        weeklySales.forEach((val, i) => {
+        // Create bars for 6 days ago .. today so they render left-to-right
+        const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (let i = 0; i < 7; i++) {
+            const val = weeklySales[i] || 0;
             const bar = document.createElement('div');
             bar.className = 'chart-bar';
             bar.style.height = `${(val / maxSale) * 100}%`;
-            const dayLabel = days[(todayIdx - (6 - i) + 7) % 7];
+
+            const barDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i));
+            const dayLabel = weekdayNames[barDate.getDay()];
             bar.setAttribute('data-label', dayLabel);
             bar.title = `${dayLabel}: ${val.toFixed(2)} ${CURRENCY}`;
             chart.appendChild(bar);
-        });
+        }
 
         const stock = await fetchAPI('/stock');
         const lowStock = stock.filter(item => item.quantity < 10).length;
@@ -133,7 +137,7 @@ async function loadDashboard() {
         // Recent Activity (Simple feed of latest actions)
         const recentActivity = document.getElementById('recent-activity');
         recentActivity.innerHTML = '';
-        const sortedSales = sales.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+        const sortedSales = sales.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
         sortedSales.forEach(s => {
             const item = document.createElement('div');
             item.style.fontSize = '0.85rem';
@@ -141,8 +145,44 @@ async function loadDashboard() {
             recentActivity.appendChild(item);
         });
 
+        loadPendingOrders();
+
     } catch (err) {
         showToast("Failed to load dashboard data", "error");
+    }
+}
+
+async function loadPendingOrders() {
+    try {
+        const data = await fetchAPI('/orders/pending');
+        const list = document.getElementById('pending-orders-list');
+        if (!list) return;
+
+        if (data.length === 0) {
+            list.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="noPendingOrders">${t('noPendingOrders')}</p>`;
+            return;
+        }
+
+        list.innerHTML = data.map(order => {
+            const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            return `
+                <div class="card" style="padding: 10px; border-left: 4px solid var(--primary-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+                        <strong>#${order.id}</strong>
+                        <span style="font-size: 0.75rem; color: var(--text-muted)">${order.completion_date || '-'}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;">
+                        ${order.items.map(i => `${i.product_name} x ${i.quantity}`).join(', ')}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600;">${total.toFixed(2)} ${CURRENCY}</span>
+                        <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="completeOrder(${order.id})">${t('completeOrder')}</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error("Failed to load pending orders", err);
     }
 }
 
@@ -270,13 +310,79 @@ async function loadWriteOffs() {
     });
 }
 
+async function loadOrders() {
+    const data = await fetchAPI('/orders');
+    const tbody = document.querySelector('#orders-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    data.forEach(order => {
+        const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const tr = document.createElement('tr');
+        const statusClass = order.status === 'completed' ? 'trend-up' : 'trend-down';
+
+        tr.innerHTML = `
+            <td>#${order.id}</td>
+            <td>${order.created_date}</td>
+            <td>${order.completion_date || '-'}</td>
+            <td><span class="stat-trend ${statusClass}">${t('status' + order.status.charAt(0).toUpperCase() + order.status.slice(1))}</span></td>
+            <td style="font-size: 0.85rem;">${order.items.map(i => `${i.product_name} x ${i.quantity}`).join('<br>')}</td>
+            <td><strong>${total.toFixed(2)} ${CURRENCY}</strong></td>
+            <td>
+                <div style="display:flex; gap:8px;">
+                    ${order.status === 'pending' ? `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>` : ''}
+                    <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.completeOrder = async function (orderId) {
+    if (!confirm(t('confirmCompleteOrder') || 'Complete this order?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/orders/${orderId}/complete`, {
+            method: 'POST'
+        });
+        if (res.ok) {
+            showToast("Order completed successfully!");
+            const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
+            if (activeTab === 'dashboard') loadDashboard();
+            else if (activeTab === 'orders') loadOrders();
+        } else {
+            const err = await res.json();
+            showToast(`Error: ${err.detail || 'Failed to complete order'}`, 'error');
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
+window.deleteOrder = async function (orderId) {
+    if (!confirm('Are you sure you want to delete this order?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/orders/${orderId}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            showToast("Order deleted");
+            loadOrders();
+        } else {
+            showToast("Failed to delete order", "error");
+        }
+    } catch (err) {
+        showToast("Connection error", "error");
+    }
+}
+
 // --- Smart Filtering ---
 
-window.filterTable = function(tableId, query) {
+window.filterTable = function (tableId, query) {
     const tbody = document.querySelector(`#${tableId} tbody`);
     const rows = tbody.querySelectorAll('tr');
     const filter = query.toLowerCase();
-    
+
     rows.forEach(row => {
         const text = row.innerText.toLowerCase();
         row.style.display = text.includes(filter) ? '' : 'none';
@@ -422,9 +528,9 @@ function setupForms() {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            
+
             if (f.id === 'product-form') {
-                try { data.ingredients = JSON.parse(data.ingredients_json || '[]'); } 
+                try { data.ingredients = JSON.parse(data.ingredients_json || '[]'); }
                 catch (err) { showToast("Invalid recipe", "error"); return; }
             }
             if (f.id === 'expense-form' && !data.supplier_id) delete data.supplier_id;
@@ -584,8 +690,8 @@ window.editProduct = async function (id) {
 window.deleteItem = async function (resource, id) {
     if (!confirm('Are you sure you want to delete this?')) return;
     try {
-        const res = await fetch(`${API_BASE}${normalizeEndpoint(resource + '/' + id)}`, { 
-            method: 'DELETE' 
+        const res = await fetch(`${API_BASE}${normalizeEndpoint(resource + '/' + id)}`, {
+            method: 'DELETE'
         });
         if (res.ok) {
             showToast("Item deleted");

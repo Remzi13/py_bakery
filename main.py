@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.routers import products, stock, sales, expenses, suppliers, ingredients, writeoffs
+from api.routers import products, stock, sales, expenses, suppliers, ingredients, writeoffs, orders
 
 app = FastAPI(title="Bakery Manager API")
 
@@ -13,10 +13,19 @@ app.include_router(expenses.router)
 app.include_router(suppliers.router)
 app.include_router(ingredients.router)
 app.include_router(writeoffs.router)
+app.include_router(orders.router)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-async def read_index():
+async def read_landing():
+    return FileResponse('static/landing.html')
+
+@app.get("/management")
+async def read_management():
     return FileResponse('static/index.html')
+
+@app.get("/pos")
+async def read_pos():
+    return FileResponse('static/pos.html')

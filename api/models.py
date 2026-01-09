@@ -105,3 +105,30 @@ class Supplier(BaseModel):
     phone: Optional[str]
     email: Optional[str]
     address: Optional[str]
+
+# --- Orders Models ---
+
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: float
+
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+    completion_date: Optional[str] = None
+    additional_info: Optional[str] = None
+    complete_now: bool = False
+
+class OrderItemResponse(BaseModel):
+    id: int
+    product_id: int
+    product_name: str
+    quantity: float
+    price: int
+
+class OrderResponse(BaseModel):
+    id: int
+    created_date: str
+    completion_date: Optional[str]
+    status: str
+    additional_info: Optional[str]
+    items: List[OrderItemResponse]

@@ -17,13 +17,13 @@
     --accent-light: hsl(var(--accent-h), var(--accent-s), 95%);
     --border-color: hsl(220, 20%, 92%);
     --card-bg: #ffffff;
-    --base-radius: 12px;
-    --input-radius: 8px;
+    --base-radius: 8px;
+    --input-radius: 6px;
     --max-content-width: 1400px;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 1px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 6px 10px -6px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 12px 20px -10px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -240,8 +240,26 @@ h1 {
 /* Dashboard Widgets */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 2fr 360px;
     gap: 24px;
+}
+
+/* Prevent right column widgets from stretching the left chart
+   - align items to start so tall content in right column doesn't increase row height
+   - limit height of right widgets and allow internal scrolling */
+.dashboard-grid {
+    align-items: start;
+    grid-auto-rows: auto;
+}
+
+.dashboard-grid > .widget {
+    align-self: start;
+}
+
+.dashboard-grid > .widget:nth-child(2),
+.dashboard-grid > .widget:nth-child(3) {
+    max-height: 260px;
+    overflow: auto;
 }
 
 @media (max-width: 1100px) {
@@ -265,23 +283,25 @@ h1 {
 
 /* Charts Placeholder */
 .chart-container {
-    height: 200px;
+    height: 160px;
     display: flex;
     align-items: flex-end;
-    gap: 12px;
-    padding-top: 20px;
+    gap: 8px;
+    padding: 10px 0 28px 0; /* top, right/left, bottom — reserve space for labels */
+    overflow: visible;
 }
 
 .chart-bar {
     flex: 1;
-    background: var(--accent-light);
-    border-radius: 4px 4px 0 0;
-    transition: height 0.5s ease;
+    background: linear-gradient(180deg, rgba(34,79,169,0.08), rgba(34,79,169,0.18));
+    border-radius: 6px 6px 2px 2px;
+    transition: height 0.45s ease;
     position: relative;
+    border: 1px solid rgba(34,79,169,0.12);
 }
 
 .chart-bar:hover {
-    background: var(--accent-color);
+    background: linear-gradient(180deg, rgba(34,79,169,0.14), rgba(34,79,169,0.28));
 }
 
 .chart-bar::after {
@@ -290,8 +310,9 @@ h1 {
     bottom: -20px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
 /* Tables */

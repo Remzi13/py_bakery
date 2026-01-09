@@ -105,3 +105,22 @@ class ExpenseCategory:
     """Категория финансовых расходов."""
     name: str
     id: Optional[int] = None
+
+@dataclass
+class Order:
+    """Заказ с отложенным выполнением."""
+    created_date: str
+    status: str  # 'pending' or 'completed'
+    completion_date: Optional[str] = None
+    additional_info: Optional[str] = None
+    id: Optional[int] = None
+
+@dataclass
+class OrderItem:
+    """Позиция в заказе."""
+    order_id: int
+    product_id: int
+    product_name: str
+    quantity: float
+    price: int
+    id: Optional[int] = None
