@@ -580,6 +580,31 @@ function setupForms() {
                 catch (err) { showToast("Invalid recipe", "error"); return; }
             }
             if (f.id === 'expense-form' && !data.supplier_id) delete data.supplier_id;
+            if (f.id === 'stock-form') 
+            {
+                const itemId = data.id; // Скрытое поле ID
+                try {
+                    if (itemId) 
+                    {
+                        const updatePayload = { quantity: parseFloat(data.quantity) };
+                        const itemName = encodeURIComponent(data.name);
+                        await putAPI(`/stock/${itemName}/set`, updatePayload);
+                        showToast("Stock quantity updated!");
+                    } else {
+                    
+                        await postAPI(f.endpoint, data);
+                        showToast("New item added!");
+                    }
+                    closeModal(f.modal);
+                    loadTab(f.tab);
+                    form.reset();
+                    return;
+            }
+            catch (err) 
+            {
+                return; 
+            }
+        }
 
             try {
                 if (f.id === 'product-form' && window.editingProductId) {
