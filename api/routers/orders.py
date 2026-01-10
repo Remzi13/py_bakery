@@ -20,6 +20,7 @@ def get_orders(model: SQLiteModel = Depends(get_model)):
                 "additional_info": order.additional_info,
                 "items": order.items
             })
+        results.sort(key=lambda x: x["status"], reverse=True)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

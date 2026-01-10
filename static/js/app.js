@@ -322,16 +322,16 @@ async function loadOrders() {
         const statusClass = order.status === 'completed' ? 'trend-up' : 'trend-down';
 
         tr.innerHTML = `
-            <td>#${order.id}</td>
-            <td>${order.created_date}</td>
+            <td>#${order.id}</td>            
             <td>${order.completion_date || '-'}</td>
             <td><span class="stat-trend ${statusClass}">${t('status' + order.status.charAt(0).toUpperCase() + order.status.slice(1))}</span></td>
             <td style="font-size: 0.85rem;">${order.items.map(i => `${i.product_name} x ${i.quantity}`).join('<br>')}</td>
             <td><strong>${total.toFixed(2)} ${CURRENCY}</strong></td>
             <td>
                 <div style="display:flex; gap:8px;">
-                    ${order.status === 'pending' ? `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>` : ''}
-                    <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>
+                    ${order.status === 'pending' ? 
+                    `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>
+                    <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>` : ''}
                 </div>
             </td>
         `;
