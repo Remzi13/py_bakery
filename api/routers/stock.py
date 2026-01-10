@@ -6,6 +6,13 @@ from sql_model.model import SQLiteModel
 
 router = APIRouter(prefix="/api/stock", tags=["stock"])
 
+@router.get("/categories", response_model=List[str])
+def get_categories(model: SQLiteModel = Depends(get_model)):
+    try:
+        return model.utils().get_stock_category_names()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/", response_model=List[StockItem])
 def get_stock(model: SQLiteModel = Depends(get_model)):
     try:
@@ -88,9 +95,3 @@ def delete_stock(name: str, model: SQLiteModel = Depends(get_model)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/categories", response_model=List[str])
-def get_categories(model: SQLiteModel = Depends(get_model)):
-    try:
-        return model.utils().get_stock_category_names()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

@@ -699,6 +699,9 @@ window.openModal = function (modalId) {
         loadExpenseCategories(); loadExpenseTypesForSelect();
         loadSuppliersForSelect();
     }
+    else if (modalId === 'stock-modal') {
+        loadStockCategoriesForSelect();
+    }
 }
 
 // --- API Helpers ---
@@ -792,6 +795,27 @@ window.editStock = async function (id) {
         showToast('Error loading item', 'error');
     }
 };
+
+async function loadStockCategoriesForSelect() {
+    try {
+        // Предполагаем, что эндпоинт /stock/categories возвращает массив строк ['Materials', 'Packaging', ...]
+        const categories = await fetchAPI('/stock/categories'); 
+        const select = document.getElementById('stock-category-select');
+        
+        if (!select) return;
+        
+        select.innerHTML = ''; // Очищаем старые данные
+        
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.innerText = cat;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Failed to load stock categories", err);
+    }
+}
 
 window.deleteItem = async function (resource, id) {
     if (!confirm('Are you sure you want to delete this?')) return;
