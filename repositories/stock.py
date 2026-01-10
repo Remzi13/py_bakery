@@ -8,8 +8,9 @@ from sql_model.database import INITIAL_STOCK_CATEGORIES # Для получен�
 
 class StockRepository:
 
-    def __init__(self, conn: sqlite3.Connection):
+    def __init__(self, conn: sqlite3.Connection, model_instance: Any):
         self._conn = conn
+        self._model = model_instance # Ссылка на Model для доступа к Stock и Products
 
     # --- Вспомогательные методы ---
 
@@ -58,6 +59,12 @@ class StockRepository:
                 """,
                 (name, category_id, quantity, unit_id)
             )
+            # Также создаем запись в ExpenseTypes для этого элемента запаса
+            self._model.expense_types().add(
+                name=name, 
+                default_price=100, 
+                category_name="Materials"
+            )
             self._conn.commit()
         except sqlite3.IntegrityError:
             self._conn.rollback()
@@ -73,6 +80,7 @@ class StockRepository:
         cursor.execute("SELECT * FROM stock WHERE name = ?", (name,))
         row = cursor.fetchone()
         return self._row_to_entity(row)
+        
 
     def by_id(self, id: int) -> Optional[StockItem]:
         """Получает продукт по ID (без рецепта)."""
@@ -165,10 +173,28 @@ class StockRepository:
             conn.rollback()
             raise RuntimeError(f"Ошибка при обновлении запаса для '{name}': {e}")
 
+    def can_delete(self, name: str) -> bool:
+        stock = self.get(name)
+        if not stock:
+            return True # Если ингредиента нет, его можно "удалить" (т.е. нет проблем)
+
+        # Проверяем наличие записей в таблице product_stock
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM product_stock WHERE stock_id = ?", 
+            (stock.id,)
+        )
+        count = cursor.fetchone()[0]
+        return count == 0
+
     def delete(self, name: str):
         """Удаляет элемент из инвентаря по имени."""
+        if not self.can_delete(name):
+            raise ValueError(f"Материал '{name}' используется в продукте. Удаление невозможно.")
         cursor = self._conn.cursor()
         try:
+            self._model.expense_types().delete(name)
+
             cursor.execute("DELETE FROM stock WHERE name = ?", (name,))
             self._conn.commit()
         except Exception as e:

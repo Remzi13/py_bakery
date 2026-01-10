@@ -57,12 +57,12 @@ class TestUtilsRepository:
     def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
         """Проверяет успешное получение ID для известной категории."""
                
-        # Мы знаем, что 'Materials' (INGREDIENT) должна быть в БД после инициализации
-        ingredient_id = repo.get_expense_category_id_by_name('Materials')
+        # Мы знаем, что 'Materials' (MATERIAL) должна быть в БД после инициализации
+        mat_id = repo.get_expense_category_id_by_name('Materials')
         
         # ID категории должны быть > 0
-        assert isinstance(ingredient_id, int)
-        assert ingredient_id >= 1 
+        assert isinstance(mat_id, int)
+        assert mat_id >= 1 
 
     def test_get_expense_category_id_by_name_success(self, repo: UtilsRepository, conn: sqlite3.Connection):
         """Проверяет, что возвращается None для несуществующей категории."""

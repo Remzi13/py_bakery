@@ -71,11 +71,11 @@ class TestExpenseTypesRepository:
         assert payment_names == ['Аренда', 'Электричество'] 
         
         # 3. Действие: Запрашиваем типы для категории 'Сырьё'
-        ingredient_names = repo.get_names_by_category_name('Materials')
+        mat_names = repo.get_names_by_category_name('Materials')
         
         # Проверка 2: Корректное содержимое
-        assert len(ingredient_names) == 1
-        assert ingredient_names[0] == 'Мука'
+        assert len(mat_names) == 1
+        assert mat_names[0] == 'Мука'
         
         # 4. Проверка на несуществующую категорию
         unknown_names = repo.get_names_by_category_name('Несуществующая Категория')
@@ -108,11 +108,11 @@ class TestExpenseTypesRepository:
         assert payment_expenses[1].default_price == 1000
         
         # 3. Действие: Запрашиваем типы для категории 'Сырьё'
-        ingredient_expenses = repo.get_by_category_name('Materials')
+        mat_expenses = repo.get_by_category_name('Materials')
         
         # Проверка 2: Корректное содержимое
-        assert len(ingredient_expenses) == 1
-        assert ingredient_expenses[0].name == 'Мука'
+        assert len(mat_expenses) == 1
+        assert mat_expenses[0].name == 'Мука'
         
         # 4. Проверка на несуществующую категорию
         unknown_expenses = repo.get_by_category_name('Несуществующая Категория')

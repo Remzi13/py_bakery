@@ -61,14 +61,6 @@ def initialize_db(conn: sqlite3.Connection):
     # 2. Основные таблицы
     scripts += [
         """
-        CREATE TABLE IF NOT EXISTS ingredients (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            unit_id INTEGER NOT NULL,
-            FOREIGN KEY (unit_id) REFERENCES units (id)
-        );
-        """,
-        """
         CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE,
@@ -77,13 +69,13 @@ def initialize_db(conn: sqlite3.Connection):
         """,
         # Таблица для связи Продукт-Ингредиент
         """
-        CREATE TABLE IF NOT EXISTS product_ingredients (
+        CREATE TABLE IF NOT EXISTS product_stock (
             product_id INTEGER NOT NULL,
-            ingredient_id INTEGER NOT NULL,
+            stock_id INTEGER NOT NULL,
             quantity REAL NOT NULL,
-            PRIMARY KEY (product_id, ingredient_id),
+            PRIMARY KEY (product_id, stock_id),
             FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
-            FOREIGN KEY (ingredient_id) REFERENCES ingredients (id) ON DELETE RESTRICT
+            FOREIGN KEY (stock_id) REFERENCES stock (id) ON DELETE RESTRICT
         );
         """,
         """

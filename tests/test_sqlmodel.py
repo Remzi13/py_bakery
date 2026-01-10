@@ -49,22 +49,18 @@ def populated_model(clean_model: SQLiteModel):
         pc_id = get_unit_by_name(conn, 'pc')
 
     # 1. Добавляем ингредиенты (автоматически создаются StockItem и ExpenseType)
-    model.ingredients().add(name='Мука', unit_name='kg')
-    model.ingredients().add(name='Яйцо', unit_name='pc')
-    
-    # 2. Оприходуем запас (Мука: 10 kg, Яйцо: 50 pc)
-    model.stock().update('Мука', 10.0)
-    model.stock().update('Яйцо', 50.0)
+    model.stock().add('Мука', "Materials", 10, 'kg')
+    model.stock().add('Яйцо', "Materials", 50, 'pc')
     
     # 3. Добавляем продукт (1 Хлеб = 1 kg Муки + 2 Яйца)
     recipe = [
         {'name': 'Мука', 'quantity': 1.0}, # 1 kg
         {'name': 'Яйцо', 'quantity': 2.0}  # 2 pcи
     ]
-    model.products().add(name='Хлеб', price=200, ingredients=recipe)
+    model.products().add(name='Хлеб', price=200, materials=recipe)
 
     # 4. Добавляем другой продукт без ингредиентов (для проверки удаления)
-    model.products().add(name='Вода', price=50, ingredients=[])
+    model.products().add(name='Вода', price=50, materials=[])
 
     # 5. Добавляем расход
     model.expenses().add(name='Мука', price=50, quantity=5.0, supplier_name=None) # Покупка 5 kg муки по 50
@@ -74,16 +70,14 @@ def populated_model(clean_model: SQLiteModel):
 
 # --- Тесты ---
 
-# 1. Тесты на CRUD ингредиентов и связей (Stock, ExpenseTypes)
-def test_ingredient_add_and_relations(clean_model: SQLiteModel):
-    """Тестирование добавления ингредиента и его автоматических связей."""
+# 1. Тесты на CRUD материалов и связей (Stock, ExpenseTypes)
+def test_material_add_and_relations(clean_model: SQLiteModel):
+    """Тестирование добавления материала и его автоматических связей."""
     model = clean_model
-    model.ingredients().add(name='Сахар', unit_name='kg')
+    model.stock().add('Сахар', "Materials", 0, 'kg')
 
-    # Проверка, что ингредиент добавлен
-    assert model.ingredients().len() == 1
-    assert model.ingredients().by_name('Сахар').name == 'Сахар'
-    
+    # Проверка, что материал добавлен
+    assert model.stock().get('Сахар') is not None
     # Проверка, что создан связанный StockItem
     assert model.stock().get('Сахар') is not None
     assert model.stock().get('Сахар').quantity == 0.0 # Изначально 0
@@ -91,24 +85,24 @@ def test_ingredient_add_and_relations(clean_model: SQLiteModel):
     # Проверка, что создан связанный ExpenseType
     assert model.expense_types().get('Сахар') is not None
     
-def test_ingredient_delete(populated_model: SQLiteModel):
-    """Тестирование удаления ингредиента и проверки can_delete."""
+def test_material_delete(populated_model: SQLiteModel):
+    """Тестирование удаления материала и проверки can_delete."""
     model = populated_model
     
     # Проверка: 'Мука' используется в 'Хлеб', удаление должно быть запрещено
-    assert not model.ingredients().can_delete('Мука')
+    assert not model.stock().can_delete('Мука')
     with pytest.raises(ValueError):
-        model.ingredients().delete('Мука')
+        model.stock().delete('Мука')
         
     # Проверка: 'Вода' - это ингредиент, но не используется в продуктах (он был добавлен 
     # в 'populated_model' как продукт, но не как ингредиент). Добавим его как ингредиент 
     # для чистоты теста.
-    model.ingredients().add(name='Соль', unit_name='kg')
-    assert model.ingredients().can_delete('Соль')
+    model.stock().add('Соль', "Materials", 0, 'kg')
+    assert model.stock().can_delete('Соль')
 
     # Удаление 'Соль'
-    model.ingredients().delete('Соль')
-    assert model.ingredients().len() == 2 # Мука и Яйцо остались
+    model.stock().delete('Соль')
+    assert model.stock().len() == 2 # Мука и Яйцо остались
     assert model.stock().get('Соль') is None # Проверка, что запас удален
     assert model.expense_types().get('Соль') is None # Проверка, что тип расхода удален
 
@@ -120,20 +114,20 @@ def test_product_add_and_update(populated_model: SQLiteModel):
     
     # Проверка добавления
     assert model.products().by_name('Хлеб') is not None
-    recipe = model.products().get_ingredients_for_product(model.products().by_name('Хлеб').id)
+    recipe = model.products().get_materials_for_product(model.products().by_name('Хлеб').id)
     assert len(recipe) == 2
     assert recipe[0]['name'] == 'Мука'
     assert recipe[0]['quantity'] == 1.0
 
     # Обновление продукта (изменяем цену и рецепт)
     new_recipe = [{'name': 'Мука', 'quantity': 0.5}]
-    model.products().add(name='Хлеб', price=250, ingredients=new_recipe)
+    model.products().add(name='Хлеб', price=250, materials=new_recipe)
     
     updated_product = model.products().by_name('Хлеб')
     assert updated_product.price == 250
     
     # Проверка обновления рецепта
-    updated_recipe = model.products().get_ingredients_for_product(updated_product.id)
+    updated_recipe = model.products().get_materials_for_product(updated_product.id)
     assert len(updated_recipe) == 1
     assert updated_recipe[0]['quantity'] == 0.5
 

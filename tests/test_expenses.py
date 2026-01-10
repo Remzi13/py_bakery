@@ -16,7 +16,7 @@ def expense_data(model: SQLiteModel) -> dict:
     
     # 3. Добавляем ингредиент (он автоматически создаст StockItem и ExpenseType)
     # This is important so that ExpenseTypesRepository can find "Мука пшеничная"
-    model.ingredients().add("Мука", "kg")
+    model.stock().add("Мука", "Materials", 50, "kg")
     
     # 4. Добавляем несколько расходов
     # Расход, связанный с поставщиком

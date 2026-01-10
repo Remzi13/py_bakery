@@ -72,15 +72,15 @@ class WriteOffsRepository:
                 if product_entity is None:
                     raise ValueError(f"Продукт '{item_name}' не найден в списке продуктов.")
             
-                ingredients_needed = product_repo.get_ingredients_for_product(product_entity.id)
-                if not ingredients_needed:
+                mats_needed = product_repo.get_materials_for_product(product_entity.id)
+                if not mats_needed:
                     # Регистрируем факт списания продукта, даже если у него нет рецепта
                     pass 
 
                 product_id = product_entity.id
             
                 # 2. Списываем ингредиенты со склада (аналогично продаже)
-                for ing in ingredients_needed:
+                for ing in mats_needed:
                     ing_name = ing['name']
                     # Общее количество ингредиента, необходимое для списанных продуктов
                     ing_quantity_needed = ing['quantity'] * quantity 

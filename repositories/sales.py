@@ -43,8 +43,8 @@ class SalesRepository:
             raise ValueError(f"Продукт '{name}' не найден.")
             
         # 2. Получаем рецепт (словарь ингредиентов с количеством)
-        # Мы используем ProductsRepository.get_ingredients_for_product для получения рецепта
-        recipe = self._model.products().get_ingredients_for_product(product.id)
+        # Мы используем ProductsRepository.get_materials_for_product для получения рецепта
+        recipe = self._model.products().get_materials_for_product(product.id)
         if not recipe:
             raise ValueError(f"Продукт '{name}' не имеет рецепта, продажа невозможна.")
 

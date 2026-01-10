@@ -5,13 +5,12 @@ class TestOrdersRepository:
 
     @pytest.fixture(autouse=True)
     def setup_data(self, model: SQLiteModel):
-        # 1. Ingredients
-        model.ingredients().add('Flour', 'kg')
-        model.stock().update('Flour', 10.0) # 10 kg
+        # 1. Materials
+        model.stock().add('Flour',"Materials", 10, 'kg')        
         
         # 2. Products
         recipe = [{'name': 'Flour', 'quantity': 0.5}]
-        model.products().add(name='Bread', price=100, ingredients=recipe)
+        model.products().add(name='Bread', price=100, materials=recipe)
         self.bread_id = model.products().by_name('Bread').id
 
     def test_create_order(self, model: SQLiteModel):

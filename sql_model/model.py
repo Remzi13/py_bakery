@@ -2,7 +2,7 @@ import sqlite3
 
 # Импорт модулей
 from sql_model.database import create_connection, initialize_db
-from repositories.ingredients import IngredientsRepository
+
 from repositories.products import ProductsRepository
 from repositories.stock import StockRepository
 from repositories.sales import SalesRepository
@@ -29,9 +29,8 @@ class SQLiteModel:
         initialize_db(self._conn) # Создает таблицы и заполняет справочники
         
         # Инициализация репозиториев
-        self._stock_repo = StockRepository(self._conn)
+        self._stock_repo = StockRepository(self._conn, self)
         self._expense_types_repo = ExpenseTypesRepository(self._conn)
-        self._ingredients_repo = IngredientsRepository(self._conn, self)
         self._products_repo = ProductsRepository(self._conn, self)
         self._sales_repo = SalesRepository(self._conn, self)
         self._expenses_repo = ExpensesRepository(self._conn, self)
@@ -48,10 +47,7 @@ class SQLiteModel:
     # --- Методы, возвращающие репозитории (интерфейс, как в старой модели) ---
     
     def utils(self) -> UtilsRepository:
-        return self._utils_repo # <-- Новый метод
-
-    def ingredients(self) -> IngredientsRepository:
-        return self._ingredients_repo
+       return self._utils_repo # <-- Новый метод
 
     def products(self) -> ProductsRepository:
         return self._products_repo

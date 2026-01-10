@@ -4,8 +4,6 @@ from types import SimpleNamespace
 
 
 from sql_model.entities import Product
-# Мы импортируем IngredientsRepository для получения ID ингредиента по имени
-from repositories.ingredients import IngredientsRepository
 
 
 class ProductsRepository:
@@ -24,7 +22,7 @@ class ProductsRepository:
         # В отличие от старой модели, новый Product entity не хранит список ингредиентов
         # напрямую, но мы его можем добавить для совместимости с бизнес-логикой.
         # Однако, для чистоты, мы будем возвращать его без списка, 
-        # а рецепт получать отдельным методом get_ingredients_for_product.
+        # а рецепт получать отдельным методом .get_materials_for_product.
         # Но чтобы сохранить логику, как в исходной модели, будем возвращать словарь.
         
         # ВНИМАНИЕ: Если бы Product Entity не был 'frozen', мы бы делали так:
@@ -43,7 +41,7 @@ class ProductsRepository:
             price=row['price']
         )
 
-    def get_ingredients_for_product(self, product_id: int) -> List[Dict[str, Any]]:
+    def get_materials_for_product(self, product_id: int) -> List[Dict[str, Any]]:
         """
         Получает список ингредиентов и их количество для заданного ID продукта.
         Возвращает список словарей в формате: [{'name': 'Мука', 'quantity': 500.0}].
@@ -52,9 +50,9 @@ class ProductsRepository:
         # Явное указание алиасов защищает от конфликтов имён колонок
         cursor.execute(
             """
-            SELECT i.name AS ingredient_name, pi.quantity AS qty, u.name AS unit_name
-            FROM product_ingredients pi
-            JOIN ingredients i ON pi.ingredient_id = i.id
+            SELECT i.name AS material_name, pi.quantity AS qty, u.name AS unit_name
+            FROM product_stock pi
+            JOIN stock i ON pi.stock_id = i.id
             LEFT JOIN units u ON i.unit_id = u.id
             WHERE pi.product_id = ?
             """,
@@ -64,7 +62,7 @@ class ProductsRepository:
         result = []
         for row in rows:
             # sqlite3.Row поддерживает доступ по имени
-            name = row['ingredient_name'] if 'ingredient_name' in row.keys() else row[0]
+            name = row['material_name'] if 'material_name' in row.keys() else row[0]
             qty = row['qty'] if 'qty' in row.keys() else row[1]
             unit = row['unit_name'] if 'unit_name' in row.keys() else (row[2] if len(row) > 2 else None)
             result.append({'name': name, 'quantity': qty, 'unit': unit})
@@ -72,10 +70,10 @@ class ProductsRepository:
 
     # --- CRUD Методы ---
 
-    def add(self, name: str, price: int, ingredients: List[Dict[str, Any]]):
+    def add(self, name: str, price: int, materials: List[Dict[str, Any]]):
         """
         Добавляет или обновляет продукт и его рецепт.
-        ingredients: [{'name': 'Мука', 'quantity': 500.0}]
+        materials: [{'name': 'Мука', 'quantity': 500.0}]
         """
         cursor = self._conn.cursor()
         
@@ -87,7 +85,7 @@ class ProductsRepository:
                 # 1. Обновление: Удаляем старый рецепт
                 product_id = existing_product.id
                 cursor.execute(
-                    "DELETE FROM product_ingredients WHERE product_id = ?", 
+                    "DELETE FROM product_stock WHERE product_id = ?", 
                     (product_id,)
                 )
                 
@@ -104,30 +102,28 @@ class ProductsRepository:
                 )
                 product_id = cursor.lastrowid
 
-            # 3. Добавляем новый/обновленный рецепт
-            ingredient_repo = self._model.ingredients() # Получаем репозиторий ингредиентов
-            
-            for item in ingredients:
-                ing_name = item['name']
-                ing_quantity = item['quantity']
-                
-                # Находим ID ингредиента
-                ingredient_entity = ingredient_repo.by_name(ing_name)
-                if not ingredient_entity:
-                    raise ValueError(f"Ингредиент '{ing_name}' не найден. Продукт не сохранен.")
+
+            for item in materials:
+                mat_name = item['name']
+                mat_quantity = item['quantity']
+
+                # Находим ID материала
+                entity = self._model.stock().get(mat_name)
+                if not entity:
+                    raise ValueError(f"Материал '{mat_name}' не найден. Продукт не сохранен.")
                 
                 # Добавляем в связующую таблицу
                 cursor.execute(
                     """
-                    INSERT INTO product_ingredients (product_id, ingredient_id, quantity)
+                    INSERT INTO product_stock (product_id, stock_id, quantity)
                     VALUES (?, ?, ?)
                     """,
-                    (product_id, ingredient_entity.id, ing_quantity)
+                    (product_id, entity.id, mat_quantity)
                 )
 
             self._conn.commit()
             
-            # Возвращаем объект продукта (без списка ингредиентов, т.к. он в отдельной таблице)
+            # Возвращаем объект продукта (без списка материалов, т.к. он в отдельной таблице)
             return self.by_id(product_id) 
 
         except sqlite3.Error as e:
@@ -171,7 +167,7 @@ class ProductsRepository:
             if cursor.fetchone()[0] > 0:
                  raise ValueError(f"Продукт '{name}' был продан и не может быть удален.")
             # 1. Каскадное удаление: Удаляем все записи рецептов, связанные с этим product_id
-            cursor.execute("DELETE FROM product_ingredients WHERE product_id = ?", (product.id,))
+            cursor.execute("DELETE FROM product_stock WHERE product_id = ?", (product.id,))
             
             # 2. Удаляем сам продукт
             cursor.execute("DELETE FROM products WHERE id = ?", (product.id,))
@@ -183,7 +179,7 @@ class ProductsRepository:
             # В реальном приложении здесь можно логировать ошибку
             raise RuntimeError(f"Ошибка при удалении продукта '{name}' и его рецептов: {e}")
 
-    def update(self, product_id: int, name: str, price: int, ingredients: List[Dict[str, Any]]):
+    def update(self, product_id: int, name: str, price: int, materials: List[Dict[str, Any]]):
         """
         Обновляет продукт по ID: изменяет имя/цену и пересоздаёт рецепт.
         Проверяет коллизию имени с другими продуктами.
@@ -209,20 +205,20 @@ class ProductsRepository:
             )
 
             # Удаляем старый рецепт
-            cursor.execute("DELETE FROM product_ingredients WHERE product_id = ?", (product_id,))
+            cursor.execute("DELETE FROM product_stock WHERE product_id = ?", (product_id,))
 
             # Добавляем новый рецепт
-            ingredient_repo = self._model.ingredients()
-            for item in ingredients:
-                ing_name = item['name']
-                ing_quantity = item['quantity']
-                ingredient_entity = ingredient_repo.by_name(ing_name)
-                if not ingredient_entity:
-                    raise ValueError(f"Ингредиент '{ing_name}' не найден. Продукт не сохранен.")
+            stock_repo = self._model.stock()
+            for item in materials:
+                mat_name = item['name']
+                mat_quantity = item['quantity']
+                mat_entity = stock_repo.by_name(mat_name)
+                if not mat_entity:
+                    raise ValueError(f"Материал '{mat_name}' не найден. Продукт не сохранен.")
 
                 cursor.execute(
-                    "INSERT INTO product_ingredients (product_id, ingredient_id, quantity) VALUES (?, ?, ?)",
-                    (product_id, ingredient_entity.id, ing_quantity)
+                    "INSERT INTO product_stock (product_id, stock_id, quantity) VALUES (?, ?, ?)",
+                    (product_id, mat_entity.id, mat_quantity)
                 )
 
             self._conn.commit()
@@ -244,12 +240,12 @@ class ProductsRepository:
         products = []
         for row in cursor.fetchall():
             product = self._row_to_entity(row, [])            
-            # Создаем словарь, чтобы добавить поле 'ingredients'
+            # Создаем словарь, чтобы добавить поле 'materials'
             prod = SimpleNamespace()            
             setattr(prod, "id", product.id)
             setattr(prod, "name", product.name)
             setattr(prod, "price", product.price)
-            setattr(prod, "ingredients", self.get_ingredients_for_product(product.id))            
+            setattr(prod, "materials", self.get_materials_for_product(product.id))            
             
             products.append(prod)
             

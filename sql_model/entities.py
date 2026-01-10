@@ -8,18 +8,11 @@ from typing import List, Dict, Any, Optional
 # а не их числовые константы, как раньше.
 
 @dataclass(frozen=True)
-class Ingredient:
-    """Materials для производства."""
-    name: str
-    unit_id: int  # Ссылка на ID из таблицы 'units'
-    id: Optional[int] = None # ID из БД (PRIMARY KEY), может быть None до сохранения
-
-@dataclass(frozen=True)
 class Product:
     """Готовый продукт для продажи."""
     name: str
     price: int
-    # Ингредиенты хранятся в отдельной таблице 'product_ingredients'
+    # Ингредиенты хранятся в отдельной таблице 'product_stock'
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
 @dataclass

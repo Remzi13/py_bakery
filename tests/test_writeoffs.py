@@ -11,16 +11,14 @@ def write_off_data(model: SQLiteModel):
     """
     
     # 1. Materials/Запас (Мука)
-    # model.ingredients().add() создает запись в ingredients, stock и expense_types
-    model.ingredients().add(name="Мука", unit_name="kg")
-    # Устанавливаем начальный запас: 10 kg
-    model.stock().set("Мука", 10.0) 
+    # model.stock().add() создает запись в materials, stock и expense_types
+    model.stock().add("Мука", "Materials", 10.0, "kg")
     
     # 2. Продукт (Круассан) с рецептом: 0.1 kg муки на 1 шт.
     croissant = model.products().add(
         name="Круассан", 
         price=150, 
-        ingredients=[{'name':"Мука", 'quantity': 0.1}] # <-- Важный рецепт для логики списания
+        materials=[{'name':"Мука", 'quantity': 0.1}] # <-- Важный рецепт для логики списания
     )
     
     # Получаем ID продукта для проверки записей в таблице списаний

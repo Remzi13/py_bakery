@@ -7,12 +7,11 @@ class TestSalesRepository:
     @pytest.fixture(autouse=True)
     def setup_stock_and_products(self, model: SQLiteModel):
         # 1. Зависимости
-        model.ingredients().add('Мука', 'kg')
-        model.stock().update('Мука', 10.0) # Запас: 10 kg
+        model.stock().add('Мука', "Materials", 10, 'kg')        
         
         # 2. Продукт: 1 Булочка = 0.5 kg Муки
         recipe = [{'name': 'Мука', 'quantity': 0.5}]
-        model.products().add(name='Булочка', price=80, ingredients=recipe)
+        model.products().add(name='Булочка', price=80, materials=recipe)
         
     def test_add_sale_and_stock_deduction(self, model: SQLiteModel):
         repo = model.sales()
