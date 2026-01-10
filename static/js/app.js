@@ -176,7 +176,10 @@ async function loadPendingOrders() {
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 600;">${total.toFixed(2)} ${CURRENCY}</span>
-                        <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="completeOrder(${order.id})">${t('completeOrder')}</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="infoOrder(${order.id})">${t('infoOrder')}</button>
+                            <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="completeOrder(${order.id})">${t('completeOrder')}</button>
+                        </div>
                     </div>
                 </div>
             `;
