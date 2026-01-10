@@ -334,14 +334,52 @@ async function loadOrders() {
             <td><strong>${total.toFixed(2)} ${CURRENCY}</strong></td>
             <td>
                 <div style="display:flex; gap:8px;">
-                    ${order.status === 'pending' ? 
+                    <button class="btn-icon" title="${t('infoOrder')}" onclick="infoOrder(${order.id})">ℹ️</button>
+                    ${order.status === 'pending' ?                         
                     `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>
-                    <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>` : ''}
+                    <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>` : ''}                    
                 </div>
             </td>
         `;
         tbody.appendChild(tr);
     });
+}
+
+window.infoOrder = async function(orderId) {
+    try {
+        const order = await fetchAPI(`/orders/${orderId}`);
+        let infoHtml = `<h3>${t('orderDetails')} #${order.id}</h3>`;        
+        infoHtml += `<p><strong>${t('completionDate')}:</strong> ${order.completion_date || '-'}</p>`;
+        infoHtml += `<p><strong>${t('status')}:</strong> ${t('status' + order.status.charAt(0).toUpperCase() + order.status.slice(1))}</p>`;
+                
+        if (order.additional_info) {
+            infoHtml += `
+                <div class="info-comment-box">
+                    <strong>${t('additionalInfo')}:</strong>
+                    <p>${order.additional_info}</p>
+                </div>`;
+        }
+
+        infoHtml += `<h4>${t('items')}:</h4><ul>`;
+        
+        order.items.forEach(item => {
+            const priceFixed = Number(item.price).toFixed(2);
+            const totalItem = (item.quantity * item.price).toFixed(2);
+            infoHtml += `<li>
+                <span>${item.product_name} <strong>x ${item.quantity}</strong></span>
+                <span>${priceFixed} ${CURRENCY} (Total: ${totalItem} ${CURRENCY})</span>
+            </li>`;
+        });
+        
+        infoHtml += `</ul>`;
+        
+        const modalContent = document.getElementById('order-info-modal-content');
+        modalContent.innerHTML = infoHtml;
+        openModal('order-info-modal');
+    } catch (err) {
+        console.error(err);
+        showToast("Failed to load order info", "error");
+    }
 }
 
 window.completeOrder = async function (orderId) {

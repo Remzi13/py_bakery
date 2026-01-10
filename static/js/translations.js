@@ -40,9 +40,12 @@ const translations = {
         pendingOrders: "Pending Orders",
         noPendingOrders: "No pending orders",
         completeOrder: "Complete",
+        infoOreder: "Info",
         statusPending: "Pending",
         statusCompleted: "Completed",
         confirmCompleteOrder: "Are you sure you want to mark this order as completed? This will deduct ingredients from stock and create sale records.",
+        additionalInfo: "Additional Info",
+        orderDetails: "Order Details",
 
         // Products
         addProduct: "Add Product",
@@ -159,9 +162,12 @@ const translations = {
         pendingOrders: "Ожидающие заказы",
         noPendingOrders: "Нет ожидающих заказов",
         completeOrder: "Выполнить",
+        infoOreder: "Инфо", 
         statusPending: "Ожидает",
         statusCompleted: "Выполнен",
         confirmCompleteOrder: "Вы уверены, что хотите отметить этот заказ как выполненный? Это приведет к списанию ингредиентов со склада и созданию записей о продажах.",
+        additionalInfo: "Дополнительная информация",
+        orderDetails: "Детали заказа",
 
         // Products
         addProduct: "Добавить товар",

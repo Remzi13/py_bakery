@@ -673,3 +673,55 @@ select:focus {
         gap: 8px;
     }
 }
+
+.info-modal {
+    max-width: 500px; /* Делаем её чуть уже, чем форму ввода */
+}
+
+.order-details-body h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.order-details-body h4 {
+    margin: 20px 0 10px 0;
+    color: #34495e;
+}
+
+.order-details-body ul {
+    list-style: none;
+    padding: 0;
+}
+
+.order-details-body li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.order-details-body p {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.info-comment-box {
+    background-color: #fcf8e3; /* Светло-бежевый фон, как у заметки */
+    border-left: 4px solid #f1c40f; /* Желтая полоса слева */
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    font-style: italic;
+    color: #8a6d3b;
+}
+
+.info-comment-box strong {
+    display: block;
+    margin-bottom: 5px;
+    font-style: normal;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #a88b32;
+}
