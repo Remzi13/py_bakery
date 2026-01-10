@@ -219,9 +219,14 @@ async function loadStock() {
         tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td><span style="font-size: 0.75rem; background: var(--accent-light); padding: 2px 8px; border-radius: 12px; font-weight: 600;">${item.category_name}</span></td>
-            <td>${item.quantity}</td>
+            <td>${Number(item.quantity).toFixed(2)}</td>
             <td>${item.unit_name}</td>
-            <td><button class="btn-icon" title="Delete" onclick="deleteItem('stock', '${item.name}')">🗑️</button></td>
+            <td>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-icon" title="Edit" onclick="editStock(${item.id})">✏️</button>
+                    <button class="btn-icon" title="Delete" onclick="deleteItem('stock', '${item.name}')">🗑️</button>
+                </div>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -686,6 +691,41 @@ window.editProduct = async function (id) {
         showToast('Failed to load product', 'error');
     }
 }
+
+window.addNewStock = function() {
+    const form = document.getElementById('stock-form');
+    form.reset(); // Очищаем все поля
+    form.elements['id'].value = ""; // Очищаем ID (важно!)
+    
+    // Меняем заголовки (опционально)
+    document.querySelector('#stock-modal h2').innerText = "Add Stock Item";
+    form.querySelector('button[type="submit"]').innerText = "Add Item";
+    
+    openModal('stock-modal');
+};
+
+// Твоя функция editStock теперь будет выглядеть так
+window.editStock = async function (id) {
+    try {
+        const item = await fetchAPI(`/stock/${id}`);
+        const form = document.getElementById('stock-form');
+        
+        // Заполняем данные
+        form.elements['id'].value = item.id;
+        form.elements['name'].value = item.name;
+        form.elements['category_name'].value = item.category_name;
+        form.elements['quantity'].value = item.quantity;
+        form.elements['unit_name'].value = item.unit_name;
+
+        // Меняем заголовки
+        document.querySelector('#stock-modal h2').innerText = "Edit Stock Item";
+        form.querySelector('button[type="submit"]').innerText = "Save Changes";
+
+        openModal('stock-modal');
+    } catch (err) {
+        showToast('Error loading item', 'error');
+    }
+};
 
 window.deleteItem = async function (resource, id) {
     if (!confirm('Are you sure you want to delete this?')) return;

@@ -25,6 +25,27 @@ def get_stock(model: SQLiteModel = Depends(get_model)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/{stock_id}", response_model=StockItem)
+def get_stock_id(stock_id: int, model: SQLiteModel = Depends(get_model)):
+    try:
+        p = model.stock().by_id(stock_id)
+        if not p:
+            raise HTTPException(status_code=404, detail="Stock not found")
+
+        return {
+            "id": p.id,
+            "name": p.name,
+            "category_id": p.category_id,
+            "category_name": model.utils().get_stock_category_name_by_id(p.category_id),
+            "quantity": p.quantity,
+            "unit_name": model.utils().get_unit_name_by_id(p.unit_id),
+            "unit_id": p.unit_id,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/", response_model=StockItem)
 def add_stock(item: StockCreate, model: SQLiteModel = Depends(get_model)):
     try:

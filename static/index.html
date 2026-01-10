@@ -136,8 +136,7 @@
                                 <input type="text" placeholder="Search stock..." data-i18n="searchStock"
                                     onkeyup="filterTable('stock-table', this.value)">
                             </div>
-                            <button class="btn-primary" onclick="openModal('stock-modal')" data-i18n="addStockItem">Add
-                                Stock Item</button>
+                            <button class="btn-primary" onclick="addNewStock()" data-i18n="addStockItem">Add Stock Item</button>
                         </div>
                         <table class="data-table" id="stock-table">
                             <thead>
@@ -385,6 +384,7 @@
             <button class="close" onclick="closeModal('stock-modal')">&times;</button>
             <h2 data-i18n="addStockItem">Add Stock Item</h2>
             <form id="stock-form">
+                <input type="hidden" name="id" id="item-id">
                 <div class="form-row">
                     <div class="form-group">
                         <label data-i18n="stockItemName">Item Name</label>
