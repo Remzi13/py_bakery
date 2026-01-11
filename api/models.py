@@ -24,12 +24,11 @@ class ProductBase(BaseModel):
     price: int
 
 class ProductCreate(ProductBase):
-    ingredients: List[ProductIngredient]
+    materials: List[ProductIngredient]
 
 class ProductResponse(ProductBase):
     id: int
-    ingredients: List[ProductIngredient] = []
-
+    materials: List[ProductIngredient] = []
 # --- Stock Models ---
 
 class StockItem(BaseModel):

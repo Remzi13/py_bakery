@@ -13,6 +13,25 @@ def get_categories(model: SQLiteModel = Depends(get_model)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/materials", response_model=List[StockItem])
+def get_materials(model: SQLiteModel = Depends(get_model)):
+    try:
+        items = model.stock().data()
+        results = []
+        utils = model.utils()
+        for item in items:
+            cat_name = utils.get_stock_category_name_by_id(item.category_id)
+            unit_name = utils.get_unit_name_by_id(item.unit_id)
+
+            # Using dict mapping to fill Pydantic model
+            item_dict = item.__dict__.copy()
+            item_dict['category_name'] = cat_name
+            item_dict['unit_name'] = unit_name
+            results.append(item_dict)
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/", response_model=List[StockItem])
 def get_stock(model: SQLiteModel = Depends(get_model)):
     try:

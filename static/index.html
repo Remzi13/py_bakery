@@ -52,7 +52,6 @@
             </header>
 
             <div id="tab-content">
-                <!-- Dashboard View -->
                 <section id="dashboard-view" class="view active" aria-labelledby="page-title">
                     <div class="quick-actions" style="margin-bottom: 20px; display: flex; gap: 12px;">
                         <button class="btn-primary" onclick="openModal('sale-modal')" data-i18n="addSale">➕ Add
@@ -83,8 +82,7 @@
                         <div class="widget">
                             <h4 data-i18n="salesTrendLastWeek">Sales Trend (Last 7 Days)</h4>
                             <div class="chart-container" id="sales-chart">
-                                <!-- Bars added via JS -->
-                            </div>
+                                </div>
                         </div>
                         <div class="widget">
                             <h4 data-i18n="pendingOrders">Pending Orders</h4>
@@ -103,7 +101,6 @@
                     </div>
                 </section>
 
-                <!-- Products View -->
                 <section id="products-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -111,7 +108,7 @@
                                 <input type="text" placeholder="Search products..." data-i18n="searchProducts"
                                     onkeyup="filterTable('products-table', this.value)">
                             </div>
-                            <button class="btn-primary" onclick="openModal('product-modal')" data-i18n="addProduct">Add
+                            <button class="btn-primary" onclick="addNewProduct()" data-i18n="addProduct">Add
                                 Product</button>
                         </div>
                         <table class="data-table" id="products-table">
@@ -128,7 +125,6 @@
                     </div>
                 </section>
 
-                <!-- Stock View -->
                 <section id="stock-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -153,7 +149,6 @@
                     </div>
                 </section>
 
-                <!-- Sales View -->
                 <section id="sales-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -179,7 +174,6 @@
                     </div>
                 </section>
 
-                <!-- Orders View -->
                 <section id="orders-view" class="view">
                     <div class="table-container">
                         <table class="data-table" id="orders-table">
@@ -194,13 +188,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Rows added via JS -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Expenses View -->
                 <section id="expenses-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -227,7 +219,6 @@
                     </div>
                 </section>
 
-                <!-- Suppliers View -->
                 <section id="suppliers-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -252,18 +243,17 @@
                     </div>
                 </section>
 
-                <!-- Ingredients View -->
-                <section id="ingredients-view" class="view">
+                <section id="materials-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
                             <div class="search-wrapper">
-                                <input type="text" placeholder="Search ingredients..." data-i18n="searchIngredients"
-                                    onkeyup="filterTable('ingredients-table', this.value)">
+                                <input type="text" placeholder="Search materials..." data-i18n="searchMaterials"
+                                    onkeyup="filterTable('materials-table', this.value)">
                             </div>
-                            <button class="btn-primary" onclick="openModal('ingredient-modal')"
-                                data-i18n="addIngredientButton">Add Ingredient</button>
+                            <button class="btn-primary" onclick="openModal('material-modal')"
+                                data-i18n="addMaterialButton">Add Material</button>
                         </div>
-                        <table class="data-table" id="ingredients-table">
+                        <table class="data-table" id="materials-table">
                             <thead>
                                 <tr>
                                     <th data-i18n="productName">Name</th>
@@ -275,7 +265,6 @@
                     </div>
                 </section>
 
-                <!-- Write-offs View -->
                 <section id="writeoffs-view" class="view">
                     <div class="table-container">
                         <div class="table-header-actions">
@@ -304,7 +293,6 @@
         </main>
     </div>
 
-    <!-- Modals -->
     <div id="product-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content large-modal">
             <button class="close" onclick="closeModal('product-modal')">&times;</button>
@@ -321,59 +309,29 @@
                     </div>
                 </div>
                 <fieldset>
-                    <legend data-i18n="recipe">Recipe (Ingredients)</legend>
+                    <legend data-i18n="recipe">Recipe (Materials)</legend>
                     <div class="recipe-editor">
                         <div class="recipe-controls">
                             <div class="form-group" style="min-width: 150px;">
                                 <select id="recipe-ingredient-select">
-                                    <option value="" data-i18n="selectIngredient">Select Ingredient...</option>
+                                    <option value="" data-i18n="selectIngredient">Select Material...</option>
                                 </select>
                             </div>
                             <div class="form-group small" style="min-width: 100px;">
                                 <input id="recipe-quantity" type="number" step="0.001" placeholder="Qty">
                             </div>
                             <span id="recipe-quantity-unit" class="input-suffix-small"></span>
-                            <button type="button" class="btn-secondary" onclick="addIngredientToRecipe()"
-                                data-i18n="addIngredient">Add</button>
+                            <button type="button" class="btn-secondary" onclick="addMaterialToProduct()"
+                                data-i18n="addMaterialButton">Add Material</button>
                         </div>
                         <ul id="recipe-list" class="recipe-list"></ul>
-                        <input type="hidden" name="ingredients_json" id="recipe-json">
+                        <input type="hidden" name="materials_json" id="recipe-json">
                     </div>
                 </fieldset>
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('product-modal')"
                         data-i18n="cancel">Cancel</button>
                     <button type="submit" class="btn-primary" data-i18n="saveProduct">Save Product</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Simplified Modal Structure for others -->
-    <div id="ingredient-modal" class="modal">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('ingredient-modal')">&times;</button>
-            <h2 data-i18n="addIngredientButton">Add Ingredient</h2>
-            <form id="ingredient-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="ingredientName">Ingredient Name</label>
-                        <input type="text" name="name" placeholder="e.g., Wheat Flour" required>
-                    </div>
-                    <div class="form-group small">
-                        <label data-i18n="baseUnit">Base Unit</label>
-                        <select name="unit_name">
-                            <option value="kg">kg</option>
-                            <option value="g">g</option>
-                            <option value="l">l</option>
-                            <option value="pc">pc</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal('ingredient-modal')"
-                        data-i18n="cancel">Cancel</button>
-                    <button type="submit" class="btn-primary" data-i18n="saveIngredient">Save Ingredient</button>
                 </div>
             </form>
         </div>
@@ -591,7 +549,6 @@
         </div>
     </div>
 
-    <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
     <script src="/static/js/app.js"></script>

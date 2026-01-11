@@ -212,7 +212,7 @@ class ProductsRepository:
             for item in materials:
                 mat_name = item['name']
                 mat_quantity = item['quantity']
-                mat_entity = stock_repo.by_name(mat_name)
+                mat_entity = stock_repo.get(mat_name)
                 if not mat_entity:
                     raise ValueError(f"Материал '{mat_name}' не найден. Продукт не сохранен.")
 

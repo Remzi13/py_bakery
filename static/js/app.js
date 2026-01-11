@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.editingProductId = null;
-window.ingredientsMap = {}; // name -> unit (e.g., 'kg', 'g')
+window.materialsMap = {}; // name -> unit (e.g., 'kg', 'g')
 
 function setupTabs() {
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -53,7 +53,6 @@ function loadTab(tabId) {
     if (tabId === 'sales') { loadSales(); loadProductsForSelect(); }
     if (tabId === 'expenses') { loadExpenses(); loadExpenseTypesForSelect(); loadSuppliersForSelect(); }
     if (tabId === 'suppliers') loadSuppliers();
-    if (tabId === 'ingredients') loadIngredients();
     if (tabId === 'writeoffs') loadWriteOffs();
     if (tabId === 'orders') loadOrders();
 }
@@ -196,12 +195,12 @@ async function loadProducts() {
     const tbody = document.querySelector('#products-table tbody');
     tbody.innerHTML = '';
     data.forEach(item => {
-        const ingredients = item.ingredients.map(i => `${i.name}: ${i.quantity}${i.unit ? ' ' + i.unit : ''}`).join(', ') || '-';
+        const materials = item.materials.map(i => `${i.name}: ${i.quantity}${i.unit ? ' ' + i.unit : ''}`).join(', ') || '-';
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td>${item.price} ${CURRENCY}</td>
-            <td style="font-size: 0.85rem; color: var(--text-muted)">${ingredients}</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted)">${materials}</td>
             <td>
                 <div style="display:flex; gap:8px;">
                     <button class="btn-icon" title="Edit" onclick="editProduct(${item.id})">✏️</button>
@@ -281,20 +280,6 @@ async function loadSuppliers() {
             <td>${item.contact_person || ''}</td>
             <td>${item.phone || ''}</td>
             <td><button class="btn-icon" title="Delete" onclick="deleteItem('suppliers', '${item.name}')">🗑️</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-async function loadIngredients() {
-    const data = await fetchAPI('/ingredients');
-    const tbody = document.querySelector('#ingredients-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${item.name}</strong></td>
-            <td>${item.unit_name}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -559,7 +544,6 @@ function showToast(message, type = 'success') {
 function setupForms() {
     const forms = [
         { id: 'product-form', endpoint: '/products/', tab: 'products', modal: 'product-modal' },
-        { id: 'ingredient-form', endpoint: '/ingredients/', tab: 'ingredients', modal: 'ingredient-modal' },
         { id: 'stock-form', endpoint: '/stock/', tab: 'stock', modal: 'stock-modal' },
         { id: 'sale-form', endpoint: '/sales/', tab: 'sales', modal: 'sale-modal' },
         { id: 'expense-form', endpoint: '/expenses/', tab: 'expenses', modal: 'expense-modal' },
@@ -576,13 +560,13 @@ function setupForms() {
             const data = Object.fromEntries(formData.entries());
 
             if (f.id === 'product-form') {
-                try { data.ingredients = JSON.parse(data.ingredients_json || '[]'); }
+                try { data.materials = JSON.parse(data.materials_json || '[]'); }
                 catch (err) { showToast("Invalid recipe", "error"); return; }
             }
             if (f.id === 'expense-form' && !data.supplier_id) delete data.supplier_id;
             if (f.id === 'stock-form') 
             {
-                const itemId = data.id; // Скрытое поле ID
+                const itemId = data.id;
                 try {
                     if (itemId) 
                     {
@@ -599,12 +583,12 @@ function setupForms() {
                     loadTab(f.tab);
                     form.reset();
                     return;
+                }
+                catch (err) 
+                {
+                    return; 
+                }
             }
-            catch (err) 
-            {
-                return; 
-            }
-        }
 
             try {
                 if (f.id === 'product-form' && window.editingProductId) {
@@ -628,18 +612,18 @@ function setupForms() {
 
 let currentRecipe = [];
 async function loadIngredientsForRecipe() {
-    const data = await fetchAPI('/ingredients');
+    const data = await fetchAPI('/stock/materials');
     const select = document.getElementById('recipe-ingredient-select');
     if (!select) return;
     select.innerHTML = '<option value="">Select Ingredient...</option>';
-    window.ingredientsMap = {};
+    window.materialsMap = {};
     data.forEach(i => {
         const opt = document.createElement('option');
         opt.value = i.name; opt.innerText = i.name;
         const unit = i.unit_name || '';
         opt.dataset.unit = unit;
         select.appendChild(opt);
-        window.ingredientsMap[i.name] = unit;
+        window.materialsMap[i.name] = unit;
     });
 
     const qtyUnit = document.getElementById('recipe-quantity-unit');
@@ -647,10 +631,28 @@ async function loadIngredientsForRecipe() {
         const u = select.selectedOptions[0]?.dataset.unit || '';
         if (qtyUnit) qtyUnit.textContent = u;
     });
-    updateRecipeList();
 }
 
-window.addIngredientToRecipe = function () {
+window.addNewProduct = function() {
+    window.editingProductId = null;
+    const form = document.getElementById('product-form');
+    if (form) form.reset();
+
+    currentRecipe = [];
+    loadIngredientsForRecipe();
+    updateRecipeList();
+    
+    // Reset title to "Add Product"
+    const title = document.querySelector('#product-modal h2');
+    if(title) {
+        title.setAttribute('data-i18n', 'addProduct');
+        title.innerText = typeof t === 'function' ? t('addProduct') : 'Add Product';
+    }
+
+    openModal('product-modal');
+};
+
+window.addMaterialToProduct = function () {
     const select = document.getElementById('recipe-ingredient-select');
     const name = select.value;
     const qtyInput = document.getElementById('recipe-quantity');
@@ -659,7 +661,7 @@ window.addIngredientToRecipe = function () {
         showToast("Enter valid ingredient and quantity", "error");
         return;
     }
-    const unit = window.ingredientsMap[name] || '';
+    const unit = window.materialsMap[name] || '';
     currentRecipe.push({ name, quantity, unit });
     updateRecipeList();
     select.value = ""; qtyInput.value = "";
@@ -691,16 +693,24 @@ function updateRecipeList() {
 const _originalOpenModal = window.openModal;
 window.openModal = function (modalId) {
     _originalOpenModal(modalId);
+    
+    // Note: 'product-modal' is now largely handled by addNewProduct and editProduct directly,
+    // but we keep this check for consistency if openModal is called elsewhere.
     if (modalId === 'product-modal' && !window.editingProductId) {
-        currentRecipe = []; loadIngredientsForRecipe();
-    } else if (modalId === 'writeoff-modal') {
+        // Safe check, but addNewProduct does this better
+    } 
+    else if (modalId === 'writeoff-modal') {
         loadWriteOffModalData();
     } else if (modalId === 'expense-modal') {
-        loadExpenseCategories(); loadExpenseTypesForSelect();
+        loadExpenseCategories(); 
+        loadExpenseTypesForSelect();
         loadSuppliersForSelect();
     }
     else if (modalId === 'stock-modal') {
         loadStockCategoriesForSelect();
+    }
+    else if (modalId === 'sale-modal') {
+        loadProductsForSelect();
     }
 }
 
@@ -752,43 +762,54 @@ window.editProduct = async function (id) {
         const form = document.getElementById('product-form');
         form.elements['name'].value = prod.name;
         form.elements['price'].value = prod.price;
-        currentRecipe = prod.ingredients || [];
+        
         window.editingProductId = id;
+        currentRecipe = prod.materials || [];
+        
+        // Load ingredients then update list
         await loadIngredientsForRecipe();
+        updateRecipeList();
+
+        // Update title to "Edit Product"
+        const title = document.querySelector('#product-modal h2');
+        if(title) {
+            title.setAttribute('data-i18n', 'editProduct');
+            title.innerText = typeof t === 'function' ? t('editProduct') : 'Edit Product';
+        }
+
         openModal('product-modal');
     } catch (err) {
+        console.error(err);
         showToast('Failed to load product', 'error');
     }
 }
 
 window.addNewStock = function() {
     const form = document.getElementById('stock-form');
-    form.reset(); // Очищаем все поля
-    form.elements['id'].value = ""; // Очищаем ID (важно!)
+    form.reset(); 
+    form.elements['id'].value = ""; 
     
-    // Меняем заголовки (опционально)
     document.querySelector('#stock-modal h2').innerText = "Add Stock Item";
-    form.querySelector('button[type="submit"]').innerText = "Add Item";
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if(submitBtn) submitBtn.innerText = "Add Item";
     
     openModal('stock-modal');
 };
 
-// Твоя функция editStock теперь будет выглядеть так
 window.editStock = async function (id) {
     try {
         const item = await fetchAPI(`/stock/${id}`);
         const form = document.getElementById('stock-form');
         
-        // Заполняем данные
         form.elements['id'].value = item.id;
         form.elements['name'].value = item.name;
         form.elements['category_name'].value = item.category_name;
         form.elements['quantity'].value = item.quantity;
         form.elements['unit_name'].value = item.unit_name;
 
-        // Меняем заголовки
         document.querySelector('#stock-modal h2').innerText = "Edit Stock Item";
-        form.querySelector('button[type="submit"]').innerText = "Save Changes";
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if(submitBtn) submitBtn.innerText = "Save Changes";
 
         openModal('stock-modal');
     } catch (err) {
@@ -798,13 +819,12 @@ window.editStock = async function (id) {
 
 async function loadStockCategoriesForSelect() {
     try {
-        // Предполагаем, что эндпоинт /stock/categories возвращает массив строк ['Materials', 'Packaging', ...]
         const categories = await fetchAPI('/stock/categories'); 
         const select = document.getElementById('stock-category-select');
         
         if (!select) return;
         
-        select.innerHTML = ''; // Очищаем старые данные
+        select.innerHTML = ''; 
         
         categories.forEach(cat => {
             const opt = document.createElement('option');

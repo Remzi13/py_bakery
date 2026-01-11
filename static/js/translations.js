@@ -54,14 +54,14 @@ const translations = {
         price: "Price",
         ingredientsList: "Ingredients",
         selectIngredient: "Select Ingredient...",
-        addIngredient: "Add",
-        recipe: "Recipe (Ingredients)",
+        addMaterial: "Add",
+        recipe: "Recipe (Materials)",
         saveProduct: "Save Product",
 
-        // Ingredients
-        addIngredientButton: "Add Ingredient",
-        searchIngredients: "Search ingredients...",
-        ingredientName: "Ingredient Name",
+        // Materials
+        addMaterialButton: "Add Material",
+        searchMaterials: "Search materials...",
+        materialName: "Material Name",
         baseUnit: "Base Unit",
         saveIngredient: "Save Ingredient",
 
@@ -176,14 +176,14 @@ const translations = {
         price: "Цена",
         ingredientsList: "Ингредиенты",
         selectIngredient: "Выбрать ингредиент...",
-        addIngredient: "Добавить",
+        addMaterial: "Добавить",
         recipe: "Рецепт (Ингредиенты)",
         saveProduct: "Сохранить товар",
 
-        // Ingredients
-        addIngredientButton: "Добавить ингредиент",
-        searchIngredients: "Поиск ингредиентов...",
-        ingredientName: "Название ингредиента",
+        // Materials
+        addMaterialButton: "Добавить материал",
+        searchMaterials: "Поиск материалов...",
+        materialName: "Название материала",
         baseUnit: "Базовая единица",
         saveIngredient: "Сохранить ингредиент",
 
