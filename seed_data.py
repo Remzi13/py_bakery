@@ -25,43 +25,25 @@ def seed_data():
         if not model.suppliers().by_name(name):
             model.suppliers().add(name, contact, phone, email, address)
             print(f"Added supplier: {name}")
-
-    # 2. Add Ingredients
-    # IngredientsRepository.add also creates StockItem and ExpenseType
-    ingredients = [
-        ("Premium Flour", "kg"),
-        ("White Sugar", "kg"),
-        ("Whole Milk", "l"),
-        ("Farm Eggs", "pc"),
-        ("Dry Yeast", "g"),
-        ("Salt", "g"),
-        ("Unsalted Butter", "kg"),
-        ("Chocolate Chips", "kg"),
-        ("Paper Bag", "pc")
-    ]
+   
     
-    for name, unit in ingredients:
-        if not model.ingredients().has(name):
-            model.ingredients().add(name, unit)
-            print(f"Added ingredient: {name}")
-
     # 3. Increase Stock (Buying ingredients)
     # We use stock().update(name, delta)
     stock_purchases = [
-        ("Premium Flour", 50.0),
-        ("White Sugar", 20.0),
-        ("Whole Milk", 30.0),
-        ("Farm Eggs", 120.0),
-        ("Dry Yeast", 500.0),
-        ("Salt", 1000.0),
-        ("Unsalted Butter", 10.0),
-        ("Chocolate Chips", 5.0),
-        ("Paper Bag", 200.0)
+        ("Premium Flour",   "Materials",    50.0,   "kg"),
+        ("White Sugar",     "Materials",    20.0,   "kg"),
+        ("Whole Milk",      "Materials",    30.0,   "l"),
+        ("Farm Eggs",       "Materials",    120.0,  "pc"),
+        ("Dry Yeast",       "Materials",    500.0,  "g"),
+        ("Salt",            "Materials",    1000.0, "g"),
+        ("Unsalted Butter", "Materials",    10.0,   "kg"),
+        ("Chocolate Chips", "Materials",    5.0,    "kg"),
+        ("Paper Bag",       "Materials",    200.0,  "pc")
     ]
     
-    for name, qty in stock_purchases:
+    for name, cat, qty, unit in stock_purchases:
         try:
-            model.stock().update(name, qty)
+            model.stock().add(name, cat, qty, unit)
             print(f"Stocked {qty} of {name}")
         except Exception as e:
             print(f"Error stocking {name}: {e}")

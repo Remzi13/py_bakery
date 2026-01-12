@@ -98,7 +98,7 @@ class ExpenseCreate(BaseModel):
 # --- Supplier Models ---
 
 class Supplier(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     name: str
     contact_person: Optional[str]
     phone: Optional[str]

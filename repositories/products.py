@@ -14,27 +14,11 @@ class ProductsRepository:
 
     # --- Вспомогательные методы ---
 
-    def _row_to_entity(self, row: sqlite3.Row, ingredients_data: List[Dict[str, Any]]) -> Optional[Product]:
+    def _row_to_entity(self, row: sqlite3.Row) -> Optional[Product]:
         """Преобразует строку из БД в объект Product."""
         if row is None:
             return None
-        
-        # В отличие от старой модели, новый Product entity не хранит список ингредиентов
-        # напрямую, но мы его можем добавить для совместимости с бизнес-логикой.
-        # Однако, для чистоты, мы будем возвращать его без списка, 
-        # а рецепт получать отдельным методом .get_materials_for_product.
-        # Но чтобы сохранить логику, как в исходной модели, будем возвращать словарь.
-        
-        # ВНИМАНИЕ: Если бы Product Entity не был 'frozen', мы бы делали так:
-        # p = Product(id=row['id'], name=row['name'], price=row['price']))
-        # p.ingredients = ingredients_data # Но dataclass frozen=True не позволяет этого.
-        
-        # Возвращаем Product, но для дальнейшей работы с ним потребуется отдельный вызов
-        # для получения рецепта.
-        
-        # Для простоты, оставим dataclass Product без поля ingredients, но будем 
-        # возвращать данные о рецепте отдельно.
-        
+
         return Product(
             id=row['id'], 
             name=row['name'], 
@@ -144,14 +128,14 @@ class ProductsRepository:
         row = cursor.fetchone()
         
         # Возвращаем просто объект Product
-        return self._row_to_entity(row, [])
+        return self._row_to_entity(row)
 
     def by_id(self, id: int) -> Optional[Product]:
         """Получает продукт по ID (без рецепта)."""
         cursor = self._conn.cursor()
         cursor.execute("SELECT * FROM products WHERE id = ?", (id,))
         row = cursor.fetchone()
-        return self._row_to_entity(row, [])
+        return self._row_to_entity(row)
 
     def delete(self, name: str):
         """Удаляет продукт и все его связанные рецепты."""
@@ -239,7 +223,7 @@ class ProductsRepository:
         cursor.execute("SELECT * FROM products")
         products = []
         for row in cursor.fetchall():
-            product = self._row_to_entity(row, [])            
+            product = self._row_to_entity(row)
             # Создаем словарь, чтобы добавить поле 'materials'
             prod = SimpleNamespace()            
             setattr(prod, "id", product.id)
