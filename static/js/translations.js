@@ -7,6 +7,14 @@ const translations = {
         cancel: "Cancel",
         save: "Save",
         actions: "Actions",
+        delete: "Delete",
+        deleteConfirm: "Are you sure you want to delete this?",
+        approve: "Approve",
+        reject: "Reject",
+        approveConfirm: "Are you sure you want to approve this?",
+        rejectConfirm: "Are you sure you want to reject this?",
+        confirm: "Confirm",
+        cancel: "Cancel",
 
         // Dashboard
         dashboard: "Dashboard",
@@ -129,6 +137,14 @@ const translations = {
         cancel: "Отмена",
         save: "Сохранить",
         actions: "Действия",
+        delete: "Удалить",
+        deleteConfirm: "Вы уверены, что хотите удалить этот товар?",
+        approve: "Подтвердить",
+        reject: "Отклонить",
+        approveConfirm: "Вы уверены, что хотите подтвердить этот заказ?",
+        rejectConfirm: "Вы уверены, что хотите отклонить этот заказ?",
+        confirm: "Подтвердить",
+        cancel: "Отменить",
 
         // Dashboard
         dashboard: "Панель управления",
@@ -162,7 +178,7 @@ const translations = {
         pendingOrders: "Ожидающие заказы",
         noPendingOrders: "Нет ожидающих заказов",
         completeOrder: "Выполнить",
-        infoOrder: "Инфо", 
+        infoOrder: "Инфо",
         statusPending: "Ожидает",
         statusCompleted: "Выполнен",
         confirmCompleteOrder: "Вы уверены, что хотите отметить этот заказ как выполненный? Это приведет к списанию ингредиентов со склада и созданию записей о продажах.",

@@ -7,6 +7,27 @@ function normalizeEndpoint(endpoint) {
     return endpoint;
 }
 
+function askConfirmation(message) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('modal-overlay');
+        const confirmBtn = document.getElementById('modal-confirm');
+        const cancelBtn = document.getElementById('modal-cancel');
+        const messageElem = document.getElementById('modal-message');
+
+        messageElem.textContent = message;
+        overlay.style.display = 'flex';
+
+        confirmBtn.onclick = () => {
+            overlay.style.display = 'none';
+            resolve(true);
+        };
+        cancelBtn.onclick = () => {
+            overlay.style.display = 'none';
+            resolve(false);
+        };
+    });
+}
+
 // --- Global Constants ---
 const CURRENCY = '₽';
 
@@ -323,8 +344,8 @@ async function loadOrders() {
             <td>
                 <div style="display:flex; gap:8px;">
                     <button class="btn-icon" title="${t('infoOrder')}" onclick="infoOrder(${order.id})">ℹ️</button>
-                    ${order.status === 'pending' ?                         
-                    `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>
+                    ${order.status === 'pending' ?
+                `<button class="btn-icon" title="${t('completeOrder')}" onclick="completeOrder(${order.id})">✅</button>
                     <button class="btn-icon" title="Delete" onclick="deleteOrder(${order.id})">🗑️</button>` : ''}                    
                 </div>
             </td>
@@ -333,13 +354,13 @@ async function loadOrders() {
     });
 }
 
-window.infoOrder = async function(orderId) {
+window.infoOrder = async function (orderId) {
     try {
         const order = await fetchAPI(`/orders/${orderId}`);
-        let infoHtml = `<h3>${t('orderDetails')} #${order.id}</h3>`;        
+        let infoHtml = `<h3>${t('orderDetails')} #${order.id}</h3>`;
         infoHtml += `<p><strong>${t('completionDate')}:</strong> ${order.completion_date || '-'}</p>`;
         infoHtml += `<p><strong>${t('status')}:</strong> ${t('status' + order.status.charAt(0).toUpperCase() + order.status.slice(1))}</p>`;
-                
+
         if (order.additional_info) {
             infoHtml += `
                 <div class="info-comment-box">
@@ -349,7 +370,7 @@ window.infoOrder = async function(orderId) {
         }
 
         infoHtml += `<h4>${t('items')}:</h4><ul>`;
-        
+
         order.items.forEach(item => {
             const priceFixed = Number(item.price).toFixed(2);
             const totalItem = (item.quantity * item.price).toFixed(2);
@@ -358,9 +379,9 @@ window.infoOrder = async function(orderId) {
                 <span>${priceFixed} ${CURRENCY} (Total: ${totalItem} ${CURRENCY})</span>
             </li>`;
         });
-        
+
         infoHtml += `</ul>`;
-        
+
         const modalContent = document.getElementById('order-info-modal-content');
         modalContent.innerHTML = infoHtml;
         openModal('order-info-modal');
@@ -564,18 +585,16 @@ function setupForms() {
                 catch (err) { showToast("Invalid recipe", "error"); return; }
             }
             if (f.id === 'expense-form' && !data.supplier_id) delete data.supplier_id;
-            if (f.id === 'stock-form') 
-            {
+            if (f.id === 'stock-form') {
                 const itemId = data.id;
                 try {
-                    if (itemId) 
-                    {
+                    if (itemId) {
                         const updatePayload = { quantity: parseFloat(data.quantity) };
                         const itemName = encodeURIComponent(data.name);
                         await putAPI(`/stock/${itemName}/set`, updatePayload);
                         showToast("Stock quantity updated!");
                     } else {
-                    
+
                         await postAPI(f.endpoint, data);
                         showToast("New item added!");
                     }
@@ -584,9 +603,8 @@ function setupForms() {
                     form.reset();
                     return;
                 }
-                catch (err) 
-                {
-                    return; 
+                catch (err) {
+                    return;
                 }
             }
 
@@ -633,7 +651,7 @@ async function loadIngredientsForRecipe() {
     });
 }
 
-window.addNewProduct = function() {
+window.addNewProduct = function () {
     window.editingProductId = null;
     const form = document.getElementById('product-form');
     if (form) form.reset();
@@ -641,10 +659,10 @@ window.addNewProduct = function() {
     currentRecipe = [];
     loadIngredientsForRecipe();
     updateRecipeList();
-    
+
     // Reset title to "Add Product"
     const title = document.querySelector('#product-modal h2');
-    if(title) {
+    if (title) {
         title.setAttribute('data-i18n', 'addProduct');
         title.innerText = typeof t === 'function' ? t('addProduct') : 'Add Product';
     }
@@ -693,16 +711,16 @@ function updateRecipeList() {
 const _originalOpenModal = window.openModal;
 window.openModal = function (modalId) {
     _originalOpenModal(modalId);
-    
+
     // Note: 'product-modal' is now largely handled by addNewProduct and editProduct directly,
     // but we keep this check for consistency if openModal is called elsewhere.
     if (modalId === 'product-modal' && !window.editingProductId) {
         // Safe check, but addNewProduct does this better
-    } 
+    }
     else if (modalId === 'writeoff-modal') {
         loadWriteOffModalData();
     } else if (modalId === 'expense-modal') {
-        loadExpenseCategories(); 
+        loadExpenseCategories();
         loadExpenseTypesForSelect();
         loadSuppliersForSelect();
     }
@@ -762,17 +780,17 @@ window.editProduct = async function (id) {
         const form = document.getElementById('product-form');
         form.elements['name'].value = prod.name;
         form.elements['price'].value = prod.price;
-        
+
         window.editingProductId = id;
         currentRecipe = prod.materials || [];
-        
+
         // Load ingredients then update list
         await loadIngredientsForRecipe();
         updateRecipeList();
 
         // Update title to "Edit Product"
         const title = document.querySelector('#product-modal h2');
-        if(title) {
+        if (title) {
             title.setAttribute('data-i18n', 'editProduct');
             title.innerText = typeof t === 'function' ? t('editProduct') : 'Edit Product';
         }
@@ -784,15 +802,15 @@ window.editProduct = async function (id) {
     }
 }
 
-window.addNewStock = function() {
+window.addNewStock = function () {
     const form = document.getElementById('stock-form');
-    form.reset(); 
-    form.elements['id'].value = ""; 
-    
+    form.reset();
+    form.elements['id'].value = "";
+
     document.querySelector('#stock-modal h2').innerText = "Add Stock Item";
     const submitBtn = form.querySelector('button[type="submit"]');
-    if(submitBtn) submitBtn.innerText = "Add Item";
-    
+    if (submitBtn) submitBtn.innerText = "Add Item";
+
     openModal('stock-modal');
 };
 
@@ -800,7 +818,7 @@ window.editStock = async function (id) {
     try {
         const item = await fetchAPI(`/stock/${id}`);
         const form = document.getElementById('stock-form');
-        
+
         form.elements['id'].value = item.id;
         form.elements['name'].value = item.name;
         form.elements['category_name'].value = item.category_name;
@@ -809,7 +827,7 @@ window.editStock = async function (id) {
 
         document.querySelector('#stock-modal h2').innerText = "Edit Stock Item";
         const submitBtn = form.querySelector('button[type="submit"]');
-        if(submitBtn) submitBtn.innerText = "Save Changes";
+        if (submitBtn) submitBtn.innerText = "Save Changes";
 
         openModal('stock-modal');
     } catch (err) {
@@ -819,13 +837,13 @@ window.editStock = async function (id) {
 
 async function loadStockCategoriesForSelect() {
     try {
-        const categories = await fetchAPI('/stock/categories'); 
+        const categories = await fetchAPI('/stock/categories');
         const select = document.getElementById('stock-category-select');
-        
+
         if (!select) return;
-        
-        select.innerHTML = ''; 
-        
+
+        select.innerHTML = '';
+
         categories.forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat;
@@ -838,17 +856,22 @@ async function loadStockCategoriesForSelect() {
 }
 
 window.deleteItem = async function (resource, id) {
-    if (!confirm('Are you sure you want to delete this?')) return;
+    const confirmed = await askConfirmation(t('deleteConfirm'));
+
+    if (!confirmed) return;
+
     try {
-        const res = await fetch(`${API_BASE}${normalizeEndpoint(resource + '/' + id)}`, {
+        const endpoint = normalizeEndpoint(`${resource}/${encodeURIComponent(id)}`);
+        const res = await fetch(`${API_BASE}${endpoint}`, {
             method: 'DELETE'
         });
+
         if (res.ok) {
             showToast("Item deleted");
             const activeTab = document.querySelector('.nav-btn.active').getAttribute('data-tab');
             loadTab(activeTab);
         } else {
-            showToast("Failed to delete item. It might be in use.", "error");
+            showToast("Failed to delete item", "error");
         }
     } catch (err) {
         showToast("Connection error", "error");
