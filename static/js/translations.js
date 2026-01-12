@@ -15,6 +15,7 @@ const translations = {
         rejectConfirm: "Are you sure you want to reject this?",
         confirm: "Confirm",
         cancel: "Cancel",
+        discount: "Discount (%)",
 
         // Dashboard
         dashboard: "Dashboard",
@@ -145,6 +146,7 @@ const translations = {
         rejectConfirm: "Вы уверены, что хотите отклонить этот заказ?",
         confirm: "Подтвердить",
         cancel: "Отменить",
+        discount: "Скидка (%)",
 
         // Dashboard
         dashboard: "Панель управления",

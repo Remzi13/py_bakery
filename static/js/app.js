@@ -261,12 +261,13 @@ async function loadSales() {
     tbody.innerHTML = '';
     data.forEach(item => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.date}</td>
+        tr.innerHTML = `            
             <td><strong>${item.product_name}</strong></td>
             <td>${item.quantity}</td>
             <td>${item.price} ${CURRENCY}</td>
-            <td><strong>${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)} ${CURRENCY}</strong></td>
+            <td><strong>${(item.price * item.quantity * (1 - (item.discount || 0) / 100)).toFixed(2)} ${CURRENCY}</strong></td>
+            <td>${item.discount || 0}%</td>
+            <td>${item.date}</td>
         `;
         tbody.appendChild(tr);
     });
