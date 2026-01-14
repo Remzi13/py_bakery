@@ -21,7 +21,7 @@ class ProductIngredient(BaseModel):
 
 class ProductBase(BaseModel):
     name: str
-    price: int
+    price: float
 
 class ProductCreate(ProductBase):
     materials: List[ProductIngredient]
@@ -58,7 +58,7 @@ class Sale(BaseModel):
     id: Optional[int]
     product_id: int
     product_name: str
-    price: int
+    price: float
     quantity: float
     discount: int
     date: str
@@ -73,15 +73,25 @@ class SaleCreate(BaseModel):
 class ExpenseType(BaseModel):
     id: Optional[int]
     name: str
-    default_price: int
+    default_price: float
     category_id: int
     category_name: Optional[str] = None
+    stock: bool = False
+
+class ExpenseCategoryCreate(BaseModel):
+    name: str
+
+class ExpenseTypeCreate(BaseModel):
+    name: str
+    default_price: float
+    category_name: str # Use name for creation
+    stock: bool = False
 
 class Expense(BaseModel):
     id: Optional[int]
     type_id: int
     name: str
-    price: int
+    price: float
     category_id: int
     category_name: Optional[str] = None
     quantity: float
@@ -91,11 +101,29 @@ class Expense(BaseModel):
 
 class ExpenseCreate(BaseModel):
     type_id: int
-    price: int
+    price: float
     quantity: float
     supplier_id: Optional[int] = None
 
-# --- Supplier Models ---
+class ExpenseItemCreate(BaseModel):
+    expense_type_id: int
+    quantity: float
+    price_per_unit: float
+    unit_id: int
+
+class ExpenseDocumentCreate(BaseModel):
+    date: str
+    supplier_id: int
+    comment: Optional[str] = None
+    items: List[ExpenseItemCreate]
+
+class ExpenseDocumentResponse(BaseModel):
+    id: int
+    date: str
+    supplier_name: Optional[str]
+    total_amount: float
+    comment: Optional[str]
+    items_count: int
 
 class Supplier(BaseModel):
     id: Optional[int] = None
@@ -122,7 +150,7 @@ class OrderItemResponse(BaseModel):
     product_id: int
     product_name: str
     quantity: float
-    price: int
+    price: float
 
 class OrderResponse(BaseModel):
     id: int

@@ -274,22 +274,155 @@ async function loadSales() {
 }
 
 async function loadExpenses() {
-    const data = await fetchAPI('/expenses');
+    const data = await fetchAPI('/expenses/documents');
     const tbody = document.querySelector('#expenses-table tbody');
     tbody.innerHTML = '';
     data.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.date}</td>
-            <td><strong>${item.name}</strong></td>
-            <td>${item.category_name || '-'}</td>
-            <td>${item.price} ${CURRENCY}</td>
-            <td>${item.quantity}</td>
-            <td>${item.supplier_name || '-'}</td>
+            <td><strong>${item.supplier_name || '-'}</strong></td>
+            <td>${item.items_count}</td>
+            <td>${item.total_amount} ${CURRENCY}</td>
+            <td>${item.comment || ''}</td>
         `;
         tbody.appendChild(tr);
     });
 }
+
+// --- Expense Document Logic ---
+
+let currentExpenseItems = [];
+
+window.addExpenseItemRow = function () {
+    const typeSelect = document.getElementById('expense-item-type');
+    const qtyInput = document.getElementById('expense-item-qty');
+    const unitSelect = document.getElementById('expense-item-unit');
+    const priceInput = document.getElementById('expense-item-price');
+
+    const typeId = typeSelect.value;
+    const typeName = typeSelect.options[typeSelect.selectedIndex]?.text;
+    const quantity = parseFloat(qtyInput.value);
+    const unitId = unitSelect.value;
+    const unitName = unitSelect.options[unitSelect.selectedIndex]?.text;
+    const price = parseFloat(priceInput.value);
+
+    if (!typeId || !quantity || !unitId || isNaN(price)) {
+        showToast("Please fill all item fields", "error");
+        return;
+    }
+
+    currentExpenseItems.push({
+        expense_type_id: parseInt(typeId),
+        expense_type_name: typeName,
+        quantity: quantity,
+        unit_id: parseInt(unitId),
+        unit_name: unitName,
+        price_per_unit: price
+    });
+
+    updateExpenseItemsList();
+
+    // clear inputs
+    qtyInput.value = '';
+    priceInput.value = '';
+}
+
+window.removeExpenseItemRow = function (index) {
+    currentExpenseItems.splice(index, 1);
+    updateExpenseItemsList();
+}
+
+function updateExpenseItemsList() {
+    const list = document.getElementById('expense-items-list');
+    if (!list) return;
+    list.innerHTML = '';
+    let total = 0;
+    currentExpenseItems.forEach((item, index) => {
+        const itemTotal = item.quantity * item.price_per_unit;
+        total += itemTotal;
+        const li = document.createElement('li');
+        li.className = 'recipe-item';
+        li.innerHTML = `
+            <span><strong>${item.expense_type_name}</strong>: ${item.quantity} ${item.unit_name} x ${item.price_per_unit} = ${itemTotal.toFixed(2)}</span>
+            <button type="button" onclick="removeExpenseItemRow(${index})">×</button>
+        `;
+        list.appendChild(li);
+    });
+    document.getElementById('expense-doc-total').innerText = total.toFixed(2);
+}
+
+async function loadExpenseDocumentModalData() {
+    // Set current date
+    const now = new Date();
+    // Adjust to local timezone ISO string (YYYY-MM-DDTHH:MM)
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('expense-doc-date').value = now.toISOString().slice(0, 16);
+
+    // Load Suppliers
+    const suppliers = await fetchAPI('/suppliers');
+    const supplierSelect = document.getElementById('expense-doc-supplier');
+    supplierSelect.innerHTML = '<option value="">Select Supplier...</option>';
+    suppliers.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id; opt.innerText = s.name;
+        supplierSelect.appendChild(opt);
+    });
+
+    // Load Categories for Item Filter
+    const categories = await fetchAPI('/expenses/categories');
+    const catSelect = document.getElementById('expense-item-category');
+    catSelect.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.innerText = c;
+        catSelect.appendChild(opt);
+    });
+
+    // Load Expense Types and init filter
+    await loadExpenseTypesForDoc();
+
+    // Load Units ...
+    const unitSelect = document.getElementById('expense-item-unit');
+    unitSelect.innerHTML = `
+        <option value="1">kg</option>
+        <option value="2">g</option>
+        <option value="3">l</option>
+        <option value="4">pc</option>
+    `;
+}
+
+let docExpenseTypes = [];
+
+async function loadExpenseTypesForDoc() {
+    docExpenseTypes = await fetchAPI('/expenses/types');
+    filterDocExpenseTypes();
+}
+
+window.filterDocExpenseTypes = function () {
+    const category = document.getElementById('expense-item-category').value;
+    const select = document.getElementById('expense-item-type');
+    select.innerHTML = '<option value="">Select Expense Type...</option>';
+
+    const filtered = category ? docExpenseTypes.filter(t => t.category_name === category) : docExpenseTypes;
+
+    filtered.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.innerText = t.name;
+        if (t.default_price) {
+            opt.dataset.price = t.default_price;
+        }
+        select.appendChild(opt);
+    });
+
+    // Auto-fill price on change
+    select.onchange = () => {
+        const price = select.selectedOptions[0]?.dataset.price;
+        if (price) document.getElementById('expense-item-price').value = price;
+    };
+}
+
 
 async function loadSuppliers() {
     const data = await fetchAPI('/suppliers');
@@ -563,12 +696,19 @@ function showToast(message, type = 'success') {
 
 // --- Form Setup ---
 
+// --- Form Setup ---
+
 function setupForms() {
     const forms = [
         { id: 'product-form', endpoint: '/products/', tab: 'products', modal: 'product-modal' },
         { id: 'stock-form', endpoint: '/stock/', tab: 'stock', modal: 'stock-modal' },
         { id: 'sale-form', endpoint: '/sales/', tab: 'sales', modal: 'sale-modal' },
-        { id: 'expense-form', endpoint: '/expenses/', tab: 'expenses', modal: 'expense-modal' },
+
+        // New Expense Forms
+        { id: 'expense-document-form', endpoint: '/expenses/documents', tab: 'expenses', modal: 'expense-document-modal' },
+        { id: 'expense-category-form', endpoint: '/expenses/categories', tab: 'expenses', modal: 'expense-category-modal' },
+        { id: 'expense-type-form', endpoint: '/expenses/types', tab: 'expenses', modal: 'expense-type-modal' },
+
         { id: 'supplier-form', endpoint: '/suppliers/', tab: 'suppliers', modal: 'supplier-modal' },
         { id: 'writeoff-form', endpoint: '/writeoffs/', tab: 'writeoffs', modal: 'writeoff-modal' }
     ];
@@ -585,7 +725,19 @@ function setupForms() {
                 try { data.materials = JSON.parse(data.materials_json || '[]'); }
                 catch (err) { showToast("Invalid recipe", "error"); return; }
             }
-            if (f.id === 'expense-form' && !data.supplier_id) delete data.supplier_id;
+            if (f.id === 'expense-document-form') {
+                if (currentExpenseItems.length === 0) {
+                    showToast("Add at least one item", "error");
+                    return;
+                }
+                data.items = currentExpenseItems;
+                // date format fix if needed? datetime-local is YYYY-MM-DDTHH:MM. Pydantic expects string.
+                data.date = data.date.replace('T', ' ');
+            }
+            if (f.id === 'expense-type-form') {
+                data.stock = form.querySelector('[name="stock"]').checked;
+            }
+
             if (f.id === 'stock-form') {
                 const itemId = data.id;
                 try {
@@ -620,12 +772,17 @@ function setupForms() {
                 closeModal(f.modal);
                 loadTab(f.tab);
                 form.reset();
+                if (f.id === 'expense-document-form') {
+                    currentExpenseItems = [];
+                    updateExpenseItemsList();
+                }
             } catch (err) {
                 // error already shown in postAPI/putAPI
             }
         };
     });
 }
+
 
 // --- Recipe Handling ---
 
@@ -721,9 +878,16 @@ window.openModal = function (modalId) {
     else if (modalId === 'writeoff-modal') {
         loadWriteOffModalData();
     } else if (modalId === 'expense-modal') {
+        // Legacy
         loadExpenseCategories();
         loadExpenseTypesForSelect();
         loadSuppliersForSelect();
+    }
+    else if (modalId === 'expense-document-modal') {
+        loadExpenseDocumentModalData();
+    }
+    else if (modalId === 'expense-type-modal') {
+        loadExpenseCategoriesForType();
     }
     else if (modalId === 'stock-modal') {
         loadStockCategoriesForSelect();
@@ -731,6 +895,18 @@ window.openModal = function (modalId) {
     else if (modalId === 'sale-modal') {
         loadProductsForSelect();
     }
+}
+
+async function loadExpenseCategoriesForType() {
+    const categories = await fetchAPI('/expenses/categories');
+    const select = document.getElementById('expense-type-category-select');
+    if (!select) return;
+    select.innerHTML = '<option value="">Select Category...</option>';
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.innerText = c;
+        select.appendChild(opt);
+    });
 }
 
 // --- API Helpers ---

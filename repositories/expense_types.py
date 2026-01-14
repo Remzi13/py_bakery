@@ -20,12 +20,13 @@ class ExpenseTypesRepository:
             id=row['id'],
             name=row['name'],
             default_price=row['default_price'],
-            category_id=row['category_id']
+            category_id=row['category_id'],
+            stock=bool(row['stock']) if 'stock' in row.keys() else False
         )
 
     # --- CRUD Методы ---
 
-    def add(self, name: str, default_price: int, category_name: str):
+    def add(self, name: str, default_price: int, category_name: str, stock: bool = False):
         """Добавляет новый тип расхода."""
         cursor = self._conn.cursor()
         
@@ -36,10 +37,10 @@ class ExpenseTypesRepository:
         try:
             cursor.execute(
                 """
-                INSERT INTO expense_types (name, default_price, category_id) 
-                VALUES (?, ?, ?)
+                INSERT INTO expense_types (name, default_price, category_id, stock) 
+                VALUES (?, ?, ?, ?)
                 """,
-                (name, default_price, category_id)
+                (name, default_price, category_id, stock)
             )
             self._conn.commit()
         except sqlite3.IntegrityError:

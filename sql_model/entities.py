@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional
 class Product:
     """Готовый продукт для продажи."""
     name: str
-    price: int
+    price: float
     # Ингредиенты хранятся в отдельной таблице 'product_stock'
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
@@ -29,7 +29,7 @@ class Sale:
     """Проданный продукт."""
     product_id: int # Ссылка на ID продукта из таблицы 'products'
     product_name: str
-    price: int
+    price: float
     quantity: float    
     discount : int # percent
     date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
@@ -39,8 +39,9 @@ class Sale:
 class ExpenseType:
     """Тип расхода (например, 'Аренда', 'Мука')."""
     name: str
-    default_price: int
+    default_price: float
     category_id: int    # Ссылка на ID из таблицы 'expense_categories'
+    stock: bool = False # Хранить на складе или нет
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
 @dataclass(frozen=True)
@@ -58,7 +59,7 @@ class Expense:
     """Фактический расход, зафиксированный во времени."""
     type_id: int # Ссылка на ID типа расхода
     name: str
-    price: int
+    price: float
     category_id: int
     quantity: float
     supplier_id: Optional[int] = None # <-- НОВОЕ ПОЛЕ
@@ -115,5 +116,26 @@ class OrderItem:
     product_id: int
     product_name: str
     quantity: float
-    price: int
+    price: float
+    id: Optional[int] = None
+
+@dataclass
+class ExpenseDocument:
+    """Документ о закупке (чек/накладная)."""
+    date: str
+    supplier_id: int
+    total_amount: float
+    comment: Optional[str] = None
+    id: Optional[int] = None
+
+@dataclass
+class ExpenseItem:
+    """Позиция в документе о закупке."""
+    document_id: int
+    expense_type_id: int
+    stock_item_id: Optional[int] # Может быть NULL, если это не складская позиция
+    unit_id: int
+    quantity: float
+    price_per_unit: float
+    total_price: float
     id: Optional[int] = None

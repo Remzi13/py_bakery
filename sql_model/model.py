@@ -13,6 +13,8 @@ from repositories.suppliers import SuppliersRepository
 from repositories.orders import OrdersRepository
 from repositories.utils import UtilsRepository
 
+from repositories.expense_documents import ExpenseDocumentsRepository
+
 class SQLiteModel:
     """
     Класс Модели для управления пекарней, использующий SQLite в качестве хранилища.
@@ -38,6 +40,7 @@ class SQLiteModel:
         self._write_offs_repo = WriteOffsRepository(self._conn, self)
         self._suppliers_repo = SuppliersRepository(self._conn)
         self._orders_repo = OrdersRepository(self._conn, self)
+        self._expense_documents_repo = ExpenseDocumentsRepository(self._conn, self)
 
     def close(self):
         """Закрывает соединение с базой данных."""
@@ -72,6 +75,9 @@ class SQLiteModel:
     
     def orders(self) -> OrdersRepository:
         return self._orders_repo
+
+    def expense_documents(self) -> ExpenseDocumentsRepository:
+        return self._expense_documents_repo
     
     def request(self, query):
         cursor = self._conn.cursor()

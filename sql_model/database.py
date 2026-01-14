@@ -95,6 +95,7 @@ def initialize_db(conn: sqlite3.Connection):
             name TEXT NOT NULL UNIQUE,
             default_price INTEGER NOT NULL,
             category_id INTEGER NOT NULL,
+            stock BOOLEAN NOT NULL DEFAULT 0,
             FOREIGN KEY (category_id) REFERENCES expense_categories (id)
         );
         """,
@@ -154,6 +155,32 @@ def initialize_db(conn: sqlite3.Connection):
             price INTEGER NOT NULL,
             FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
             FOREIGN KEY (product_id) REFERENCES products (id)
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS expense_documents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            supplier_id INTEGER NOT NULL,
+            total_amount INTEGER NOT NULL,
+            comment TEXT,
+            FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS expense_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            document_id INTEGER NOT NULL,
+            expense_type_id INTEGER NOT NULL,
+            stock_item_id INTEGER,
+            unit_id INTEGER NOT NULL,
+            quantity REAL NOT NULL,
+            price_per_unit INTEGER NOT NULL,
+            total_price INTEGER NOT NULL,
+            FOREIGN KEY (document_id) REFERENCES expense_documents (id) ON DELETE CASCADE,
+            FOREIGN KEY (expense_type_id) REFERENCES expense_types (id),
+            FOREIGN KEY (stock_item_id) REFERENCES stock (id),
+            FOREIGN KEY (unit_id) REFERENCES units (id)
         );
         """,
         """
