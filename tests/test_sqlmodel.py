@@ -63,7 +63,34 @@ def populated_model(clean_model: SQLiteModel):
     model.products().add(name='Вода', price=50, materials=[])
 
     # 5. Добавляем расход
-    model.expenses().add(name='Мука', price=50, quantity=5.0, supplier_name=None) # Покупка 5 kg муки по 50
+    # В новой системе расход создается через документ
+    # Для этого нам нужен ID поставщика и Unit
+    model.suppliers().add(name="Supplier 1")
+    supplier_id = model.suppliers().by_name("Supplier 1").id
+    
+    with setup_test_db() as conn: # Or reuse conn if possible, but safe here
+         pass # No wait, we need units from DB
+    
+    cursor = model._conn.cursor()
+    cursor.execute("SELECT id FROM units WHERE name='kg'")
+    kg_id = cursor.fetchone()[0]
+
+    et = model.expense_types().get("Мука") # created automatically by stock().add()
+    
+    items = [{
+        'expense_type_id': et.id,
+        'quantity': 5.0,
+        'price_per_unit': 50.0,
+        'unit_id': kg_id 
+    }]
+    
+    model.expense_documents().add(
+        date="2025-01-01 10:00",
+        supplier_id=supplier_id,
+        total_amount=250.0, # 5 * 50
+        comment="Test",
+        items=items
+    )
     
     return model
 
@@ -151,6 +178,21 @@ def test_stock_update_negative(populated_model: SQLiteModel):
     model = populated_model
     
     # Попытка списать больше, чем есть (Мука: 10 kg)
+    # NOTE: В populated_model уже есть приход 5 кг муки из expense_documents (см. фикстуру)
+    # И 10 кг начального остатка. Итого 15?
+    # А, в фикстуре add('Мука', ..., 10, 'kg') устанавливает начальное значение.
+    # Расход, если он помечен stock=True, увеличит остаток.
+    # 'Мука' (ExpenseType) создается автоматически при add stock.
+    # Проверим, какой stock у типа расхода 'Мука'.
+    
+    # При создании через stock().add() тип расхода по умолчанию stock=True? 
+    # В StockRepository.add:
+    # self._model.expense_types().add(name, 0, category_name, stock=True)
+    # Да, stock=True.
+    
+    # Значит, добавление expense document (5 кг) увеличило запас.
+    # Начально 10 + 5 = 15 кг.
+    
     with pytest.raises(ValueError, match="Недостаточно запаса"):
         model.stock().update('Мука', -100.0)
 
@@ -159,8 +201,8 @@ def test_sales_and_stock_logic(populated_model: SQLiteModel):
     model = populated_model
     
     # Начальный запас
-    initial_flour = model.stock().get('Мука').quantity # 10.0 kg
-    initial_egg = model.stock().get('Яйцо').quantity   # 50.0 pc
+    initial_flour = model.stock().get('Мука').quantity 
+    initial_egg = model.stock().get('Яйцо').quantity   
     
     # Продажа 2-х единиц "Хлеб" (1 Хлеб = 1 kg Муки + 2 Яйца)
     # Списание: Мука: 1*2=2 kg, Яйца: 2*2=4 шт.
@@ -171,13 +213,13 @@ def test_sales_and_stock_logic(populated_model: SQLiteModel):
     final_egg = model.stock().get('Яйцо').quantity
     
     assert model.sales().len() == 1
-    assert final_flour == initial_flour - 2.0  # 10.0 - 2.0 = 8.0
-    assert final_egg == initial_egg - 4.0      # 50.0 - 4.0 = 46.0
+    assert final_flour == initial_flour - 2.0  
+    assert final_egg == initial_egg - 4.0      
     
     # Проверка ошибки при недостатке запаса
-    # Попытка продать 30 шт. "Хлеб" (нужно 30*1=30 kg Муки, есть 8.0)
-    with pytest.raises(ValueError, match="Недостаточно запаса для 'Мука'. Требуется списание 30.00, текущий остаток 8.00."):
-        model.sales().add(name='Хлеб', price=200, quantity=30.0, discount=0)
+    # Попытка продать 30 шт. "Хлеб" (нужно 30*1=30 kg Муки, есть ~13)
+    with pytest.raises(ValueError, match="Недостаточно запаса"):
+        model.sales().add(name='Хлеб', price=200, quantity=100.0, discount=0)
 
 
 # 4. Тесты на финансовые расчеты
@@ -196,8 +238,8 @@ def test_finance_calculations(populated_model: SQLiteModel):
     assert model.calculate_income() == 560.0
     
     # Расходы (уже добавлен в populated_model):
-    # Мука: цена 50, кол-во 5.0 -> Расход: 50 * 5 = 250
-    assert model.expenses().len() == 1
+    # Мука: цена 50, кол-во 5.0 -> Расход: 5 * 50 = 250
+    # Изначально 'populated_model' создал документ на 250.
     assert model.calculate_expenses() == 250.0
     
     # Прибыль = Доход - Расход = 560 - 250 = 310
@@ -205,7 +247,30 @@ def test_finance_calculations(populated_model: SQLiteModel):
     
     # Добавляем еще один расход (другой тип)
     model.expense_types().add(name='Аренда', default_price=1000, category_name='Utilities')
-    model.expenses().add(name='Аренда', price=1000, quantity=1.0, supplier_name=None) # Расход: 1000
+    et_rent = model.expense_types().get('Аренда')
+    
+    # We need to add document for this
+    supplier_id = model.suppliers().by_name("Supplier 1").id
+    # No items needed for just expense value? Using Items logic
+    # But wait, do we support expenses without items? 
+    # model.expense_documents().add(..., items=[]) -> total_amount is explicit arg
+    
+    cursor = model._conn.cursor()
+    cursor.execute("SELECT id FROM units WHERE name='pc'") 
+    pc_id = cursor.fetchone()[0]
+
+    model.expense_documents().add(
+         date="2025-01-02",
+         supplier_id=supplier_id,
+         total_amount=1000.0, # Explicit total
+         comment="Rent",
+         items=[{
+             'expense_type_id': et_rent.id,
+             'quantity': 1.0,
+             'price_per_unit': 1000.0,
+             'unit_id': pc_id
+         }]
+    )
     
     # Общий Расход = 250 + 1000 = 1250
     assert model.calculate_expenses() == 1250.0

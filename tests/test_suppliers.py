@@ -207,27 +207,15 @@ class TestSuppliersRepository:
         # чтобы связать расход с поставщиком. 
         # Если вы хотите использовать add(), нужно его изменить.
         
-        # Создаем тип расхода для использования
-        model.expense_types().add(
-            name="Закупка сырья у поставщика", 
-            default_price=1000, 
-            category_name="Materials"
+        # Создаем документ, привязанный к поставщику
+        model.expense_documents().add(
+             date="2025-10-01 10:00",
+             supplier_id=supplier_id,
+             total_amount=1000,
+             comment="Test",
+             items=[]
         )
-        
-        # Регистрируем расход, привязанный к поставщику
-        # Если бы ExpensesRepository.add() имел supplier_id, мы бы использовали его.
-        # Поскольку его нет, используем прямой SQL для имитации связи:
-        
-        expense_type_id = model.expense_types().get("Закупка сырья у поставщика").id
-
-        cursor = model._conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO expenses (type_id, name, price, category_id, quantity, date, supplier_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (expense_type_id, "Расход", 1000, 1, 10.0, "2025-10-01 10:00", supplier_id)
-        )
+        model._conn.commit()
         model._conn.commit()
 
         # 2. Пытаемся удалить поставщика

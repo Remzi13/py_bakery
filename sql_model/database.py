@@ -110,21 +110,6 @@ def initialize_db(conn: sqlite3.Connection):
         )
         """,
         """
-        CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY,
-            type_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            category_id INTEGER NOT NULL,
-            quantity REAL NOT NULL,
-            date TEXT NOT NULL,
-            supplier_id INTEGER,
-            FOREIGN KEY (type_id) REFERENCES expense_types (id),
-            FOREIGN KEY (category_id) REFERENCES expense_categories (id)
-            FOREIGN KEY (supplier_id) REFERENCES suppliers (id)
-        );
-        """,
-        """
         CREATE TABLE IF NOT EXISTS sales (
             id INTEGER PRIMARY KEY,
             product_id INTEGER NOT NULL,

@@ -7,7 +7,6 @@ from repositories.products import ProductsRepository
 from repositories.stock import StockRepository
 from repositories.sales import SalesRepository
 from repositories.expense_types import ExpenseTypesRepository
-from repositories.expenses import ExpensesRepository
 from repositories.write_offs import WriteOffsRepository
 from repositories.suppliers import SuppliersRepository
 from repositories.orders import OrdersRepository
@@ -35,7 +34,6 @@ class SQLiteModel:
         self._expense_types_repo = ExpenseTypesRepository(self._conn)
         self._products_repo = ProductsRepository(self._conn, self)
         self._sales_repo = SalesRepository(self._conn, self)
-        self._expenses_repo = ExpensesRepository(self._conn, self)
         self._utils_repo = UtilsRepository(self._conn)
         self._write_offs_repo = WriteOffsRepository(self._conn, self)
         self._suppliers_repo = SuppliersRepository(self._conn)
@@ -63,9 +61,6 @@ class SQLiteModel:
 
     def expense_types(self) -> ExpenseTypesRepository:
         return self._expense_types_repo
-
-    def expenses(self) -> ExpensesRepository:
-        return self._expenses_repo
 
     def writeoffs(self) -> WriteOffsRepository:
         return self._write_offs_repo
@@ -107,8 +102,8 @@ class SQLiteModel:
     def calculate_expenses(self) -> float:
         """Рассчитывает общие расходы."""
         cursor = self._conn.cursor()
-        # Расходы = Сумма (Цена * Количество)
-        cursor.execute("SELECT SUM(price * quantity) FROM expenses")
+        # Расходы = Сумма total_amount из expense_documents
+        cursor.execute("SELECT SUM(total_amount) FROM expense_documents")
         result = cursor.fetchone()[0]
         return result if result is not None else 0.0
 

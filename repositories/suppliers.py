@@ -131,7 +131,7 @@ class SuppliersRepository:
     def can_delete(self, name: str) -> bool:
         """
         Проверяет, можно ли удалить поставщика. 
-        Нельзя удалить, если он связан с расходами (таблица expenses).
+        Нельзя удалить, если он связан с расходами (таблица expense_documents).
         """
         supplier = self.by_name(name)
         if not supplier:
@@ -139,11 +139,9 @@ class SuppliersRepository:
         
         cursor = self._conn.cursor()
         # Ищем расходы, у которых supplier_id совпадает с нашим ID.
-        # Я предполагаю, что в вашей таблице expenses есть поле supplier_id.
-        # Если такого поля нет, пожалуйста, сообщите, и мы изменим схему.
         cursor.execute(
             """
-            SELECT 1 FROM expenses WHERE supplier_id = ? LIMIT 1
+            SELECT 1 FROM expense_documents WHERE supplier_id = ? LIMIT 1
             """, 
             (supplier.id,)
         )

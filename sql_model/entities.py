@@ -55,18 +55,6 @@ class Supplier:
     id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
 @dataclass(frozen=True)
-class Expense:
-    """Фактический расход, зафиксированный во времени."""
-    type_id: int # Ссылка на ID типа расхода
-    name: str
-    price: float
-    category_id: int
-    quantity: float
-    supplier_id: Optional[int] = None # <-- НОВОЕ ПОЛЕ
-    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
-
-@dataclass(frozen=True)
 class WriteOff:
     """Запись о списании (готового продукта или сырья/запаса)."""
     quantity: float # <-- Изменили на FLOAT
