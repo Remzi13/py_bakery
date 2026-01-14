@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section id="expenses-view" class="view active">
+    <!-- Sub-navigation for different expense types (Categories/Types management) -->
+    <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <button class="btn-secondary" hx-get="/api/expenses/categories/new" hx-target="#modal-container"
+            hx-trigger="click">
+            Add Category
+        </button>
+        <button class="btn-secondary" hx-get="/api/expenses/types/new" hx-target="#modal-container" hx-trigger="click">
+            Add Expense Type
+        </button>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="search-wrapper">
+                <input type="text" name="search" placeholder="Search expenses..." hx-get="/api/expenses/documents"
+                    hx-trigger="keyup changed delay:500ms, search" hx-target="#expenses-table-body"
+                    hx-select="#expenses-table-body">
+            </div>
+            <button class="btn-primary" hx-get="/api/expenses/documents/new" hx-target="#modal-container"
+                hx-trigger="click">
+                Add Expense Doc
+            </button>
+        </div>
+        <table class="data-table" id="expenses-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Items</th>
+                    <th>Total Amount</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody id="expenses-table-body">
+                {% for doc in documents %}
+                {% include "expenses/document_row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

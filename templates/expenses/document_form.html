@@ -1,0 +1,159 @@
+<div id="expense-document-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content large-modal">
+        <button class="close" onclick="document.getElementById('expense-document-modal').remove()">&times;</button>
+        <h2>{% if doc %}Expense Document #{{ doc.id }}{% else %}New Expense Document{% endif %}</h2>
+
+        <!-- View Only Mode for now if doc exists, or Edit mode? -->
+        <!-- Start with Create logic -->
+
+        <form hx-post="/api/expenses/documents" hx-target="#expenses-table-body" hx-swap="beforeend"
+            hx-on::after-request="if(event.detail.successful) document.getElementById('expense-document-modal').remove()"
+            id="expense-doc-form">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="datetime-local" name="date" required value="{{ doc.date if doc else current_date }}">
+                </div>
+                <div class="form-group">
+                    <label>Supplier</label>
+                    <select name="supplier_id" required>
+                        <option value="">Select Supplier...</option>
+                        {% for s in suppliers %}
+                        <option value="{{ s.id }}" {% if doc and doc.supplier_id==s.id %}selected{% endif %}>{{ s.name
+                            }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Comment</label>
+                    <input type="text" name="comment" placeholder="Optional comment"
+                        value="{{ doc.comment if doc else '' }}">
+                </div>
+            </div>
+
+            <fieldset>
+                <legend>Items</legend>
+
+                <!-- Items Editor (HTMX logic or client-side?) -->
+                <!-- Ideally we add items via HTMX requests to a temporary state or just standard JS for dynamic fields -->
+                <!-- Given the complexity of "Add Item" row with categories/filters, let's use client-side JS helper or simple HTMX fragment fetching -->
+
+                <!-- Helper to fetch new item row fragment -->
+                <div id="expense-items-container">
+                    {% if doc %}
+                    {% for item in items %}
+                    <div class="recipe-item">
+                        <span>{{ item.name }} x {{ item.quantity }}</span>
+                        <span>{{ item.price }}</span>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                {% if not doc %}
+                <div class="recipe-editor">
+                    <div class="recipe-controls">
+                        <div class="form-group" style="flex: 1.5;">
+                            <select id="expense-item-category" hx-get="/api/expenses/types/options"
+                                hx-target="#expense-item-type" hx-include="#expense-item-category"
+                                name="category_filter">
+                                <option value="">Filter Category...</option>
+                                {% for c in categories %}
+                                <option value="{{ c }}">{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <select id="expense-item-type" name="new_item_type_id">
+                                <option value="">Select Expense Type...</option>
+                                <!-- Populated via HTMX or on load -->
+                                {% for t in types %}
+                                <option value="{{ t.id }}" data-price="{{ t.default_price }}">{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group small">
+                            <input type="number" id="expense-item-qty" placeholder="Qty" step="0.01">
+                        </div>
+                        <div class="form-group small">
+                            <select id="expense-item-unit">
+                                <option value="1">kg</option>
+                                <option value="2">g</option>
+                                <option value="3">l</option>
+                                <option value="4">pc</option>
+                            </select>
+                        </div>
+                        <div class="form-group small">
+                            <input type="number" id="expense-item-price" placeholder="Price" step="0.01">
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addExpenseItemHTML()">Add</button>
+                    </div>
+
+                    <ul id="expense-items-list" class="recipe-list">
+                        <!-- Items added here -->
+                    </ul>
+                    <!-- Hidden inputs for items will be generated by JS -->
+                </div>
+                {% endif %}
+
+            </fieldset>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary"
+                    onclick="document.getElementById('expense-document-modal').remove()">Cancel</button>
+                {% if not doc %}
+                <button type="submit" class="btn-primary">Save Document</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Minimal inline JS for handling dynamic form fields until we have full HTMX interactive lists pattern
+        function addExpenseItemHTML() {
+            const typeSelect = document.getElementById('expense-item-type');
+            const qtyInput = document.getElementById('expense-item-qty');
+            const unitSelect = document.getElementById('expense-item-unit');
+            const priceInput = document.getElementById('expense-item-price');
+            const list = document.getElementById('expense-items-list');
+
+            if (!typeSelect.value || !qtyInput.value) return;
+
+            const typeId = typeSelect.value;
+            const typeName = typeSelect.options[typeSelect.selectedIndex].text;
+            const qty = qtyInput.value;
+            const unitId = unitSelect.value;
+            const price = priceInput.value;
+
+            const li = document.createElement('li');
+            li.className = 'recipe-item';
+
+            // Generate unique index
+            const idx = Date.now();
+
+            li.innerHTML = `
+                <span><strong>${typeName}</strong>: ${qty} x ${price}</span>
+                <input type="hidden" name="items[${idx}][expense_type_id]" value="${typeId}">
+                <input type="hidden" name="items[${idx}][quantity]" value="${qty}">
+                <input type="hidden" name="items[${idx}][unit_id]" value="${unitId}">
+                <input type="hidden" name="items[${idx}][price_per_unit]" value="${price}">
+                <button type="button" onclick="this.parentElement.remove()">×</button>
+            `;
+            list.appendChild(li);
+
+            qtyInput.value = '';
+            priceInput.value = '';
+        }
+
+        // Auto-fill price
+        document.getElementById('expense-item-type').addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (opt.dataset.price) {
+                document.getElementById('expense-item-price').value = opt.dataset.price;
+            }
+        });
+    </script>
+</div>
