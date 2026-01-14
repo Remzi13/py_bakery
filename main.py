@@ -3,7 +3,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders
 
+from fastapi.templating import Jinja2Templates
+
 app = FastAPI(title="Bakery Manager API")
+
+templates = Jinja2Templates(directory="templates")
 
 # Include Routers
 app.include_router(products.router)

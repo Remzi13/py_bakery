@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section id="products-view" class="view active">
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="search-wrapper">
+                <input type="text" name="search" placeholder="Search products..." hx-get="/api/products"
+                    hx-trigger="keyup changed delay:500ms, search" hx-target="#products-table-body"
+                    hx-select="#products-table-body">
+            </div>
+            <button class="btn-primary" hx-get="/api/products/new" hx-target="#modal-container" hx-trigger="click">
+                Add Product
+            </button>
+        </div>
+        <table class="data-table" id="products-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Materials</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="products-table-body">
+                {% for product in products %}
+                {% include "products/row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

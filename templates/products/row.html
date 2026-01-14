@@ -1,0 +1,23 @@
+<tr id="product-row-{{ product.id }}">
+    <td><strong>{{ product.name }}</strong></td>
+    <td>{{ product.price }} ₽</td>
+    <td style="font-size: 0.85rem; color: var(--text-muted)">
+        {% for material in product.materials %}
+        {{ material.name }}: {{ material.quantity }}{% if material.unit %} {{ material.unit }}{% endif %}{% if not
+        loop.last %}, {% endif %}
+        {% endfor %}
+    </td>
+    <td>
+        <div style="display:flex; gap:8px;">
+            <button class="btn-icon" title="Edit" hx-get="/api/products/{{ product.id }}/edit"
+                hx-target="#modal-container">
+                ✏️
+            </button>
+            <button class="btn-icon" title="Delete" hx-delete="/api/products/{{ product.name }}"
+                hx-confirm="Are you sure you want to delete {{ product.name }}?"
+                hx-target="#product-row-{{ product.id }}" hx-swap="outerHTML">
+                🗑️
+            </button>
+        </div>
+    </td>
+</tr>
