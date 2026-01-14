@@ -1,0 +1,20 @@
+<tr id="stock-row-{{ item.id }}">
+    <td><strong>{{ item.name }}</strong></td>
+    <td><span
+            style="font-size: 0.75rem; background: var(--accent-light); padding: 2px 8px; border-radius: 12px; font-weight: 600;">{{
+            item.category_name }}</span></td>
+    <td>{{ "%.2f"|format(item.quantity) }}</td>
+    <td>{{ item.unit_name }}</td>
+    <td>
+        <div style="display:flex; gap:8px;">
+            <button class="btn-icon" title="Edit" hx-get="/api/stock/{{ item.id }}/edit" hx-target="#modal-container">
+                ✏️
+            </button>
+            <button class="btn-icon" title="Delete" hx-delete="/api/stock/{{ item.name }}"
+                hx-confirm="Are you sure you want to delete {{ item.name }}?" hx-target="#stock-row-{{ item.id }}"
+                hx-swap="outerHTML">
+                🗑️
+            </button>
+        </div>
+    </td>
+</tr>
