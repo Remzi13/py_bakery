@@ -1,0 +1,38 @@
+<section id="dashboard-view" class="view active" aria-labelledby="page-title">
+    <div class="quick-actions" style="margin-bottom: 20px; display: flex; gap: 12px;">
+        <button class="btn-primary" hx-get="/api/sales/new" hx-target="#modal-container" hx-trigger="click"
+            data-i18n="addSale">➕ Add Sale</button>
+        <button class="btn-secondary" hx-get="/api/expenses/documents/new" hx-target="#modal-container"
+            hx-trigger="click" data-i18n="addExpense">➕ Add Expense</button>
+    </div>
+
+    <div class="stats-grid" hx-get="/api/dashboard/stats" hx-trigger="load, dashboard-update from:body">
+        <div class="loading-state" data-i18n="loading">Loading...</div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="widget">
+            <h4 data-i18n="salesTrendLastWeek">Sales Trend (Last 7 Days)</h4>
+            <div class="chart-container" id="sales-chart" hx-get="/api/dashboard/chart"
+                hx-trigger="load, dashboard-update from:body">
+                <div class="loading-state" data-i18n="loading">Loading...</div>
+            </div>
+        </div>
+        <div class="widget">
+            <h4 data-i18n="pendingOrders">Pending Orders</h4>
+            <div id="pending-orders-list" style="display: flex; flex-direction: column; gap: 12px;"
+                hx-get="/api/dashboard/pending-orders" hx-trigger="load, dashboard-update from:body">
+                <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="loading">Loading...
+                </p>
+            </div>
+        </div>
+        <div class="widget">
+            <h4 data-i18n="recentActivity">Recent Activity</h4>
+            <div id="recent-activity" style="display: flex; flex-direction: column; gap: 12px;"
+                hx-get="/api/dashboard/recent-activity" hx-trigger="load, dashboard-update from:body">
+                <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="loading">Loading...
+                </p>
+            </div>
+        </div>
+    </div>
+</section>

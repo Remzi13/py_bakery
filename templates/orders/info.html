@@ -1,0 +1,43 @@
+<div id="order-info-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="close" onclick="document.getElementById('order-info-modal').remove()">&times;</button>
+        <h2 data-i18n="orderDetails">{{ t('orderDetails') }} #{{ order.id }}</h2>
+
+        <div class="order-details">
+            <p><strong><span data-i18n="status">Status</span>:</strong>
+                <span class="status-badge {{ 'status-completed' if order.status == 'completed' else 'status-pending' }}"
+                    data-i18n="status{{ order.status|capitalize }}">
+                    {{ order.status|capitalize }}
+                </span>
+            </p>
+            <p><strong><span data-i18n="created">Created</span>:</strong> {{ order.created_date }}</p>
+            {% if order.completion_date %}
+            <p><strong><span data-i18n="completionDate">Completion Date</span>:</strong> {{ order.completion_date }}</p>
+            {% endif %}
+
+            {% if order.additional_info %}
+            <div class="info-comment-box"
+                style="margin-top: 15px; padding: 10px; background: var(--bg-hover); border-radius: 8px;">
+                <strong><span data-i18n="additionalInfo">Additional Info</span>:</strong>
+                <p>{{ order.additional_info }}</p>
+            </div>
+            {% endif %}
+
+            <h3 style="margin-top: 20px;" data-i18n="items">Items</h3>
+            <ul class="recipe-list">
+                {% for item in order.items %}
+                <li class="recipe-item">
+                    <span><strong>{{ item.product_name }}</strong> x {{ item.quantity }}</span>
+                    <span>{{ "%.2f"|format(item.price) }} {{ currency }} (Total: {{ "%.2f"|format(item.price *
+                        item.quantity) }} {{ currency }})</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="form-actions" style="margin-top: 20px;">
+            <button class="btn-secondary" onclick="document.getElementById('order-info-modal').remove()"
+                data-i18n="close">Close</button>
+        </div>
+    </div>
+</div>

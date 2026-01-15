@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders
+from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard
 
 from fastapi.templating import Jinja2Templates
 
@@ -17,18 +17,19 @@ app.include_router(expenses.router)
 app.include_router(suppliers.router)
 app.include_router(writeoffs.router)
 app.include_router(orders.router)
+app.include_router(dashboard.router)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-async def read_landing():
-    return FileResponse('static/landing.html')
+async def read_landing(request: Request):
+    return templates.TemplateResponse(request, "landing.html", {})
 
 @app.get("/management")
-async def read_management():
-    return FileResponse('static/index.html')
+async def read_management(request: Request):
+    return templates.TemplateResponse(request, "management.html", {})
 
 @app.get("/pos")
-async def read_pos():
-    return FileResponse('static/pos.html')
+async def read_pos(request: Request):
+    return templates.TemplateResponse(request, "pos.html", {})

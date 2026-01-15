@@ -1,0 +1,4 @@
+{% for bar in chart_data %}
+<div class="chart-bar" style="height: {{ bar.height }}%;" data-label="{{ bar.label }}" title="{{ bar.label }}: {{ "
+    %.2f"|format(bar.value) }} ₽"></div>
+{% endfor %}

@@ -9,11 +9,12 @@
     </td>
     <td>
         <div style="display:flex; gap:8px;">
-            <button class="btn-icon" title="Edit" hx-get="/api/products/{{ product.id }}/edit"
+            <button class="btn-icon" title="Edit" data-i18n-title="edit" hx-get="/api/products/{{ product.id }}/edit"
                 hx-target="#modal-container">
                 ✏️
             </button>
-            <button class="btn-icon" title="Delete" hx-delete="/api/products/{{ product.name }}"
+            <button class="btn-icon" title="Delete" data-i18n-title="delete"
+                hx-delete="/api/products/{{ product.name }}"
                 hx-confirm="Are you sure you want to delete {{ product.name }}?"
                 hx-target="#product-row-{{ product.id }}" hx-swap="outerHTML">
                 🗑️

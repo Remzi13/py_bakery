@@ -1,0 +1,15 @@
+<tr id="writeoff-row-{{ wo.id }}">
+    <td>{{ wo.date }}</td>
+    <td><strong>{{ wo.item_name }}</strong></td>
+    <td>{{ wo.quantity }}</td>
+    <td>{{ wo.reason }}</td>
+    <td>
+        <div class="actions">
+            <button class="btn-icon" title="Delete" data-i18n-title="delete" hx-delete="/api/writeoffs/{{ wo.id }}"
+                hx-target="#writeoff-row-{{ wo.id }}" hx-swap="outerHTML"
+                hx-confirm="Are you sure you want to delete this record?">
+                🗑️
+            </button>
+        </div>
+    </td>
+</tr>

@@ -20,14 +20,22 @@
         <aside class="sidebar">
             <div class="logo">Bakery Manager</div>
             <nav>
-                <a href="/" class="nav-btn" hx-boost="true">Dashboard</a>
-                <a href="/products" class="nav-btn" hx-boost="true">Products</a>
-                <a href="/stock" class="nav-btn" hx-boost="true">Stock</a>
-                <a href="/sales" class="nav-btn" hx-boost="true">Sales</a>
-                <a href="/orders" class="nav-btn" hx-boost="true">Orders</a>
-                <a href="/expenses" class="nav-btn" hx-boost="true">Expenses</a>
-                <a href="/suppliers" class="nav-btn" hx-boost="true">Suppliers</a>
-                <a href="/writeoffs" class="nav-btn" hx-boost="true">Write-offs</a>
+                <a href="/management" class="nav-btn active" hx-get="/api/dashboard/" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="dashboard">Dashboard</a>
+                <a href="/management#products" class="nav-btn" hx-get="/api/products" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="products">Products</a>
+                <a href="/management#stock" class="nav-btn" hx-get="/api/stock" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="stock">Stock</a>
+                <a href="/management#sales" class="nav-btn" hx-get="/api/sales" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="sales">Sales</a>
+                <a href="/management#orders" class="nav-btn" hx-get="/api/orders" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="orders">Orders</a>
+                <a href="/management#expenses" class="nav-btn" hx-get="/api/expenses/documents" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="expenses">Expenses</a>
+                <a href="/management#suppliers" class="nav-btn" hx-get="/api/suppliers" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="suppliers">Suppliers</a>
+                <a href="/management#writeoffs" class="nav-btn" hx-get="/api/writeoffs" hx-target="#tab-content"
+                    hx-push-url="true" data-tab="writeoffs">Write-offs</a>
 
                 <div
                     style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center;">
@@ -48,13 +56,20 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Confirmation Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content small-modal">
+            <p id="modal-message"></p>
+            <div class="form-actions">
+                <button id="modal-cancel" class="btn-secondary" data-i18n="cancel">Cancel</button>
+                <button id="modal-confirm" class="btn-primary" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
     <script>
-        // Simple Toast implementation for HTMX events if needed
-        document.body.addEventListener('htmx:afterSwap', function (evt) {
-            if (evt.detail.target.id == 'toast-container') {
-                // Auto hide logic if we push toasts here
-            }
-        });
+        // Optional: extra initialization
     </script>
 </body>
 

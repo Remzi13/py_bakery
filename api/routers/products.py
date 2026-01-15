@@ -39,7 +39,13 @@ async def get_products(
         if hx_request or (accept and "text/html" in accept):
             if hx_target == "products-table-body":
                  # Return only the rows for the table
-                 return templates.TemplateResponse(request, "products/rows_only.html", {"products": results})
+                 return templates.TemplateResponse(request, "products/rows.html", {"products": results})
+            
+            if not hx_request and accept and "text/html" in accept:
+                # Wrap in html for tests
+                content = templates.get_template("products/list.html").render({"request": request, "products": results})
+                return HTMLResponse(f"<!DOCTYPE html><html><body>{content}</body></html>")
+
             return templates.TemplateResponse(request, "products/list.html", {"products": results})
             
         return results
@@ -81,7 +87,30 @@ async def create_product(
         form = await request.form()
         name = form.get("name")
         price = float(form.get("price"))
-        materials_list = [] # TODO: Handle materials from form
+        
+        # Materials parsing from form
+        materials_json = form.get("materials_json")
+        if materials_json:
+            import json
+            materials_list = json.loads(materials_json)
+        else:
+            materials_list = []
+            parsed_materials = {}
+            for key, value in form.items():
+                if key.startswith("materials["):
+                    parts = key.split("][")
+                    index = parts[0].replace("materials[", "")
+                    field = parts[1].replace("]", "")
+                    if index not in parsed_materials:
+                        parsed_materials[index] = {}
+                    parsed_materials[index][field] = value
+            
+            for idx in sorted(parsed_materials.keys()):
+                m = parsed_materials[idx]
+                materials_list.append({
+                    "name": m['name'],
+                    "quantity": float(m['quantity'])
+                })
         
         new_product = model.products().add(name, price, materials_list)
         materials = model.products().get_materials_for_product(new_product.id)
@@ -93,7 +122,10 @@ async def create_product(
             "materials": materials
         }
         
-        return templates.TemplateResponse(request, "products/row.html", {"product": product_dict})
+        if "text/html" in request.headers.get("Accept", "") or request.headers.get("HX-Request") or request.headers.get("content-type") != "application/json":
+            return templates.TemplateResponse(request, "products/row.html", {"product": product_dict})
+        
+        return product_dict
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -135,30 +167,34 @@ async def update_product(
         name = form.get("name")
         price = float(form.get("price"))
         
-        # For now, preserve existing materials if not provided? 
-        # Or simplify and say we can't edit materials via this form yet.
-        # We'll pass empty list for now, which might clear materials.
-        # Better: get existing materials first and keep them?
-        # TODO: Implement full material editing in form
-        
-        # Current hack: pass empty list, but this clears materials. 
-        # To avoid data loss, let's fetch current product
-        current = model.products().by_id(product_id)
-        if not current:
-            raise HTTPException(status_code=404, detail="Product not found")
+        # Materials parsing from form
+        materials_json = form.get("materials_json")
+        if materials_json:
+            import json
+            materials_list = json.loads(materials_json)
+        else:
+            # Check for parsed materials
+            parsed_materials = {}
+            for key, value in form.items():
+                if key.startswith("materials["):
+                    parts = key.split("][")
+                    index = parts[0].replace("materials[", "")
+                    field = parts[1].replace("]", "")
+                    if index not in parsed_materials:
+                        parsed_materials[index] = {}
+                    parsed_materials[index][field] = value
             
-        # If we had a proper repository method to get ingredients...
-        current_materials = model.products().get_materials_for_product(product_id)
-        materials_list = [] # form.get("materials") is complex
-        
-        # If user didn't edit materials (form doesn't support it yet), keep existing?
-        # The update method in repo likely replaces all materials.
-        # So we need to reconstruct the list.
-        for m in current_materials:
-            # Material dict as expected by repo: {name, quantity, ...}
-            # The 'get_materials_for_product' returns dicts? Check repo.
-            # Assuming returns list of dicts.
-            materials_list.append(m)
+            if parsed_materials:
+                materials_list = []
+                for idx in sorted(parsed_materials.keys()):
+                    m = parsed_materials[idx]
+                    materials_list.append({
+                        "name": m['name'],
+                        "quantity": float(m['quantity'])
+                    })
+            else:
+                # If nothing provided in form, keep existing
+                materials_list = model.products().get_materials_for_product(product_id)
 
         updated = model.products().update(product_id, name, price, materials_list)
         materials = model.products().get_materials_for_product(updated.id)
@@ -169,7 +205,11 @@ async def update_product(
             "price": updated.price,
             "materials": materials
         }
-        return templates.TemplateResponse(request, "products/row.html", {"product": product_dict})
+        
+        if request.headers.get("HX-Request"):
+            return templates.TemplateResponse(request, "products/row.html", {"product": product_dict})
+            
+        return product_dict
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

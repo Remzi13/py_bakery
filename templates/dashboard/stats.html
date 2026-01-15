@@ -1,0 +1,14 @@
+<div class="card">
+    <h3 data-i18n="totalRevenue">Total Revenue</h3>
+    <p class="stat-value" id="stats-sales">{{ "%.2f"|format(daily_revenue) }} ₽</p>
+    <div class="stat-trend trend-up" data-i18n="vsLastWeek">↑ 12% vs last week</div>
+</div>
+<div class="card">
+    <h3 data-i18n="lowStockItems">Low Stock Items</h3>
+    <p class="stat-value" id="stats-low-stock">{{ low_stock_count }}</p>
+    <div class="stat-trend" id="low-stock-desc" data-i18n="itemsToRestock">Items to restock</div>
+</div>
+<div class="card">
+    <h3 data-i18n="profitMargin">Profit Margin</h3>
+    <p class="stat-value" id="stats-profit">{{ profit_margin }}%</p>
+</div>

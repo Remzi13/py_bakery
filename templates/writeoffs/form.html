@@ -1,0 +1,70 @@
+<div id="writeoff-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="close" onclick="document.getElementById('writeoff-modal').remove()">&times;</button>
+        <h2 data-i18n="addWriteOff">Add Write-off</h2>
+        <form hx-post="/api/writeoffs" hx-target="#writeoffs-table-body" hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) document.getElementById('writeoff-modal').remove()">
+
+            <div class="form-group">
+                <label for="writeoff-type" data-i18n="type">Type</label>
+                <select id="writeoff-type" name="item_type" required onchange="toggleWriteoffFields(this.value)">
+                    <option value="stock" data-i18n="stock">Stock</option>
+                    <option value="product" data-i18n="product">Product</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="stock-category-group">
+                <label for="writeoff-category" data-i18n="category">Category</label>
+                <select id="writeoff-category" hx-get="/api/stock" hx-trigger="change" hx-target="#writeoff-item-select"
+                    hx-include="#writeoff-category">
+                    <option value="" data-i18n="allCategories">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="writeoff-item-select" data-i18n="itemName">Item Name</label>
+                <select id="writeoff-item-select" name="item_name" required>
+                    <!-- Options loaded via HTMX or JS -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="writeoff-qty" data-i18n="quantity">Quantity</label>
+                <input id="writeoff-qty" type="number" name="quantity" placeholder="0.00" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="writeoff-reason" data-i18n="reason">Reason</label>
+                <input id="writeoff-reason" type="text" name="reason" placeholder="e.g., Expired, Damaged"
+                    data-i18n="reasonPlaceholder" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('writeoff-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="save">Save Write-off</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        function toggleWriteoffFields(type) {
+            const catGroup = document.getElementById('stock-category-group');
+            const itemSelect = document.getElementById('writeoff-item-select');
+
+            if (type === 'product') {
+                catGroup.style.display = 'none';
+                // Trigger HTMX to load products
+                htmx.ajax('GET', '/api/products', { target: '#writeoff-item-select', select: 'option' });
+            } else {
+                catGroup.style.display = 'block';
+                // Trigger HTMX to load stock
+                htmx.ajax('GET', '/api/stock', { target: '#writeoff-item-select', select: 'option' });
+            }
+        }
+        // Initialize
+        toggleWriteoffFields('stock');
+    </script>
+</div>

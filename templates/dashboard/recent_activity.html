@@ -1,0 +1,9 @@
+{% for act in activities %}
+<div style="font-size: 0.85rem;">
+    <strong>{{ act.text }}</strong>
+    <span style="float:right; opacity:0.6">{{ act.time }}</span>
+</div>
+{% endfor %}
+{% if not activities %}
+<p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="noRecentActivity">No recent activity</p>
+{% endif %}

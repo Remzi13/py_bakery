@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from typing import List, Optional
 from api.dependencies import get_model
 from api.models import OrderCreate, OrderResponse, OrderItemResponse
 from sql_model.model import SQLiteModel
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
+templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_model=List[OrderResponse])
-def get_orders(model: SQLiteModel = Depends(get_model)):
+def get_orders(
+    request: Request,
+    hx_request: Optional[str] = Header(None, alias="HX-Request"),
+    accept: Optional[str] = Header(None, alias="Accept"),
+    model: SQLiteModel = Depends(get_model)
+):
     try:
         orders_data = model.orders().data()
         results = []
@@ -21,6 +29,10 @@ def get_orders(model: SQLiteModel = Depends(get_model)):
                 "items": order.items
             })
         results.sort(key=lambda x: x["status"], reverse=True)
+        
+        if hx_request or (accept and "text/html" in accept):
+            return templates.TemplateResponse(request, "orders/list.html", {"orders": results})
+            
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -64,19 +76,41 @@ def get_order(order_id: int, model: SQLiteModel = Depends(get_model)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/", response_model=OrderResponse)
-def create_order(order: OrderCreate, model: SQLiteModel = Depends(get_model)):
+async def create_order(
+    request: Request,
+    model: SQLiteModel = Depends(get_model)
+):
     try:
-        items = [{"product_id": item.product_id, "quantity": item.quantity} for item in order.items]
+        # JSON Support
+        if request.headers.get("content-type") == "application/json":
+            data = await request.json()
+            order_data = OrderCreate(**data)
+            items = [{"product_id": item.product_id, "quantity": item.quantity} for item in order_data.items]
+            completion_date = order_data.completion_date
+            additional_info = order_data.additional_info
+            complete_now = order_data.complete_now
+        else:
+            form = await request.form()
+            # Parsing items from form (similar to expenses if needed, or simplified)
+            # POS usually sends JSON. If we want HTMX to create orders, we need form parsing.
+            items = [] # TODO: Parse from form if needed
+            completion_date = form.get("completion_date")
+            additional_info = form.get("additional_info")
+            complete_now = form.get("complete_now") == "true"
+
         new_order = model.orders().add(
             items=items,
-            completion_date=order.completion_date,
-            additional_info=order.additional_info,
-            complete_now=order.complete_now
+            completion_date=completion_date,
+            additional_info=additional_info,
+            complete_now=complete_now
         )
         
         # Get full order with items
         full_order = model.orders().by_id(new_order.id)
         
+        if request.headers.get("HX-Request"):
+             return templates.TemplateResponse(request, "orders/row.html", {"order": full_order})
+
         return {
             "id": full_order.id,
             "created_date": full_order.created_date,
@@ -91,10 +125,17 @@ def create_order(order: OrderCreate, model: SQLiteModel = Depends(get_model)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{order_id}/complete")
-def complete_order(order_id: int, model: SQLiteModel = Depends(get_model)):
+async def complete_order(
+    request: Request,
+    order_id: int, 
+    model: SQLiteModel = Depends(get_model)
+):
     try:
         success = model.orders().complete(order_id)
         if success:
+            if request.headers.get("HX-Request"):
+                order = model.orders().by_id(order_id)
+                return templates.TemplateResponse(request, "orders/row.html", {"order": order})
             return {"message": f"Order {order_id} completed successfully"}
         else:
             raise HTTPException(status_code=400, detail="Failed to complete order")
@@ -103,11 +144,33 @@ def complete_order(order_id: int, model: SQLiteModel = Depends(get_model)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/{order_id}/info", response_class=HTMLResponse)
+def get_order_info(request: Request, order_id: int, model: SQLiteModel = Depends(get_model)):
+    try:
+        order = model.orders().by_id(order_id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        return templates.TemplateResponse(request, "orders/info.html", {
+            "order": order,
+            "currency": "₽" 
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.delete("/{order_id}")
-def delete_order(order_id: int, model: SQLiteModel = Depends(get_model)):
+async def delete_order(
+    request: Request,
+    order_id: int, 
+    model: SQLiteModel = Depends(get_model)
+):
     try:
         success = model.orders().delete(order_id)
         if success:
+            if request.headers.get("HX-Request"):
+                return HTMLResponse("")
             return {"message": f"Order {order_id} deleted successfully"}
         else:
             raise HTTPException(status_code=404, detail="Order not found")

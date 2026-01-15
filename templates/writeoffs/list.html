@@ -1,0 +1,25 @@
+<div class="table-container">
+    <div class="table-header-actions">
+        <div class="search-wrapper">
+            <input type="text" name="search" placeholder="Search write-offs..." data-i18n="searchWriteoffs"
+                hx-get="/api/writeoffs" hx-trigger="keyup changed delay:500ms, search"
+                hx-target="#writeoffs-table-body">
+        </div>
+    </div>
+    <table class="data-table" id="writeoffs-table">
+        <thead>
+            <tr>
+                <th data-i18n="date">Date</th>
+                <th data-i18n="itemType">Item</th>
+                <th data-i18n="quantity">Quantity</th>
+                <th data-i18n="reason">Reason</th>
+                <th data-i18n="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="writeoffs-table-body">
+            {% for wo in writeoffs %}
+            {% include "writeoffs/row.html" %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

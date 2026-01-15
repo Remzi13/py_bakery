@@ -1,26 +1,23 @@
-{% extends "base.html" %}
-
-{% block content %}
 <section id="stock-view" class="view active">
     <div class="table-container">
         <div class="table-header-actions">
             <div class="search-wrapper">
-                <input type="text" name="search" placeholder="Search stock..." hx-get="/api/stock"
-                    hx-trigger="keyup changed delay:500ms, search" hx-target="#stock-table-body"
-                    hx-select="#stock-table-body">
+                <input type="text" name="search" placeholder="Search stock..." data-i18n="searchStock"
+                    hx-get="/api/stock" hx-trigger="keyup changed delay:500ms, search" hx-target="#stock-table-body">
             </div>
-            <button class="btn-primary" hx-get="/api/stock/new" hx-target="#modal-container" hx-trigger="click">
+            <button class="btn-primary" hx-get="/api/stock/new" hx-target="#modal-container" hx-trigger="click"
+                data-i18n="addStock">
                 Add Stock Item
             </button>
         </div>
         <table class="data-table" id="stock-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Quantity</th>
-                    <th>Unit</th>
-                    <th>Actions</th>
+                    <th data-i18n="productName">Name</th>
+                    <th data-i18n="category">Category</th>
+                    <th data-i18n="quantity">Quantity</th>
+                    <th data-i18n="unit">Unit</th>
+                    <th data-i18n="actions">Actions</th>
                 </tr>
             </thead>
             <tbody id="stock-table-body">
@@ -31,4 +28,3 @@
         </table>
     </div>
 </section>
-{% endblock %}

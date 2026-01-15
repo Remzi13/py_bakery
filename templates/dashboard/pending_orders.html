@@ -1,0 +1,26 @@
+{% for order in orders %}
+<div class="card" style="padding: 10px; border-left: 4px solid var(--primary-color);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+        <strong>#{{ order.id }}</strong>
+        <span style="font-size: 0.75rem; color: var(--text-muted)">{{ order.completion_date if order.completion_date
+            else '-' }}</span>
+    </div>
+    <div style="font-size: 0.85rem; margin-bottom: 8px;">
+        {{ order.items_text }}
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600;">{{ "%.2f"|format(order.total) }} ₽</span>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;"
+                hx-get="/api/orders/{{ order.id }}/info" hx-target="#modal-container"
+                data-i18n="infoOrder">Info</button>
+            <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;"
+                hx-post="/api/orders/{{ order.id }}/complete" hx-target="#dashboard-pending-orders" hx-swap="innerHTML"
+                hx-confirm="Are you sure you want to complete this order?" data-i18n="completeOrder">Complete</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% if not orders %}
+<p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="noPendingOrders">No pending orders</p>
+{% endif %}

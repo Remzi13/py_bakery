@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header>
+    <h1 id="page-title" data-i18n="dashboard">Dashboard</h1>
+    <div id="header-actions"></div>
+</header>
+
+<div id="tab-content" hx-get="/api/dashboard/stats" hx-trigger="dashboard-update from:body">
+    {% include "dashboard/index.html" %}
+</div>
+{% endblock %}

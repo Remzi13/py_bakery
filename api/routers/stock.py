@@ -66,7 +66,12 @@ async def get_stock(
             
         if hx_request or (accept and "text/html" in accept):
             if hx_target == "stock-table-body":
-                 return templates.TemplateResponse(request, "stock/rows_only.html", {"stock": results})
+                 return templates.TemplateResponse(request, "stock/rows.html", {"stock": results})
+            
+            if not hx_request and accept and "text/html" in accept:
+                 content = templates.get_template("stock/list.html").render({"request": request, "stock": results})
+                 return HTMLResponse(f"<!DOCTYPE html><html><body>{content}</body></html>")
+
             return templates.TemplateResponse(request, "stock/list.html", {"stock": results})
 
         return results

@@ -1,7 +1,8 @@
 <div id="product-modal" class="modal show" role="dialog" aria-modal="true">
     <div class="modal-content large-modal">
         <button class="close" onclick="document.getElementById('product-modal').remove()">&times;</button>
-        <h2>{% if product %}Edit Product{% else %}Add Product{% endif %}</h2>
+        <h2 data-i18n="{% if product %}editProduct{% else %}addProduct{% endif %}">{% if product %}Edit Product{% else
+            %}Add Product{% endif %}</h2>
         <form {% if product %}hx-put="/api/products/{{ product.id }}" {% else %}hx-post="/api/products" {% endif %}
             hx-target="#products-table-body" hx-swap="beforeend" {% if product %} hx-swap="outerHTML"
             hx-target="#product-row-{{ product.id }}" {% endif %}
@@ -9,29 +10,82 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="product-name">Product Name</label>
+                    <label for="product-name" data-i18n="productName">Product Name</label>
                     <input id="product-name" type="text" name="name" value="{{ product.name if product else '' }}"
-                        placeholder="e.g., Sourdough Loaf" required>
+                        placeholder="e.g., Sourdough Loaf" data-i18n="productNamePlaceholder" required>
                 </div>
                 <div class="form-group small">
-                    <label for="product-price">Price (₽)</label>
+                    <label for="product-price" data-i18n="price">Price (₽)</label>
                     <input id="product-price" type="number" name="price" value="{{ product.price if product else '' }}"
                         placeholder="0" step="1" required>
                 </div>
             </div>
 
-            <!-- TODO: Handle dynamic materials list editing with HTMX -->
-            <!-- For now, simplifying or we might need a separate endpoint for material rows -->
             <fieldset>
-                <legend>Recipe (Materials)</legend>
-                <p style="font-size: 0.8rem; color: orange;">Recipe editing not fully ported yet</p>
+                <legend data-i18n="recipeMaterials">Recipe (Materials)</legend>
+
+                <div class="recipe-editor">
+                    <div class="recipe-controls">
+                        <div class="form-group" style="flex: 2;">
+                            <select id="recipe-ingredient-select" hx-get="/api/stock" hx-trigger="load"
+                                hx-select="option">
+                                <option value="" data-i18n="selectIngredient">Select Ingredient...</option>
+                            </select>
+                        </div>
+                        <div class="form-group small">
+                            <input type="number" id="recipe-quantity" placeholder="Qty" step="0.01"
+                                data-i18n="qtyPlaceholder">
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addMaterialToRecipe()"
+                            data-i18n="add">Add</button>
+                    </div>
+
+                    <ul id="recipe-list" class="recipe-list">
+                        {% if product and product.materials %}
+                        {% for m in product.materials %}
+                        <li class="recipe-item">
+                            <span><strong>{{ m.name }}</strong> - {{ m.quantity }} {{ m.unit_name }}</span>
+                            <input type="hidden" name="materials[{{ loop.index0 }}][name]" value="{{ m.name }}">
+                            <input type="hidden" name="materials[{{ loop.index0 }}][quantity]" value="{{ m.quantity }}">
+                            <button type="button" onclick="this.parentElement.remove()">×</button>
+                        </li>
+                        {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
             </fieldset>
 
             <div class="form-actions">
-                <button type="button" class="btn-secondary"
-                    onclick="document.getElementById('product-modal').remove()">Cancel</button>
-                <button type="submit" class="btn-primary">Save Product</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('product-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="save">Save Product</button>
             </div>
         </form>
     </div>
+
+    <script>
+        function addMaterialToRecipe() {
+            const select = document.getElementById('recipe-ingredient-select');
+            const qtyInput = document.getElementById('recipe-quantity');
+            const list = document.getElementById('recipe-list');
+
+            if (!select.value || !qtyInput.value) return;
+
+            const name = select.value;
+            const qty = qtyInput.value;
+            const idx = list.children.length;
+
+            const li = document.createElement('li');
+            li.className = 'recipe-item';
+            li.innerHTML = `
+                <span><strong>${name}</strong> - ${qty}</span>
+                <input type="hidden" name="materials[${idx}][name]" value="${name}">
+                <input type="hidden" name="materials[${idx}][quantity]" value="${qty}">
+                <button type="button" onclick="this.parentElement.remove()">×</button>
+            `;
+            list.appendChild(li);
+
+            qtyInput.value = '';
+        }
+    </script>
 </div>

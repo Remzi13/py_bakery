@@ -1,28 +1,22 @@
 <div id="stock-modal" class="modal show" role="dialog" aria-modal="true">
     <div class="modal-content">
         <button class="close" onclick="document.getElementById('stock-modal').remove()">&times;</button>
-        <h2>{% if item %}Edit Stock Item{% else %}Add Stock Item{% endif %}</h2>
+        <h2 data-i18n="{% if item %}editStock{% else %}addStock{% endif %}">{% if item %}Edit Stock Item{% else %}Add
+            Stock Item{% endif %}</h2>
 
-        <!-- Note: Edit uses PUT on /api/stock/{name}/set based on original logic, or we can improve it -->
-        <!-- Original app.js logic for edit used /api/stock/{name}/set with quantity only? -->
-        <!-- Looking at app.js: updatePayload = { quantity: parseFloat(data.quantity) }; await putAPI(\`/stock/\${itemName}/set\`, updatePayload); -->
-        <!-- So currently we can only update quantity. Let's replicate this or improve if possible. -->
-        <!-- For Add: postAPI(f.endpoint, data); -->
-
-        <form {% if item %}hx-put="/api/stock/{{ item.name }}/set" {% else %}hx-post="/api/stock" {% endif %}
-            hx-target="#stock-table-body" hx-swap="beforeend" {% if item %} hx-swap="outerHTML"
-            hx-target="#stock-row-{{ item.id }}" {% endif %}
-            hx-on::after-request="if(event.detail.successful) document.getElementById('stock-modal').remove()">
+        <form {% if item %}hx-put="/api/stock/{{ item.name }}/set" hx-target="#stock-row-{{ item.id }}"
+            hx-swap="outerHTML" {% else %}hx-post="/api/stock" hx-target="#stock-table-body" hx-swap="beforeend" {%
+            endif %} hx-on::after-request="if(event.detail.successful) document.getElementById('stock-modal').remove()">
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Item Name</label>
+                    <label data-i18n="productName">Item Name</label>
                     <input type="text" name="name" value="{{ item.name if item else '' }}" placeholder="e.g., Flour Bag"
-                        required {% if item %}readonly style="background-color: #f0f0f0;" {% endif %}>
+                        required {% if item %}readonly style="background-color: #f0f0f0;" {% endif %}
+                        data-i18n="productNamePlaceholder">
                 </div>
-                <!-- Categories and Units should be dynamically loaded or passed in -->
                 <div class="form-group">
-                    <label>Category</label>
+                    <label data-i18n="category">Category</label>
                     <select name="category_name" {% if item %}disabled{% endif %}>
                         {% for cat in categories %}
                         <option value="{{ cat }}" {% if item and item.category_name==cat %}selected{% endif %}>{{ cat }}
@@ -34,26 +28,31 @@
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>{% if item %}New Quantity{% else %}Initial Quantity{% endif %}</label>
+                    <label data-i18n="{% if item %}newQuantity{% else %}initialQuantity{% endif %}">{% if item %}New
+                        Quantity{% else %}Initial Quantity{% endif %}</label>
                     <input type="number" step="0.01" name="quantity" value="{{ item.quantity if item else '0.00' }}"
                         placeholder="0.00" required>
                 </div>
                 <div class="form-group small">
-                    <label>Unit</label>
+                    <label data-i18n="unit">Unit</label>
                     <select name="unit_name" {% if item %}disabled{% endif %}>
-                        <option value="kg" {% if item and item.unit_name=='kg' %}selected{% endif %}>kg</option>
-                        <option value="g" {% if item and item.unit_name=='g' %}selected{% endif %}>g</option>
-                        <option value="l" {% if item and item.unit_name=='l' %}selected{% endif %}>l</option>
-                        <option value="pc" {% if item and item.unit_name=='pc' %}selected{% endif %}>pc</option>
+                        <option value="kg" {% if item and item.unit_name=='kg' %}selected{% endif %} data-i18n="kg">kg
+                        </option>
+                        <option value="g" {% if item and item.unit_name=='g' %}selected{% endif %} data-i18n="g">g
+                        </option>
+                        <option value="l" {% if item and item.unit_name=='l' %}selected{% endif %} data-i18n="l">l
+                        </option>
+                        <option value="pc" {% if item and item.unit_name=='pc' %}selected{% endif %} data-i18n="pcs">pc
+                        </option>
                     </select>
                     {% if item %}<input type="hidden" name="unit_name" value="{{ item.unit_name }}">{% endif %}
                 </div>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary"
-                    onclick="document.getElementById('stock-modal').remove()">Cancel</button>
-                <button type="submit" class="btn-primary">{% if item %}Update Quantity{% else %}Add Item{% endif
-                    %}</button>
+                <button type="button" class="btn-secondary" onclick="document.getElementById('stock-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="save">{% if item %}Update Quantity{% else %}Add
+                    Item{% endif %}</button>
             </div>
         </form>
     </div>
