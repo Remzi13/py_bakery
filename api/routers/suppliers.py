@@ -46,32 +46,47 @@ async def get_edit_supplier_form(supplier_id: int, request: Request, model: SQLi
 @router.post("/", response_model=Supplier)
 async def create_supplier(
     request: Request,
-    supplier: Optional[Supplier] = None, # For JSON body
     model: SQLiteModel = Depends(get_model)
 ):
     try:
-        # JSON Support
-        if request.headers.get("content-type") == "application/json":
-            if not supplier:
-                raise HTTPException(status_code=400, detail="Invalid JSON body")
-            return model.suppliers().add(supplier.name, supplier.contact_person, supplier.phone, supplier.email, supplier.address)
+        content_type = request.headers.get("content-type")
 
-        # Form Support
+        # 1. Если пришел JSON (например, от другого сервиса или через JS fetch)
+        if content_type == "application/json":
+            data = await request.json()
+            # Валидируем данные вручную через Pydantic модель
+            supplier_data = Supplier(**data) 
+            new_supplier = model.suppliers().add(
+                supplier_data.name, 
+                supplier_data.contact_person, 
+                supplier_data.phone, 
+                supplier_data.email, 
+                supplier_data.address
+            )
+            return new_supplier
+
+        # 2. Если пришла Форма (HTMX)
         form = await request.form()
-        name = form.get("name")
-        contact_person = form.get("contact_person")
-        phone = form.get("phone")
-        email = form.get("email")
-        address = form.get("address")
+        new_supplier = model.suppliers().add(
+            name=form.get("name"),
+            contact_person=form.get("contact_person"),
+            phone=form.get("phone"),
+            email=form.get("email"),
+            address=form.get("address")
+        )
         
-        new_supplier = model.suppliers().add(name, contact_person, phone, email, address)
+        # Если это HTMX, возвращаем только строку таблицы
+        if request.headers.get("HX-Request"):
+            return templates.TemplateResponse(
+                request, 
+                "suppliers/row.html", # убедись, что путь совпадает с rows_only.html или row.html
+                {"supplier": new_supplier}
+            )
         
-        return templates.TemplateResponse(request, "suppliers/row.html", {"supplier": new_supplier})
+        return new_supplier
 
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"Validation error: {str(e)}")
 
 @router.put("/{supplier_id}", response_class=HTMLResponse)
 async def update_supplier(
