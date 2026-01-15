@@ -1,0 +1,37 @@
+<div id="sale-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="close" onclick="document.getElementById('sale-modal').remove()">&times;</button>
+        <h2 data-i18n="newSale">New Sale</h2>
+
+        <form hx-post="/api/sales" hx-target="#sales-table-body" hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) document.getElementById('sale-modal').remove()">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-i18n="selectProduct">Select Product</label>
+                    <select name="product_id" id="sale-product-select" required>
+                        <option value="" disabled selected data-i18n="selectProduct">Select Product</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }} ({{ product.price }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-i18n="quantityPcs">Quantity (pcs)</label>
+                    <input type="number" step="1" name="quantity" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="discount">Discount (%)</label>
+                    <input type="number" name="discount" placeholder="0" value="0" min="0" max="100">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('sale-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="registerSale">Register Sale</button>
+            </div>
+        </form>
+    </div>
+</div>

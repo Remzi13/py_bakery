@@ -71,7 +71,7 @@ function loadTab(tabId) {
     if (tabId === 'dashboard') loadDashboard();
     if (tabId === 'products') loadProducts();
     if (tabId === 'stock') loadStock();
-    if (tabId === 'sales') { loadSales(); loadProductsForSelect(); }
+    if (tabId === 'sales') { /* Handled by HTMX */ }
     if (tabId === 'expenses') { loadExpenses(); loadExpenseTypesForSelect(); loadSuppliersForSelect(); }
     if (tabId === 'suppliers') loadSuppliers();
     if (tabId === 'writeoffs') loadWriteOffs();
@@ -255,23 +255,6 @@ async function loadStock() {
     });
 }
 
-async function loadSales() {
-    const data = await fetchAPI('/sales');
-    const tbody = document.querySelector('#sales-table tbody');
-    tbody.innerHTML = '';
-    data.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `            
-            <td><strong>${item.product_name}</strong></td>
-            <td>${item.quantity}</td>
-            <td>${item.price} ${CURRENCY}</td>
-            <td><strong>${(item.price * item.quantity * (1 - (item.discount || 0) / 100)).toFixed(2)} ${CURRENCY}</strong></td>
-            <td>${item.discount || 0}%</td>
-            <td>${item.date}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
 
 async function loadExpenses() {
     const data = await fetchAPI('/expenses/documents');
@@ -577,18 +560,6 @@ window.filterTable = function (tableId, query) {
 
 // --- Form Helpers ---
 
-async function loadProductsForSelect() {
-    const data = await fetchAPI('/products');
-    const select = document.getElementById('sale-product-select');
-    if (!select) return;
-    select.innerHTML = '';
-    data.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.innerText = p.name;
-        select.appendChild(opt);
-    });
-}
 
 let allExpenseTypes = [];
 async function loadExpenseCategories() {
@@ -702,7 +673,6 @@ function setupForms() {
     const forms = [
         { id: 'product-form', endpoint: '/products/', tab: 'products', modal: 'product-modal' },
         { id: 'stock-form', endpoint: '/stock/', tab: 'stock', modal: 'stock-modal' },
-        { id: 'sale-form', endpoint: '/sales/', tab: 'sales', modal: 'sale-modal' },
 
         // New Expense Forms
         { id: 'expense-document-form', endpoint: '/expenses/documents', tab: 'expenses', modal: 'expense-document-modal' },

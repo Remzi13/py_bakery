@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="/static/js/translations.js"></script>
 </head>
 
@@ -22,10 +23,12 @@
                 <button class="nav-btn active" data-tab="dashboard" data-i18n="dashboard">Dashboard</button>
                 <button class="nav-btn" data-tab="products" data-i18n="products">Products</button>
                 <button class="nav-btn" data-tab="stock" data-i18n="stock">Stock</button>
-                <button class="nav-btn" data-tab="sales" data-i18n="sales">Sales</button>
+                <button class="nav-btn" data-tab="sales" data-i18n="sales" hx-get="/api/sales" hx-target="#sales-view"
+                    hx-trigger="click">Sales</button>
                 <button class="nav-btn" data-tab="orders" data-i18n="orders">Orders</button>
                 <button class="nav-btn" data-tab="expenses" data-i18n="expenses">Expenses</button>
-                <button class="nav-btn" data-tab="suppliers" data-i18n="suppliers">Suppliers</button>
+                <button class="nav-btn" data-tab="suppliers" data-i18n="suppliers" hx-get="/api/suppliers"
+                    hx-target="#suppliers-view" hx-trigger="click">Suppliers</button>
                 <button class="nav-btn" data-tab="writeoffs" data-i18n="writeoffs">Write-offs</button>
 
                 <div
@@ -150,29 +153,8 @@
                 </section>
 
                 <section id="sales-view" class="view">
-                    <div class="table-container">
-                        <div class="table-header-actions">
-                            <div class="search-wrapper">
-                                <input type="text" placeholder="Search sales..." data-i18n="searchSales"
-                                    onkeyup="filterTable('sales-table', this.value)">
-                            </div>
-                            <button class="btn-primary" onclick="openModal('sale-modal')" data-i18n="newSale">New
-                                Sale</button>
-                        </div>
-                        <table class="data-table" id="sales-table">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="product">Product</th>
-                                    <th data-i18n="quantity">Quantity</th>
-                                    <th data-i18n="price">Price</th>
-                                    <th data-i18n="total">Total</th>
-                                    <th data-i18n="discount">Discount</th>
-                                    <th data-i18n="date">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                    <!-- Loaded via HTMX -->
+                    <div class="loading-message" data-i18n="loading">Loading...</div>
                 </section>
 
                 <section id="orders-view" class="view">
@@ -364,29 +346,10 @@
                             </thead>
                             <tbody></tbody>
                         </table>
-                    </div>
-                </section>
-
-                <section id="materials-view" class="view">
-                    <div class="table-container">
-                        <div class="table-header-actions">
-                            <div class="search-wrapper">
-                                <input type="text" placeholder="Search materials..." data-i18n="searchMaterials"
-                                    onkeyup="filterTable('materials-table', this.value)">
-                            </div>
-                            <button class="btn-primary" onclick="openModal('material-modal')"
-                                data-i18n="addMaterialButton">Add Material</button>
-                        </div>
-                        <table class="data-table" id="materials-table">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="productName">Name</th>
-                                    <th data-i18n="unit">Unit</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                        <section id="suppliers-view" class="view">
+                            <!-- Loaded via HTMX -->
+                            <div class="loading-message" data-i18n="loading">Loading...</div>
+                        </section>
                 </section>
 
                 <section id="writeoffs-view" class="view">
@@ -501,35 +464,6 @@
         </div>
     </div>
 
-    <div id="sale-modal" class="modal">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('sale-modal')">&times;</button>
-            <h2 data-i18n="newSale">New Sale</h2>
-            <form id="sale-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="selectProduct">Select Product</label>
-                        <select name="product_id" id="sale-product-select" required></select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="quantityPcs">Quantity (pcs)</label>
-                        <input type="number" step="1" name="quantity" placeholder="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="discount">Discount (%)</label>
-                        <input type="number" name="discount" placeholder="0" value="0">
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal('sale-modal')"
-                        data-i18n="cancel">Cancel</button>
-                    <button type="submit" class="btn-primary" data-i18n="registerSale">Register Sale</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="expense-modal" class="modal">
         <div class="modal-content">
@@ -573,47 +507,6 @@
         </div>
     </div>
 
-    <div id="supplier-modal" class="modal">
-        <div class="modal-content">
-            <button class="close" onclick="closeModal('supplier-modal')">&times;</button>
-            <h2 data-i18n="addSupplier">Add Supplier</h2>
-            <form id="supplier-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="companyName">Company Name</label>
-                        <input type="text" name="name" placeholder="e.g., Global Flour Co" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="contactPerson">Contact Person</label>
-                        <input type="text" name="contact_person" placeholder="Name">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="phone">Phone</label>
-                        <input type="text" name="phone" placeholder="+7...">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="email">Email</label>
-                        <input type="email" name="email" placeholder="email@example.com">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-i18n="address">Address</label>
-                        <input type="text" name="address" placeholder="Full address">
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal('supplier-modal')"
-                        data-i18n="cancel">Cancel</button>
-                    <button type="submit" class="btn-primary" data-i18n="saveSupplier">Save Supplier</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="writeoff-modal" class="modal">
         <div class="modal-content">
@@ -693,6 +586,7 @@
 
     <div id="toast-container" class="toast-container"></div>
 
+    <div id="modal-container"></div>
     <script src="/static/js/app.js"></script>
 </body>
 

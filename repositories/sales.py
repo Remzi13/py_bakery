@@ -84,6 +84,21 @@ class SalesRepository:
         cursor.execute("SELECT * FROM sales ORDER BY date DESC")
         return [self._row_to_entity(row) for row in cursor.fetchall()]
     
+    def search(self, query: str) -> List[Sale]:
+        """Поиск продаж по названию продукта или дате."""
+        cursor = self._conn.cursor()
+        search_pattern = f"%{query}%"
+        cursor.execute(
+            """
+            SELECT * FROM sales 
+            WHERE product_name LIKE ? 
+               OR date LIKE ?
+            ORDER BY date DESC
+            """,
+            (search_pattern, search_pattern)
+        )
+        return [self._row_to_entity(row) for row in cursor.fetchall()]
+    
     def salesByProduct(self):
         cursor = self._conn.cursor()
         cursor.execute("SELECT product_id, product_name, SUM(price * quantity) AS total_price FROM sales GROUP BY product_id, product_name;")

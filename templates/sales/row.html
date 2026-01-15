@@ -1,0 +1,9 @@
+<tr id="sale-row-{{ sale.id }}">
+    <td><strong>{{ sale.product_name }}</strong></td>
+    <td>{{ sale.quantity }}</td>
+    <td>{{ sale.price }} {{ CURRENCY if CURRENCY else '₽' }}</td>
+    <td><strong>{{ (sale.price * sale.quantity * (1 - (sale.discount if sale.discount else 0) / 100))|round(2) }} {{
+            CURRENCY if CURRENCY else '₽' }}</strong></td>
+    <td>{{ sale.discount if sale.discount else 0 }}%</td>
+    <td>{{ sale.date }}</td>
+</tr>

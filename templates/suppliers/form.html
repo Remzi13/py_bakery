@@ -4,9 +4,9 @@
         <h2 data-i18n="{% if supplier %}editSupplier{% else %}addSupplier{% endif %}">{% if supplier %}Edit Supplier{%
             else %}Add Supplier{% endif %}</h2>
 
-        <form {% if supplier %}hx-put="/api/suppliers/{{ supplier.id }}" {% else %}hx-post="/api/suppliers" {% endif %}
-            hx-target="#suppliers-table-body" hx-swap="beforeend" {% if supplier %} hx-swap="outerHTML"
-            hx-target="#supplier-row-{{ supplier.id }}" {% endif %}
+        <form {% if supplier %}hx-put="/api/suppliers/{{ supplier.id }}" hx-target="#supplier-row-{{ supplier.id }}"
+            hx-swap="outerHTML" {% else %}hx-post="/api/suppliers" hx-target="#suppliers-table-body" hx-swap="beforeend"
+            {% endif %}
             hx-on::after-request="if(event.detail.successful) document.getElementById('supplier-modal').remove()">
 
             <div class="form-group">

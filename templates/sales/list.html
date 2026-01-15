@@ -1,0 +1,31 @@
+<section id="sales-view" class="view active">
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="search-wrapper">
+                <input type="text" name="search" placeholder="Search sales..." data-i18n="searchSales"
+                    hx-get="/api/sales" hx-trigger="keyup changed delay:500ms, search" hx-target="#sales-table-body">
+            </div>
+            <button class="btn-primary" hx-get="/api/sales/new" hx-target="#modal-container" hx-trigger="click"
+                data-i18n="newSale">
+                New Sale
+            </button>
+        </div>
+        <table class="data-table" id="sales-table">
+            <thead>
+                <tr>
+                    <th data-i18n="product">Product</th>
+                    <th data-i18n="quantity">Quantity</th>
+                    <th data-i18n="price">Price</th>
+                    <th data-i18n="total">Total</th>
+                    <th data-i18n="discount">Discount</th>
+                    <th data-i18n="date">Date</th>
+                </tr>
+            </thead>
+            <tbody id="sales-table-body">
+                {% for sale in sales %}
+                {% include "sales/row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
