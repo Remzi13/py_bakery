@@ -3,7 +3,7 @@
         <div class="table-header-actions">
             <div class="search-wrapper">
                 <input type="text" name="search" placeholder="Search suppliers..." data-i18n="searchSuppliers"
-                    hx-get="/api/suppliers" hx-trigger="keyup changed delay:500ms, search"
+                    hx-get="/api/suppliers/" hx-trigger="keyup changed delay:500ms, search"
                     hx-target="#suppliers-table-body">
             </div>
             <button class="btn-primary" hx-get="/api/suppliers/new" hx-target="#modal-container" hx-trigger="click"

@@ -12,12 +12,35 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/", response_model=List[OrderResponse])
 def get_orders(
     request: Request,
+    search: Optional[str] = None,
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
+    hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
     model: SQLiteModel = Depends(get_model)
 ):
     try:
         orders_data = model.orders().data()
+        
+        # Filter by search
+        if search:
+            s = search.lower()
+            orders_data = [o for o in orders_data if s in str(o.id) or (o.additional_info and s in o.additional_info.lower())]
+
+        orders_data.sort(key=lambda x: x.status, reverse=True)
+        
+        if hx_request or (accept and "text/html" in accept):
+            if hx_target == "orders-table-body":
+                return templates.TemplateResponse(request, "orders/rows.html", {"orders": orders_data}) # This uses rows in a loop? No, list.html does.
+                # Actually, I should probably create orders/rows.html like I did for products.
+            
+            if not hx_request and accept and "text/html" in accept:
+                # Wrap in html for standard browser requests (full page)
+                content = templates.get_template("orders/list.html").render({"request": request, "orders": orders_data})
+                return HTMLResponse(f"<!DOCTYPE html><html><body>{content}</body></html>")
+                
+            return templates.TemplateResponse(request, "orders/list.html", {"orders": orders_data})
+            
+        # For JSON response, convert to dicts that match OrderResponse
         results = []
         for order in orders_data:
             results.append({
@@ -28,11 +51,6 @@ def get_orders(
                 "additional_info": order.additional_info,
                 "items": order.items
             })
-        results.sort(key=lambda x: x["status"], reverse=True)
-        
-        if hx_request or (accept and "text/html" in accept):
-            return templates.TemplateResponse(request, "orders/list.html", {"orders": results})
-            
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
