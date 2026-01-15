@@ -533,6 +533,16 @@ h1 {
     box-shadow: 0 0 0 3px var(--accent-light);
 }
 
+.readonly-field {
+    padding: 10px 12px;
+    background: #f9fafb;
+    border: 1px solid var(--border-color);
+    border-radius: var(--input-radius);
+    font-size: 0.95rem;
+    color: var(--text-color);
+    min-height: 42px;
+}
+
 fieldset {
     border: 1px solid var(--border-color);
     border-radius: var(--base-radius);
@@ -596,6 +606,33 @@ legend {
     border-radius: var(--input-radius);
     cursor: pointer;
     font-weight: 600;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--input-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    box-shadow: var(--shadow-md);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
 }
 
 /* Toasts */

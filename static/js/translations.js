@@ -104,6 +104,13 @@ const translations = {
         supplier: "Supplier",
         optionalSupplier: "Supplier (Optional)",
         saveExpense: "Save Expense",
+        newExpenseDocument: "New Expense Document",
+        expenseDocumentDetails: "Expense Document Details",
+        close: "Close",
+        pricePerUnit: "Price/Unit",
+        totalPrice: "Total Price",
+        totalAmount: "Total Amount",
+        noItems: "No items",
 
         // Suppliers
         addSupplier: "Add Supplier",
@@ -236,6 +243,13 @@ const translations = {
         supplier: "Поставщик",
         optionalSupplier: "Поставщик (необязательно)",
         saveExpense: "Сохранить расход",
+        newExpenseDocument: "Новый расходный документ",
+        expenseDocumentDetails: "Детали расходного документа",
+        close: "Закрыть",
+        pricePerUnit: "Цена/Ед",
+        totalPrice: "Общая цена",
+        totalAmount: "Общая сумма",
+        noItems: "Нет позиций",
 
         // Suppliers
         addSupplier: "Добавить поставщика",

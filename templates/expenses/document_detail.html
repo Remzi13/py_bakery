@@ -1,0 +1,71 @@
+<div id="expense-document-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content large-modal">
+        <button class="close" onclick="document.getElementById('expense-document-modal').remove()">&times;</button>
+        <h2 data-i18n="expenseDocumentDetails">Expense Document #{{ doc['id'] }}</h2>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label data-i18n="date">Date</label>
+                <div class="readonly-field">{{ doc['date'] }}</div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="supplier">Supplier</label>
+                <div class="readonly-field">{{ doc['supplier_name'] }}</div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label data-i18n="comment">Comment</label>
+                <div class="readonly-field">{{ doc['comment'] if doc['comment'] else '-' }}</div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="totalAmount">Total Amount</label>
+                <div class="readonly-field">{{ doc['total_amount'] }}</div>
+            </div>
+        </div>
+
+        <fieldset>
+            <legend data-i18n="items">Items</legend>
+
+            <div id="expense-items-container">
+                {% if items %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="expenseType">Expense Type</th>
+                            <th data-i18n="quantity">Quantity</th>
+                            <th data-i18n="unit">Unit</th>
+                            <th data-i18n="pricePerUnit">Price/Unit</th>
+                            <th data-i18n="totalPrice">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.expense_type_name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit_name }}</td>
+                            <td>{{ item.price_per_unit }}</td>
+                            <td>{{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p data-i18n="noItems">No items</p>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="button" class="btn-secondary"
+                onclick="document.getElementById('expense-document-modal').remove()" data-i18n="close">Close</button>
+            <button type="button" class="btn-danger" hx-delete="/api/expenses/documents/{{ doc['id'] }}"
+                hx-target="closest tr" hx-swap="outerHTML swap:0s"
+                hx-confirm="Are you sure you want to delete this expense document? Stock quantities will be rolled back for stock items."
+                hx-on::after-request="if(event.detail.successful) document.getElementById('expense-document-modal').remove()"
+                data-i18n="delete">Delete Document</button>
+        </div>
+    </div>
+</div>

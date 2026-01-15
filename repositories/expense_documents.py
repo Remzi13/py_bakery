@@ -139,3 +139,52 @@ class ExpenseDocumentsRepository:
                 "unit_name": row[5]
             })
         return result
+
+    def delete(self, document_id: int) -> bool:
+        """
+        Удаляет документ расхода и откатывает изменения на складе.
+        Для элементов с stock=true вычитает количество из склада.
+        """
+        cursor = self._conn.cursor()
+        try:
+            # 1. Получаем все позиции документа с информацией о stock
+            cursor.execute("""
+                SELECT i.id, i.quantity, i.stock_item_id, et.stock, et.name
+                FROM expense_items i
+                JOIN expense_types et ON i.expense_type_id = et.id
+                WHERE i.document_id = ?
+            """, (document_id,))
+            
+            items = cursor.fetchall()
+            
+            # 2. Откатываем изменения на складе
+            for item in items:
+                item_id, quantity, stock_item_id, is_stock, et_name = item
+                
+                if is_stock and stock_item_id:
+                    # Вычитаем количество из склада
+                    cursor.execute("""
+                        UPDATE stock 
+                        SET quantity = quantity - ? 
+                        WHERE id = ?
+                    """, (quantity, stock_item_id))
+                    
+                    # Проверяем, не стало ли количество отрицательным
+                    cursor.execute("SELECT quantity FROM stock WHERE id = ?", (stock_item_id,))
+                    current_qty = cursor.fetchone()[0]
+                    
+                    if current_qty < 0:
+                        raise ValueError(f"Cannot delete document: would result in negative stock for '{et_name}'")
+            
+            # 3. Удаляем позиции документа
+            cursor.execute("DELETE FROM expense_items WHERE document_id = ?", (document_id,))
+            
+            # 4. Удаляем сам документ
+            cursor.execute("DELETE FROM expense_documents WHERE id = ?", (document_id,))
+            
+            self._conn.commit()
+            return True
+            
+        except Exception as e:
+            self._conn.rollback()
+            raise e

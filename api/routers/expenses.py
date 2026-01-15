@@ -58,31 +58,17 @@ async def get_new_expense_document_form(request: Request, model: SQLiteModel = D
 
 @router.get("/documents/{id}", response_class=HTMLResponse)
 async def get_expense_document_details(id: int, request: Request, model: SQLiteModel = Depends(get_model)):
-    # Reusing the form template for view-only or edit? 
-    # For now let's show details. We might need a separate details template or reuse form in readonly.
-    # Let's try to reuse form populated.
-    
-    # We need to fetch basic doc info + items
-    # Repo doesn't have a single "get_full_doc" method that returns Pydantic friendly structure easily?
-    # get_documents_with_details returns list of summaries.
-    
+    """Display expense document details in read-only view"""
     all_docs = model.expense_documents().get_documents_with_details()
-    doc = next((d for d in all_docs if d.id == id), None)
+    doc = next((d for d in all_docs if d['id'] == id), None)
     if not doc:
         return HTMLResponse("Document not found", status_code=404)
         
     items = model.expense_documents().get_document_items(id)
-    
-    suppliers = model.suppliers().data()
-    categories = model.utils().get_expense_category_names()
-    types = model.expense_types().data()
 
-    return templates.TemplateResponse(request, "expenses/document_form.html", {
+    return templates.TemplateResponse(request, "expenses/document_detail.html", {
         "doc": doc, 
-        "items": items,
-        "suppliers": suppliers,
-        "categories": categories,
-        "types": types
+        "items": items
     })
 
 @router.post("/documents")
@@ -178,6 +164,19 @@ def get_expense_document_items(id: int, model: SQLiteModel = Depends(get_model))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/documents/{id}")
+async def delete_expense_document(id: int, model: SQLiteModel = Depends(get_model)):
+    """Delete expense document and rollback stock changes"""
+    try:
+        model.expense_documents().delete(id)
+        # Return empty response - HTMX will remove the row
+        return HTMLResponse(content="", status_code=200)
+    except ValueError as e:
+        # Stock validation error
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- Categories & Types API ---
 
 @router.get("/categories/new", response_class=HTMLResponse)
@@ -244,6 +243,35 @@ async def create_expense_type(
         return {"message": "Expense type created successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/types/options", response_class=HTMLResponse)
+async def get_expense_type_options(
+    request: Request,
+    category_filter: Optional[str] = None,
+    model: SQLiteModel = Depends(get_model)
+):
+    """Return HTML options for expense types, optionally filtered by category"""
+    try:
+        data = model.expense_types().data()
+        utils = model.utils()
+        
+        # Filter by category if specified
+        if category_filter:
+            filtered_data = []
+            for et in data:
+                cat_name = utils.get_expense_category_name_by_id(et.category_id)
+                if cat_name == category_filter:
+                    filtered_data.append(et)
+            data = filtered_data
+        
+        # Build HTML options
+        options_html = '<option value="" data-i18n="selectExpenseType">Select Expense Type...</option>\n'
+        for et in data:
+            options_html += f'<option value="{et.id}" data-price="{et.default_price}">{et.name}</option>\n'
+        
+        return HTMLResponse(content=options_html)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

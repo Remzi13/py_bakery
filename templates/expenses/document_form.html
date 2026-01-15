@@ -1,8 +1,7 @@
 <div id="expense-document-modal" class="modal show" role="dialog" aria-modal="true">
     <div class="modal-content large-modal">
         <button class="close" onclick="document.getElementById('expense-document-modal').remove()">&times;</button>
-        <h2 data-i18n="{% if doc %}expenseDocumentDetails{% else %}newExpenseDocument{% endif %}">{% if doc %}Expense
-            Document #{{ doc.id }}{% else %}New Expense Document{% endif %}</h2>
+        <h2 data-i18n="newExpenseDocument">New Expense Document</h2>
 
         <form hx-post="/api/expenses/documents" hx-target="#expenses-table-body" hx-swap="beforeend"
             hx-on::after-request="if(event.detail.successful) document.getElementById('expense-document-modal').remove()"
@@ -11,15 +10,14 @@
             <div class="form-row">
                 <div class="form-group">
                     <label data-i18n="date">Date</label>
-                    <input type="datetime-local" name="date" required value="{{ doc.date if doc else current_date }}">
+                    <input type="datetime-local" name="date" required value="{{ current_date }}">
                 </div>
                 <div class="form-group">
                     <label data-i18n="supplier">Supplier</label>
                     <select name="supplier_id" required>
                         <option value="" data-i18n="selectSupplier">Select Supplier...</option>
                         {% for s in suppliers %}
-                        <option value="{{ s.id }}" {% if doc and doc.supplier_id==s.id %}selected{% endif %}>{{ s.name
-                            }}</option>
+                        <option value="{{ s.id }}">{{ s.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -27,8 +25,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label data-i18n="comment">Comment</label>
-                    <input type="text" name="comment" placeholder="Optional comment" data-i18n="commentPlaceholder"
-                        value="{{ doc.comment if doc else '' }}">
+                    <input type="text" name="comment" placeholder="Optional comment" data-i18n="commentPlaceholder">
                 </div>
             </div>
 
@@ -36,23 +33,16 @@
                 <legend data-i18n="items">Items</legend>
 
                 <div id="expense-items-container">
-                    {% if doc %}
-                    {% for item in items %}
-                    <div class="recipe-item">
-                        <span>{{ item.name }} x {{ item.quantity }}</span>
-                        <span>{{ item.price }}</span>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
+                    <!-- Items will be added dynamically -->
                 </div>
 
-                {% if not doc %}
+
                 <div class="recipe-editor">
                     <div class="recipe-controls">
                         <div class="form-group" style="flex: 1.5;">
                             <select id="expense-item-category" hx-get="/api/expenses/types/options"
-                                hx-target="#expense-item-type" hx-include="#expense-item-category"
-                                name="category_filter">
+                                hx-target="#expense-item-type" hx-swap="innerHTML" hx-include="#expense-item-category"
+                                hx-on::after-request="event.stopPropagation()" name="category_filter">
                                 <option value="" data-i18n="filterCategory">Filter Category...</option>
                                 {% for c in categories %}
                                 <option value="{{ c }}">{{ c }}</option>
@@ -89,7 +79,7 @@
 
                     <ul id="expense-items-list" class="recipe-list"></ul>
                 </div>
-                {% endif %}
+
 
             </fieldset>
 
@@ -97,9 +87,7 @@
                 <button type="button" class="btn-secondary"
                     onclick="document.getElementById('expense-document-modal').remove()"
                     data-i18n="cancel">Cancel</button>
-                {% if not doc %}
                 <button type="submit" class="btn-primary" data-i18n="save">Save Document</button>
-                {% endif %}
             </div>
         </form>
     </div>
