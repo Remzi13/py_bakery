@@ -113,6 +113,40 @@ class TestSuppliersRepository:
         repo.delete("Несуществующий")
         assert repo.len() == 1
 
+    def test_delete_by_id(self, model: SQLiteModel):
+        """Проверяет удаление поставщика по ID."""
+        repo = model.suppliers()
+        s1 = repo.add("S1")
+        s2 = repo.add("S2")
+        
+        assert repo.len() == 2
+        repo.delete_by_id(s1.id)
+        assert repo.len() == 1
+        assert repo.by_id(s1.id) is None
+        assert repo.by_id(s2.id) is not None
+
+    def test_search(self, model: SQLiteModel):
+        """Проверяет поиск поставщиков."""
+        repo = model.suppliers()
+        repo.add("Alpha", contact_person="John", email="john@alpha.com")
+        repo.add("Beta", contact_person="Jane", phone="123456")
+        repo.add("Gamma", address="Main St")
+        
+        # Поиск по имени
+        assert len(repo.search("Alpha")) == 1
+        # Поиск по контакту
+        assert len(repo.search("Jane")) == 1
+        # Поиск по частичному совпадению
+        assert len(repo.search("a")) == 3 # Alpha, Beta, Gamma all contain 'a' (case-insensitive usually in SQLite)
+        # Если SQLite case-sensitive, то 'Alpha' might not match 'a' depending on collation.
+        # But usually LIKE is case-insensitive for ASCII.
+        
+        # Поиск по телефону
+        assert len(repo.search("123")) == 1
+        
+        # Пустой поиск
+        assert len(repo.search("Nothing")) == 0
+
     def test_update_all_fields(self, supplier_data: dict):
         """Проверяет успешное обновление всех полей поставщика."""
         s_repo = supplier_data['repo']

@@ -77,6 +77,23 @@ class SuppliersRepository:
         cursor.execute("SELECT COUNT(*) FROM suppliers")
         return cursor.fetchone()[0]
 
+    def search(self, query: str) -> List[Supplier]:
+        """Поиск поставщиков по имени, контакту, телефону или email."""
+        cursor = self._conn.cursor()
+        search_pattern = f"%{query}%"
+        cursor.execute(
+            """
+            SELECT * FROM suppliers 
+            WHERE name LIKE ? 
+               OR contact_person LIKE ? 
+               OR phone LIKE ? 
+               OR email LIKE ?
+            ORDER BY name
+            """,
+            (search_pattern, search_pattern, search_pattern, search_pattern)
+        )
+        return [self._row_to_entity(row) for row in cursor.fetchall()]
+
     def update(self, supplier_id: int, name: str, contact_person: Optional[str] = None, phone: Optional[str] = None, email: Optional[str] = None, address: Optional[str] = None) -> Supplier:
         """
         Обновляет существующего поставщика по ID.
@@ -128,45 +145,51 @@ class SuppliersRepository:
             self._conn.rollback()
             raise e
 
-    def can_delete(self, name: str) -> bool:
+    def can_delete_by_id(self, supplier_id: int) -> bool:
         """
-        Проверяет, можно ли удалить поставщика. 
+        Проверяет, можно ли удалить поставщика по ID. 
         Нельзя удалить, если он связан с расходами (таблица expense_documents).
         """
+        cursor = self._conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM expense_documents WHERE supplier_id = ? LIMIT 1", 
+            (supplier_id,)
+        )
+        return cursor.fetchone() is None
+
+    def can_delete(self, name: str) -> bool:
+        """
+        Проверяет, можно ли удалить поставщика по имени. 
+        """
         supplier = self.by_name(name)
         if not supplier:
-            return True # Если поставщика нет, его можно "удалить" (ничего не делать)
-        
-        cursor = self._conn.cursor()
-        # Ищем расходы, у которых supplier_id совпадает с нашим ID.
-        cursor.execute(
-            """
-            SELECT 1 FROM expense_documents WHERE supplier_id = ? LIMIT 1
-            """, 
-            (supplier.id,)
-        )
-        # Если fetchone() возвращает что-то (например, 1), значит, связанные расходы есть.
-        return cursor.fetchone() is None
+            return True
+        return self.can_delete_by_id(supplier.id)
     
-    def delete(self, name: str):
+    def delete_by_id(self, supplier_id: int):
         """
-        Удаляет поставщика по имени. 
+        Удаляет поставщика по ID. 
         Вызывает ошибку, если поставщик связан с расходами.
         """
-        supplier = self.by_name(name)
-        if not supplier:
-            return # Ничего удалять не надо
-
-        if not self.can_delete(name):
-            # Используем понятное исключение
+        if not self.can_delete_by_id(supplier_id):
+            supplier = self.by_id(supplier_id)
+            name = supplier.name if supplier else f"ID {supplier_id}"
             raise ValueError(f"Поставщик '{name}' связан с существующими расходами. Удаление невозможно.")
         
         cursor = self._conn.cursor()
         try:
-            cursor.execute("DELETE FROM suppliers WHERE id = ?", (supplier.id,))
+            cursor.execute("DELETE FROM suppliers WHERE id = ?", (supplier_id,))
             self._conn.commit()
-            
         except Exception as e:
             self._conn.rollback()
             raise e
+
+    def delete(self, name: str):
+        """
+        Удаляет поставщика по имени. 
+        """
+        supplier = self.by_name(name)
+        if not supplier:
+            return
+        self.delete_by_id(supplier.id)
 

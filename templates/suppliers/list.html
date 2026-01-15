@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section id="suppliers-view" class="view active">
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="search-wrapper">
+                <input type="text" name="search" placeholder="Search suppliers..." data-i18n="searchSuppliers"
+                    hx-get="/api/suppliers" hx-trigger="keyup changed delay:500ms, search"
+                    hx-target="#suppliers-table-body">
+            </div>
+            <button class="btn-primary" hx-get="/api/suppliers/new" hx-target="#modal-container" hx-trigger="click"
+                data-i18n="addSupplier">
+                Add Supplier
+            </button>
+        </div>
+        <table class="data-table" id="suppliers-table">
+            <thead>
+                <tr>
+                    <th data-i18n="productName">Name</th>
+                    <th data-i18n="contactPerson">Contact Person</th>
+                    <th data-i18n="phone">Phone</th>
+                    <th data-i18n="email">Email</th>
+                    <th data-i18n="address">Address</th>
+                    <th data-i18n="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="suppliers-table-body">
+                {% for supplier in suppliers %}
+                {% include "suppliers/row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

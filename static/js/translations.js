@@ -107,6 +107,7 @@ const translations = {
 
         // Suppliers
         addSupplier: "Add Supplier",
+        editSupplier: "Edit Supplier",
         searchSuppliers: "Search suppliers...",
         companyName: "Company Name",
         contactPerson: "Contact Person",
@@ -238,6 +239,7 @@ const translations = {
 
         // Suppliers
         addSupplier: "Добавить поставщика",
+        editSupplier: "Редактировать поставщика",
         searchSuppliers: "Поиск поставщиков...",
         companyName: "Название компании",
         contactPerson: "Контактное лицо",

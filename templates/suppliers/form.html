@@ -1,0 +1,46 @@
+<div id="supplier-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="close" onclick="document.getElementById('supplier-modal').remove()">&times;</button>
+        <h2 data-i18n="{% if supplier %}editSupplier{% else %}addSupplier{% endif %}">{% if supplier %}Edit Supplier{%
+            else %}Add Supplier{% endif %}</h2>
+
+        <form {% if supplier %}hx-put="/api/suppliers/{{ supplier.id }}" {% else %}hx-post="/api/suppliers" {% endif %}
+            hx-target="#suppliers-table-body" hx-swap="beforeend" {% if supplier %} hx-swap="outerHTML"
+            hx-target="#supplier-row-{{ supplier.id }}" {% endif %}
+            hx-on::after-request="if(event.detail.successful) document.getElementById('supplier-modal').remove()">
+
+            <div class="form-group">
+                <label data-i18n="companyName">Name</label>
+                <input type="text" name="name" required value="{{ supplier.name if supplier else '' }}"
+                    placeholder="Company Name" data-i18n="companyName">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-i18n="contactPerson">Contact Person</label>
+                    <input type="text" name="contact_person"
+                        value="{{ supplier.contact_person if supplier and supplier.contact_person else '' }}">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="phone">Phone</label>
+                    <input type="text" name="phone" value="{{ supplier.phone if supplier and supplier.phone else '' }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="email">Email</label>
+                <input type="email" name="email" value="{{ supplier.email if supplier and supplier.email else '' }}">
+            </div>
+            <div class="form-group">
+                <label data-i18n="address">Address</label>
+                <input type="text" name="address"
+                    value="{{ supplier.address if supplier and supplier.address else '' }}">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('supplier-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="saveSupplier">{% if supplier %}Update{% else
+                    %}Create{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
