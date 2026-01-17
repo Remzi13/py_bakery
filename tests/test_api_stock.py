@@ -1,36 +1,32 @@
-from fastapi.testclient import TestClient
-from main import app
 import urllib.parse
 
-client = TestClient(app)
-
-def test_read_stock_json():
+def test_read_stock_json(client):
     response = client.get("/api/stock/")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     data = response.json()
     assert isinstance(data, list)
 
-def test_read_stock_htmx():
+def test_read_stock_htmx(client):
     response = client.get("/api/stock/", headers={"HX-Request": "true"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<table" in response.text 
 
-def test_read_stock_browser():
+def test_read_stock_browser(client):
     response = client.get("/api/stock/", headers={"Accept": "text/html"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<html" in response.text
     assert "<table" in response.text
 
-def test_get_new_stock_form():
+def test_get_new_stock_form(client):
     response = client.get("/api/stock/new")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<form" in response.text
 
-def test_create_stock_item_json():
+def test_create_stock_item_json(client):
     # Setup
     item_name = "JSON Stock Item"
     
@@ -47,7 +43,7 @@ def test_create_stock_item_json():
     # Cleanup
     client.delete(f"/api/stock/{item_name}")
 
-def test_create_stock_item_form():
+def test_create_stock_item_form(client):
     item_name = "HTML Stock Item"
     form_data = {
         "name": item_name,
@@ -64,7 +60,7 @@ def test_create_stock_item_form():
     # Cleanup
     client.delete(f"/api/stock/{item_name}")
 
-def test_update_stock_quantity_set_form():
+def test_update_stock_quantity_set_form(client):
     # Setup
     item_name = "Update Stock Item"
     payload = {

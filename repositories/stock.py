@@ -2,7 +2,7 @@ import sqlite3
 from typing import Optional, List, Any
 
 from sql_model.entities import StockItem
-from sql_model.database import create_connection, get_unit_by_name
+from sql_model.database import get_unit_by_name
 from sql_model.database import INITIAL_STOCK_CATEGORIES # Для получения имен категорий
 
 

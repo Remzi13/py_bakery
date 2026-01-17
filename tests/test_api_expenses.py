@@ -1,9 +1,4 @@
-from fastapi.testclient import TestClient
-from main import app
-
-client = TestClient(app)
-
-def test_read_expenses_json():
+def test_read_expenses_json(client):
     response = client.get("/api/expenses/documents")
     assert response.status_code == 200
     # Response model is list of ExpenseDocumentResponse
@@ -15,13 +10,13 @@ def test_read_expenses_json():
     data = response.json()
     assert isinstance(data, list)
 
-def test_read_expenses_htmx():
+def test_read_expenses_htmx(client):
     response = client.get("/api/expenses/documents", headers={"HX-Request": "true"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<table" in response.text
 
-def test_get_new_expense_form():
+def test_get_new_expense_form(client):
     response = client.get("/api/expenses/documents/new")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
@@ -30,7 +25,7 @@ def test_get_new_expense_form():
 
 import uuid
 
-def test_create_expense_document_json():
+def test_create_expense_document_json(client):
     uid = str(uuid.uuid4())[:8]
     # Setup - need a supplier
     supplier_payload = {
@@ -78,7 +73,7 @@ def test_create_expense_document_json():
     assert response.status_code == 200, f"Doc creation failed: {response.text}"
     assert "success" in response.json()["message"]
 
-def test_create_expense_document_form():
+def test_create_expense_document_form(client):
     uid = str(uuid.uuid4())[:8]
     # Create Supplier
     s_res = client.post("/api/suppliers/", json={
@@ -119,7 +114,7 @@ def test_create_expense_document_form():
     assert f"HTML Supplier {uid}" in response.text # Row returned with supplier name
     assert "<tr" in response.text
 
-def test_category_and_type_forms():
+def test_category_and_type_forms(client):
     # Test Forms GET
     r_cat = client.get("/api/expenses/categories/new")
     assert r_cat.status_code == 200

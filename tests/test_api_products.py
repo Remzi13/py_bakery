@@ -1,31 +1,24 @@
-from fastapi.testclient import TestClient
-from main import app
-from tests.core import SQLiteModel  # Assuming this fixture setup is reusable or I mock it
-# Note: integration tests using TestClient need the app dependencies setup. 
-# Depending on how 'get_model' is overridden in tests.
 
-client = TestClient(app)
-
-def test_read_products_json():
+def test_read_products_json(client):
     response = client.get("/api/products/")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"
     data = response.json()
     assert isinstance(data, list)
 
-def test_read_products_htmx():
+def test_read_products_htmx(client):
     response = client.get("/api/products/", headers={"HX-Request": "true"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<table" in response.text # Should contain table from list.html
 
-def test_read_products_htmx_row_only():
+def test_read_products_htmx_row_only(client):
     response = client.get("/api/products/", headers={"HX-Request": "true", "HX-Target": "products-table-body"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<thead>" not in response.text # Should not contain table header
 
-def test_read_products_browser():
+def test_read_products_browser(client):
     response = client.get("/api/products/", headers={"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"})
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
@@ -33,13 +26,13 @@ def test_read_products_browser():
     assert "<table" in response.text
     # It might be empty if no products, but shouldn't be full page
 
-def test_get_new_product_form():
+def test_get_new_product_form(client):
     response = client.get("/api/products/new")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<form" in response.text
 
-def test_create_product_json():
+def test_create_product_json(client):
     # Setup: ensure materials exist if validated?
     # The current create_product allows blank materials?
     
@@ -55,7 +48,7 @@ def test_create_product_json():
     # Cleanup
     client.delete(f"/api/products/JSON Product")
 
-def test_create_product_form():
+def test_create_product_form(client):
     form_data = {
         "name": "HTML Product",
         "price": "20.0"
