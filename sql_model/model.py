@@ -25,9 +25,6 @@ class SQLAlchemyModel:
         Initializes the SQLAlchemy Model.
         Creates database tables if they don't exist.
         """
-        # Initialize database (create tables and populate reference data)
-        init_db()
-        
         # Create session
         self.db: Session = SessionLocal()
         

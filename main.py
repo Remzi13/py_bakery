@@ -2,10 +2,14 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard
+from sql_model.database import init_db
 
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="Bakery Manager API")
+
+# Initialize database once at startup
+init_db()
 
 templates = Jinja2Templates(directory="templates")
 
