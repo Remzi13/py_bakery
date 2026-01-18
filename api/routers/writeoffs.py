@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from pydantic import BaseModel
 from api.dependencies import get_model
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 from sql_model.entities import WriteOff
 
 router = APIRouter(prefix="/api/writeoffs", tags=["writeoffs"])
@@ -31,7 +31,7 @@ async def get_writeoffs(
     request: Request,
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     accept: Optional[str] = Header(None, alias="Accept"),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         data = model.writeoffs().data()
@@ -60,14 +60,14 @@ async def get_writeoffs(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/new", response_class=HTMLResponse)
-async def get_new_writeoff_form(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_new_writeoff_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     categories = model.utils().get_stock_category_names()
     return templates.TemplateResponse(request, "writeoffs/form.html", {"categories": categories})
 
 @router.post("/", response_model=WriteOffRead)
 async def add_writeoff(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # JSON Support

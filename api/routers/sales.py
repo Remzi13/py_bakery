@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from api.dependencies import get_model
 from api.models import Sale, SaleCreate
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/sales", tags=["sales"])
 templates = Jinja2Templates(directory="templates")
@@ -15,7 +15,7 @@ async def get_sales(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     search: Optional[str] = Query(None),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         if search:
@@ -33,14 +33,14 @@ async def get_sales(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/new", response_class=HTMLResponse)
-async def get_new_sale_form(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_new_sale_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     products = model.products().data()
     return templates.TemplateResponse(request, "sales/form.html", {"products": products})
 
 @router.post("/")
 async def create_sale(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # Check if it's a JSON request (backward compatibility) or Form request (HTMX)

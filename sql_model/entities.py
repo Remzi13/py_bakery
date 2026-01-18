@@ -1,129 +1,251 @@
+"""SQLAlchemy ORM models for the bakery management system."""
+
 from datetime import datetime
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime, Table
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sql_model.database import Base
 
-# --- Структуры данных для использования с базой данных (SQLite) ---
 
-# В dataclass мы теперь храним ID связанных сущностей (int), 
-# а не их числовые константы, как раньше.
+# Association table for Product-Stock relationship (many-to-many)
+product_stock_association = Table(
+    'product_stock',
+    Base.metadata,
+    Column('product_id', Integer, ForeignKey('products.id', ondelete='CASCADE'), primary_key=True),
+    Column('stock_id', Integer, ForeignKey('stock.id', ondelete='RESTRICT'), primary_key=True),
+    Column('quantity', Float, nullable=False),
+)
 
-@dataclass(frozen=True)
-class Product:
-    """Готовый продукт для продажи."""
-    name: str
-    price: float
-    # Ингредиенты хранятся в отдельной таблице 'product_stock'
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
-@dataclass
-class StockItem:
-    """Инвентарь/Запас (изменяемый)."""
-    name: str
-    category_id: int # Ссылка на ID из таблицы 'stock_categories'
-    quantity: float
-    unit_id: int     # Ссылка на ID из таблицы 'units'
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
+class Unit(Base):
+    """Единица измерения (kg, g, l, pc)."""
+    __tablename__ = "units"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    
+    # Relationships
+    stock_items: Mapped[List["StockItem"]] = relationship("StockItem", back_populates="unit")
+    write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="unit")
+    expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="unit")
+    
+    def __repr__(self):
+        return f"<Unit(id={self.id}, name={self.name})>"
 
-@dataclass(frozen=True)
-class Sale:
-    """Проданный продукт."""
-    product_id: int # Ссылка на ID продукта из таблицы 'products'
-    product_name: str
-    price: float
-    quantity: float    
-    discount : int # percent
-    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
-@dataclass(frozen=True)
-class ExpenseType:
-    """Тип расхода (например, 'Аренда', 'Мука')."""
-    name: str
-    default_price: float
-    category_id: int    # Ссылка на ID из таблицы 'expense_categories'
-    stock: bool = False # Хранить на складе или нет
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
+class StockCategory(Base):
+    """Категория запасов (Materials, Packaging, Equipment)."""
+    __tablename__ = "stock_categories"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    
+    # Relationships
+    stock_items: Mapped[List["StockItem"]] = relationship("StockItem", back_populates="category")
+    
+    def __repr__(self):
+        return f"<StockCategory(id={self.id}, name={self.name})>"
 
-@dataclass(frozen=True)
-class Supplier:
-    """Поставщик сырья или услуг."""
-    name: str
-    contact_person: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    address: Optional[str] = None
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
 
-@dataclass(frozen=True)
-class WriteOff:
-    """Запись о списании (готового продукта или сырья/запаса)."""
-    quantity: float # <-- Изменили на FLOAT
-    reason: str 
-
-    id: Optional[int] = None # ID из БД (PRIMARY KEY)
-    # Списание: либо продукт, либо ингредиент/запас (не оба сразу)
-    product_id: Optional[int] = None # Ссылка на ID продукта (для готовой продукции)
-    stock_item_id: Optional[int] = None # Ссылка на ID StockItem (для сырья, упаковки, оборудования)
-    # Дополнительное поле для удобства:
-    unit_id: Optional[int] = None # Единица измерения списанного запаса
-    date: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
-
-# --- Структуры данных для справочников (новые, для работы с БД) ---
-
-@dataclass(frozen=True)
-class Unit:
-    """Единица измерения."""
-    name: str
-    id: Optional[int] = None 
-
-@dataclass(frozen=True)
-class StockCategory:
-    """Категория запасов."""
-    name: str
-    id: Optional[int] = None 
-
-@dataclass(frozen=True)
-class ExpenseCategory:
+class ExpenseCategory(Base):
     """Категория финансовых расходов."""
-    name: str
-    id: Optional[int] = None
+    __tablename__ = "expense_categories"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    
+    # Relationships
+    expense_types: Mapped[List["ExpenseType"]] = relationship("ExpenseType", back_populates="category")
+    
+    def __repr__(self):
+        return f"<ExpenseCategory(id={self.id}, name={self.name})>"
 
-@dataclass
-class Order:
+
+class Product(Base):
+    """Готовый продукт для продажи."""
+    __tablename__ = "products"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    price: Mapped[float] = mapped_column(Integer, nullable=False)
+    
+    # Relationships
+    sales: Mapped[List["Sale"]] = relationship("Sale", back_populates="product")
+    write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="product")
+    order_items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="product")
+    
+    def __repr__(self):
+        return f"<Product(id={self.id}, name={self.name}, price={self.price})>"
+
+
+class StockItem(Base):
+    """Инвентарь/Запас."""
+    __tablename__ = "stock"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey('stock_categories.id'), nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
+    
+    # Relationships
+    category: Mapped["StockCategory"] = relationship("StockCategory", back_populates="stock_items")
+    unit: Mapped["Unit"] = relationship("Unit", back_populates="stock_items")
+    write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="stock_item")
+    expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="stock_item")
+    
+    def __repr__(self):
+        return f"<StockItem(id={self.id}, name={self.name}, quantity={self.quantity})>"
+
+
+class Sale(Base):
+    """Проданный продукт."""
+    __tablename__ = "sales"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
+    product_name: Mapped[str] = mapped_column(String, nullable=False)
+    price: Mapped[float] = mapped_column(Integer, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    discount: Mapped[int] = mapped_column(Integer, nullable=False)
+    date: Mapped[str] = mapped_column(String, nullable=False)
+    
+    # Relationships
+    product: Mapped["Product"] = relationship("Product", back_populates="sales")
+    
+    def __repr__(self):
+        return f"<Sale(id={self.id}, product_id={self.product_id}, quantity={self.quantity})>"
+
+
+class ExpenseType(Base):
+    """Тип расхода (например, 'Аренда', 'Мука')."""
+    __tablename__ = "expense_types"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    default_price: Mapped[float] = mapped_column(Integer, nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_categories.id'), nullable=False)
+    stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    
+    # Relationships
+    category: Mapped["ExpenseCategory"] = relationship("ExpenseCategory", back_populates="expense_types")
+    expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="expense_type")
+    
+    def __repr__(self):
+        return f"<ExpenseType(id={self.id}, name={self.name}, default_price={self.default_price})>"
+
+
+class Supplier(Base):
+    """Поставщик сырья или услуг."""
+    __tablename__ = "suppliers"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    contact_person: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    # Relationships
+    expense_documents: Mapped[List["ExpenseDocument"]] = relationship("ExpenseDocument", back_populates="supplier")
+    
+    def __repr__(self):
+        return f"<Supplier(id={self.id}, name={self.name})>"
+
+
+class WriteOff(Base):
+    """Запись о списании (готового продукта или сырья/запаса)."""
+    __tablename__ = "writeoffs"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('products.id'), nullable=True)
+    stock_item_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('stock.id'), nullable=True)
+    unit_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('units.id'), nullable=True)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    reason: Mapped[str] = mapped_column(String, nullable=False)
+    date: Mapped[str] = mapped_column(String, nullable=False)
+    
+    # Relationships
+    product: Mapped[Optional["Product"]] = relationship("Product", back_populates="write_offs")
+    stock_item: Mapped[Optional["StockItem"]] = relationship("StockItem", back_populates="write_offs")
+    unit: Mapped[Optional["Unit"]] = relationship("Unit", back_populates="write_offs")
+    
+    def __repr__(self):
+        return f"<WriteOff(id={self.id}, quantity={self.quantity}, reason={self.reason})>"
+
+
+class Order(Base):
     """Заказ с отложенным выполнением."""
-    created_date: str
-    status: str  # 'pending' or 'completed'
-    completion_date: Optional[str] = None
-    additional_info: Optional[str] = None
-    id: Optional[int] = None
+    __tablename__ = "orders"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_date: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)  # 'pending' or 'completed'
+    completion_date: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    additional_info: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    # Relationships
+    items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="order")
+    
+    def __repr__(self):
+        return f"<Order(id={self.id}, status={self.status}, created_date={self.created_date})>"
 
-@dataclass
-class OrderItem:
+
+class OrderItem(Base):
     """Позиция в заказе."""
-    order_id: int
-    product_id: int
-    product_name: str
-    quantity: float
-    price: float
-    id: Optional[int] = None
+    __tablename__ = "order_items"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(Integer, ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    product_id: Mapped[int] = mapped_column(Integer, ForeignKey('products.id'), nullable=False)
+    product_name: Mapped[str] = mapped_column(String, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    price: Mapped[float] = mapped_column(Integer, nullable=False)
+    
+    # Relationships
+    order: Mapped["Order"] = relationship("Order", back_populates="items")
+    product: Mapped["Product"] = relationship("Product", back_populates="order_items")
+    
+    def __repr__(self):
+        return f"<OrderItem(id={self.id}, order_id={self.order_id}, product_id={self.product_id})>"
 
-@dataclass
-class ExpenseDocument:
+
+class ExpenseDocument(Base):
     """Документ о закупке (чек/накладная)."""
-    date: str
-    supplier_id: int
-    total_amount: float
-    comment: Optional[str] = None
-    id: Optional[int] = None
+    __tablename__ = "expense_documents"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    date: Mapped[str] = mapped_column(String, nullable=False)
+    supplier_id: Mapped[int] = mapped_column(Integer, ForeignKey('suppliers.id'), nullable=False)
+    total_amount: Mapped[float] = mapped_column(Integer, nullable=False)
+    comment: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    # Relationships
+    supplier: Mapped["Supplier"] = relationship("Supplier", back_populates="expense_documents")
+    items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="document")
+    
+    def __repr__(self):
+        return f"<ExpenseDocument(id={self.id}, supplier_id={self.supplier_id}, total_amount={self.total_amount})>"
 
-@dataclass
-class ExpenseItem:
+
+class ExpenseItem(Base):
     """Позиция в документе о закупке."""
-    document_id: int
-    expense_type_id: int
-    stock_item_id: Optional[int] # Может быть NULL, если это не складская позиция
-    unit_id: int
-    quantity: float
-    price_per_unit: float
-    total_price: float
-    id: Optional[int] = None
+    __tablename__ = "expense_items"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_documents.id', ondelete='CASCADE'), nullable=False)
+    expense_type_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_types.id'), nullable=False)
+    stock_item_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('stock.id'), nullable=True)
+    unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    price_per_unit: Mapped[float] = mapped_column(Integer, nullable=False)
+    total_price: Mapped[float] = mapped_column(Integer, nullable=False)
+    
+    # Relationships
+    document: Mapped["ExpenseDocument"] = relationship("ExpenseDocument", back_populates="items")
+    expense_type: Mapped["ExpenseType"] = relationship("ExpenseType", back_populates="expense_items")
+    stock_item: Mapped[Optional["StockItem"]] = relationship("StockItem", back_populates="expense_items")
+    unit: Mapped["Unit"] = relationship("Unit", back_populates="expense_items")
+    
+    def __repr__(self):
+        return f"<ExpenseItem(id={self.id}, document_id={self.document_id}, quantity={self.quantity})>"

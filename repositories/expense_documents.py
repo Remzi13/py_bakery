@@ -1,190 +1,199 @@
-import sqlite3
 from typing import List, Dict, Optional, Any
-from sql_model.entities import ExpenseDocument, ExpenseItem
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from sql_model.entities import ExpenseDocument, ExpenseItem, ExpenseType, StockItem, StockCategory, Unit, Supplier
+
 
 class ExpenseDocumentsRepository:
-    def __init__(self, conn: sqlite3.Connection, model_instance: Any):
-        self._conn = conn
+    """Repository for ExpenseDocument entities using SQLAlchemy ORM."""
+    
+    def __init__(self, db: Session, model_instance: Any):
+        self.db = db
         self._model = model_instance
 
     def add(self, date: str, supplier_id: int, total_amount: float, comment: str, items: List[Dict[str, Any]]) -> int:
         """
-        Создает документ расхода и связанные позиции.
-        Автоматически пополняет склад, если тип расхода помечен как 'stock'.
+        Create an expense document and related items.
+        Automatically replenishes stock if expense type is marked as 'stock'.
         
         Args:
-            items: Список словарей [{'expense_type_id': int, 'quantity': float, 'price_per_unit': int, 'unit_id': int}]
+            items: List of dicts [{'expense_type_id': int, 'quantity': float, 'price_per_unit': int, 'unit_id': int}]
         """
-        cursor = self._conn.cursor()
         try:
-             # 1. Создаем документ
-             cursor.execute("""
-                INSERT INTO expense_documents (date, supplier_id, total_amount, comment) 
-                VALUES (?, ?, ?, ?)
-             """, (date, supplier_id, total_amount, comment))
-             
-             doc_id = cursor.lastrowid
-             
-             # 2. Добавляем позиции
-             for item in items:
-                 self._add_item(cursor, doc_id, item)
-
-             self._conn.commit()
-             return doc_id
+            # 1. Create document
+            document = ExpenseDocument(
+                date=date,
+                supplier_id=supplier_id,
+                total_amount=total_amount,
+                comment=comment
+            )
+            self.db.add(document)
+            self.db.flush()
+            doc_id = document.id
+            
+            # 2. Add items
+            for item in items:
+                self._add_item(doc_id, item)
+            
+            self.db.commit()
+            return doc_id
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
             raise e
 
-    def _add_item(self, cursor: sqlite3.Cursor, doc_id: int, item_data: Dict[str, Any]):
+    def _add_item(self, doc_id: int, item_data: Dict[str, Any]):
+        """Add a single item to expense document."""
         exp_type_id = item_data['expense_type_id']
         quantity = item_data['quantity']
         price = item_data['price_per_unit']
         unit_id = item_data['unit_id']
         
-        # Получаем информацию о типе расхода
-        cursor.execute("SELECT name, stock, category_id FROM expense_types WHERE id = ?", (exp_type_id,))
-        et_row = cursor.fetchone()
-        if not et_row:
-             raise ValueError(f"Expense Type ID {exp_type_id} not found")
+        # Get expense type info
+        exp_type = self.db.query(ExpenseType).filter(ExpenseType.id == exp_type_id).first()
+        if not exp_type:
+            raise ValueError(f"Expense Type ID {exp_type_id} not found")
         
-        et_name = et_row[0]
-        et_stock = bool(et_row[1]) if et_row[1] is not None else False
-        et_cat_id = et_row[2]
-
         stock_item_id = None
         
-        # Логика пополнения склада
-        if et_stock:
-             # Ищем товар на складе по имени
-             cursor.execute("SELECT id FROM stock WHERE name = ?", (et_name,))
-             stock_row = cursor.fetchone()
-             
-             if stock_row:
-                 # Обновляем существующий
-                 stock_item_id = stock_row[0]
-                 cursor.execute("UPDATE stock SET quantity = quantity + ? WHERE id = ?", (quantity, stock_item_id))
-             else:
-                 # Создаем новый товар на складе
-                 # Пытаемся сопоставить категорию расхода с категорией склада по имени
-                 cursor.execute("SELECT name FROM expense_categories WHERE id = ?", (et_cat_id,))
-                 ec_name = cursor.fetchone()[0]
-                 
-                 cursor.execute("SELECT id FROM stock_categories WHERE name = ?", (ec_name,))
-                 sc_row = cursor.fetchone()
-                 
-                 # Если категории совпадают (например 'Materials'), берем ID. 
-                 # Если нет — берем первую попавшуюся (например Materials, id=1) или создаем ошибку?
-                 # Для надежности используем ID=1 (Materials) как дефолт.
-                 sc_id = sc_row[0] if sc_row else 1 
-                 
-                 cursor.execute("""
-                    INSERT INTO stock (name, category_id, quantity, unit_id) 
-                    VALUES (?, ?, ?, ?)
-                 """, (et_name, sc_id, quantity, unit_id))
-                 
-                 stock_item_id = cursor.lastrowid
+        # Logic for stock replenishment
+        if exp_type.stock:
+            # Search for item in stock by name
+            stock_item = self.db.query(StockItem).filter(StockItem.name == exp_type.name).first()
+            
+            if stock_item:
+                # Update existing
+                stock_item_id = stock_item.id
+                stock_item.quantity += quantity
+            else:
+                # Create new stock item
+                category = self.db.query(ExpenseCategory).filter(
+                    ExpenseCategory.id == exp_type.category_id
+                ).first()
+                
+                # Try to match category names
+                stock_category = self.db.query(StockCategory).filter(
+                    StockCategory.name == (category.name if category else 'Materials')
+                ).first()
+                
+                # Use Materials (id=1) as default if not found
+                sc_id = stock_category.id if stock_category else 1
+                
+                unit = self.db.query(Unit).filter(Unit.id == unit_id).first()
+                if not unit:
+                    raise ValueError(f"Unit ID {unit_id} not found")
+                
+                new_stock = StockItem(
+                    name=exp_type.name,
+                    category_id=sc_id,
+                    quantity=quantity,
+                    unit_id=unit_id
+                )
+                self.db.add(new_stock)
+                self.db.flush()
+                stock_item_id = new_stock.id
         
-        # Добавляем запись в expense_items
+        # Add expense item record
         total_price = quantity * price
-        cursor.execute("""
-            INSERT INTO expense_items 
-            (document_id, expense_type_id, stock_item_id, unit_id, quantity, price_per_unit, total_price)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (doc_id, exp_type_id, stock_item_id, unit_id, quantity, price, total_price))
+        expense_item = ExpenseItem(
+            document_id=doc_id,
+            expense_type_id=exp_type_id,
+            stock_item_id=stock_item_id,
+            unit_id=unit_id,
+            quantity=quantity,
+            price_per_unit=price,
+            total_price=total_price
+        )
+        self.db.add(expense_item)
 
     def get_documents_with_details(self) -> List[Dict[str, Any]]:
-        """Возвращает список документов с именем поставщика и количеством позиций."""
-        cursor = self._conn.cursor()
-        cursor.execute("""
-            SELECT d.id, d.date, d.total_amount, d.comment, s.name as supplier_name, COUNT(i.id) as items_count
-            FROM expense_documents d
-            LEFT JOIN suppliers s ON d.supplier_id = s.id
-            LEFT JOIN expense_items i ON d.id = i.document_id
-            GROUP BY d.id
-            ORDER BY d.date DESC
-        """)
-        rows = cursor.fetchall()
+        """Return list of documents with supplier name and item count."""
+        # Импортируйте модель Supplier, если она еще не импортирована
+        results = self.db.query(
+            ExpenseDocument.id,
+            ExpenseDocument.date,
+            ExpenseDocument.total_amount,
+            ExpenseDocument.comment,
+            Supplier.name.label('supplier_name'), # Выбираем сразу имя
+            func.count(ExpenseItem.id).label('items_count')
+        ).join(Supplier, ExpenseDocument.supplier_id == Supplier.id) \
+         .outerjoin(ExpenseItem) \
+         .group_by(ExpenseDocument.id, Supplier.name) \
+         .order_by(ExpenseDocument.date.desc()).all()
+        
         result = []
-        for row in rows:
+        for row in results:
             result.append({
-                "id": row[0],
-                "date": row[1],
-                "total_amount": row[2],
-                "comment": row[3],
-                "supplier_name": row[4],
-                "items_count": row[5]
+                "id": row.id,
+                "date": row.date,
+                "total_amount": row.total_amount,
+                "comment": row.comment,
+                "supplier_name": row.supplier_name,
+                "items_count": row.items_count
             })
         return result
 
     def get_document_items(self, document_id: int) -> List[Dict[str, Any]]:
-        """Возвращает позиции конкретного документа."""
-        cursor = self._conn.cursor()
-        cursor.execute("""
-            SELECT i.id, i.quantity, i.price_per_unit, i.total_price, et.name as expense_type_name, u.name as unit_name
-            FROM expense_items i
-            JOIN expense_types et ON i.expense_type_id = et.id
-            JOIN units u ON i.unit_id = u.id
-            WHERE i.document_id = ?
-        """, (document_id,))
+        """Return items for a specific document."""
+        items = self.db.query(ExpenseItem).filter(
+            ExpenseItem.document_id == document_id
+        ).all()
         
-        rows = cursor.fetchall()
         result = []
-        for row in rows:
+        for item in items:
             result.append({
-                "id": row[0],
-                "quantity": row[1],
-                "price_per_unit": row[2],
-                "total_price": row[3],
-                "expense_type_name": row[4],
-                "unit_name": row[5]
+                "id": item.id,
+                "quantity": item.quantity,
+                "price_per_unit": item.price_per_unit,
+                "total_price": item.total_price,
+                "expense_type_name": item.expense_type.name if item.expense_type else None,
+                "unit_name": item.unit.name if item.unit else None
             })
         return result
 
     def delete(self, document_id: int) -> bool:
         """
-        Удаляет документ расхода и откатывает изменения на складе.
-        Для элементов с stock=true вычитает количество из склада.
+        Delete expense document and rollback stock changes.
+        For items with stock=true, deducts quantity from stock.
         """
-        cursor = self._conn.cursor()
         try:
-            # 1. Получаем все позиции документа с информацией о stock
-            cursor.execute("""
-                SELECT i.id, i.quantity, i.stock_item_id, et.stock, et.name
-                FROM expense_items i
-                JOIN expense_types et ON i.expense_type_id = et.id
-                WHERE i.document_id = ?
-            """, (document_id,))
+            # 1. Get all items with stock info
+            items = self.db.query(ExpenseItem).filter(
+                ExpenseItem.document_id == document_id
+            ).all()
             
-            items = cursor.fetchall()
-            
-            # 2. Откатываем изменения на складе
+            # 2. Rollback stock changes
             for item in items:
-                item_id, quantity, stock_item_id, is_stock, et_name = item
-                
-                if is_stock and stock_item_id:
-                    # Вычитаем количество из склада
-                    cursor.execute("""
-                        UPDATE stock 
-                        SET quantity = quantity - ? 
-                        WHERE id = ?
-                    """, (quantity, stock_item_id))
-                    
-                    # Проверяем, не стало ли количество отрицательным
-                    cursor.execute("SELECT quantity FROM stock WHERE id = ?", (stock_item_id,))
-                    current_qty = cursor.fetchone()[0]
-                    
-                    if current_qty < 0:
-                        raise ValueError(f"Cannot delete document: would result in negative stock for '{et_name}'")
+                if item.expense_type.stock and item.stock_item_id:
+                    # Deduct from stock
+                    stock_item = self.db.query(StockItem).filter(
+                        StockItem.id == item.stock_item_id
+                    ).first()
+                    if stock_item:
+                        stock_item.quantity -= item.quantity
+                        
+                        # Check for negative stock
+                        if stock_item.quantity < 0:
+                            raise ValueError(
+                                f"Cannot delete document: would result in negative stock "
+                                f"for '{stock_item.name}'"
+                            )
             
-            # 3. Удаляем позиции документа
-            cursor.execute("DELETE FROM expense_items WHERE document_id = ?", (document_id,))
+            # 3. Delete expense items
+            self.db.query(ExpenseItem).filter(
+                ExpenseItem.document_id == document_id
+            ).delete()
             
-            # 4. Удаляем сам документ
-            cursor.execute("DELETE FROM expense_documents WHERE id = ?", (document_id,))
+            # 4. Delete document
+            document = self.db.query(ExpenseDocument).filter(
+                ExpenseDocument.id == document_id
+            ).first()
+            if document:
+                self.db.delete(document)
             
-            self._conn.commit()
+            self.db.commit()
             return True
             
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
             raise e

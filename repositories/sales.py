@@ -1,115 +1,87 @@
-import sqlite3
 from typing import Optional, List, Any
+from datetime import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from sql_model.entities import Sale
-from repositories.products import ProductsRepository
-from repositories.stock import StockRepository
 
-from datetime import datetime
 
 class SalesRepository:
+    """Repository for Sale entities using SQLAlchemy ORM."""
 
-    def __init__(self, conn: sqlite3.Connection, model_instance: Any):
-        self._conn = conn
-        self._model = model_instance # Ссылка на Model для доступа к Products и Stock
+    def __init__(self, db: Session, model_instance: Any):
+        self.db = db
+        self._model = model_instance  # Reference to Model for accessing Products and Stock
 
-    # --- Вспомогательные методы ---
-
-    def _row_to_entity(self, row: sqlite3.Row) -> Optional[Sale]:
-        """Преобразует строку из БД в объект Sale."""
-        if row is None:
-            return None
-        return Sale(
-            id=row['id'],
-            product_id=row['product_id'],
-            product_name=row['product_name'],
-            price=row['price'],
-            quantity=row['quantity'],
-            discount=row['discount'],
-            date=row['date']
-        )
-
-    # --- CRUD/Логические Методы ---
+    # --- CRUD/Logic Methods ---
 
     def add(self, name: str, price: int, quantity: float, discount: int):
         """
-        Регистрирует продажу и списывает необходимые ингредиенты со склада.
+        Register a sale and deduct necessary ingredients from stock.
         """
-        cursor = self._conn.cursor()
-        
-        # 1. Получаем продукт и его рецепт
+        # Get product and recipe
         product = self._model.products().by_name(name)
         if not product:
-            raise ValueError(f"Продукт '{name}' не найден.")
+            raise ValueError(f"Product '{name}' not found.")
             
-        # 2. Получаем рецепт (словарь ингредиентов с количеством)
-        # Мы используем ProductsRepository.get_materials_for_product для получения рецепта
+        # Get recipe (list of ingredients with quantities)
         recipe = self._model.products().get_materials_for_product(product.id)
         if not recipe:
-            raise ValueError(f"Продукт '{name}' не имеет рецепта, продажа невозможна.")
+            raise ValueError(f"Product '{name}' has no recipe. Cannot sell.")
 
         try:
-            # 3. Списываем ингредиенты со склада
+            # Deduct ingredients from stock
             stock_repo = self._model.stock()
             
             for item in recipe:
                 ing_name = item['name']
-                ing_quantity_needed = item['quantity'] * quantity # Общее количество на всю продажу
+                ing_quantity_needed = item['quantity'] * quantity  # Total for all sales
                 
-                # Обновляем запас (отрицательное изменение)
-                # StockRepository.update() содержит проверку на отрицательный остаток
+                # Update stock (negative change)
                 stock_repo.update(ing_name, -ing_quantity_needed)
 
-            # 4. Записываем факт продажи
-            cursor.execute(
-                """
-                INSERT INTO sales (product_id, product_name, price, quantity, discount, date) 
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (product.id, name, price, quantity, discount, datetime.now().strftime("%Y-%m-%d %H:%M")) # Sale.date использует default_factory в dataclass
+            # Record the sale
+            sale = Sale(
+                product_id=product.id,
+                product_name=name,
+                price=price,
+                quantity=quantity,
+                discount=discount,
+                date=datetime.now().strftime("%Y-%m-%d %H:%M")
             )
-            self._conn.commit()
+            self.db.add(sale)
+            self.db.commit()
 
         except ValueError as e:
-            # Откат транзакции, если не хватило запасов (проверка в stock_repo.update)
-            self._conn.rollback()
+            self.db.rollback()
             raise e
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
             raise e
 
     def data(self) -> List[Sale]:
-        """Возвращает список всех продаж."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT * FROM sales ORDER BY date DESC")
-        return [self._row_to_entity(row) for row in cursor.fetchall()]
+        """Return list of all sales."""
+        return self.db.query(Sale).order_by(Sale.date.desc()).all()
     
     def search(self, query: str) -> List[Sale]:
-        """Поиск продаж по названию продукта или дате."""
-        cursor = self._conn.cursor()
-        search_pattern = f"%{query}%"
-        cursor.execute(
-            """
-            SELECT * FROM sales 
-            WHERE product_name LIKE ? 
-               OR date LIKE ?
-            ORDER BY date DESC
-            """,
-            (search_pattern, search_pattern)
-        )
-        return [self._row_to_entity(row) for row in cursor.fetchall()]
+        """Search sales by product name or date."""
+        return self.db.query(Sale).filter(
+            (Sale.product_name.ilike(f"%{query}%")) |
+            (Sale.date.ilike(f"%{query}%"))
+        ).order_by(Sale.date.desc()).all()
     
     def salesByProduct(self):
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT product_id, product_name, SUM(price * quantity) AS total_price FROM sales GROUP BY product_id, product_name;")
-        return cursor.fetchall()
+        """Get sales grouped by product with total price."""
+        return self.db.query(
+            Sale.product_id,
+            Sale.product_name,
+            func.sum(Sale.price * Sale.quantity).label('total_price')
+        ).group_by(Sale.product_id, Sale.product_name).all()
         
     def len(self) -> int:
-        """Возвращает количество продаж."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM sales")
-        return cursor.fetchone()[0]
+        """Return count of sales."""
+        return self.db.query(Sale).count()
     
     def empty(self) -> bool:
-        """Проверяет, пуст ли репозиторий."""
+        """Check if repository is empty."""
         return self.len() == 0

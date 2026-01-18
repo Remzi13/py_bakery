@@ -1,8 +1,7 @@
 import pytest
-import sqlite3
 
 from tests.core import SQLiteModel, model, conn
-from tests.core import conn, get_unit_by_name, sqlite3, SQLiteModel, TEST_DB
+from tests.core import conn, get_unit_by_name, SQLiteModel, TEST_DB
 
 from repositories.stock import StockRepository
 class TestStockRepository:

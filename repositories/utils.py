@@ -1,65 +1,52 @@
-import sqlite3
 from typing import List, Dict, Any, Optional
+from sqlalchemy.orm import Session
+
+from sql_model.entities import Unit, StockCategory, ExpenseCategory
+
 
 class UtilsRepository:
-    """Репозиторий для доступа к справочным таблицам (Units, Categories)."""
+    """Repository for access to reference tables (Units, Categories)."""
 
-    def __init__(self, conn: sqlite3.Connection):
-        self._conn = conn
+    def __init__(self, db: Session):
+        self.db = db
 
     def get_unit_names(self) -> List[str]:
-        """Возвращает список имен всех единиц измерения (например, ['kg', 'g'])."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM units ORDER BY id")
-        # Извлекаем только первый элемент (имя) из каждой строки
-        return [row[0] for row in cursor.fetchall()]
+        """Return list of all unit names (e.g., ['kg', 'g'])."""
+        return [unit.name for unit in self.db.query(Unit).order_by(Unit.id).all()]
 
     def get_stock_category_names(self) -> List[str]:
-        """Возвращает список имен всех категорий запасов."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM stock_categories ORDER BY id")
-        return [row[0] for row in cursor.fetchall()]
+        """Return list of all stock category names."""
+        return [cat.name for cat in self.db.query(StockCategory).order_by(StockCategory.id).all()]
 
     def get_expense_category_names(self) -> List[str]:
-        """Возвращает список имен всех категорий расходов."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM expense_categories ORDER BY id")
-        return [row[0] for row in cursor.fetchall()]
+        """Return list of all expense category names."""
+        return [cat.name for cat in self.db.query(ExpenseCategory).order_by(ExpenseCategory.id).all()]
     
     def get_unit_name_by_id(self, unit_id: int) -> Optional[str]:
-        """Преобразует ID единицы измерения в ее строковое имя."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM units WHERE id = ?", (unit_id,))
-        row = cursor.fetchone()
-        return row[0] if row else None
+        """Convert unit ID to its string name."""
+        unit = self.db.query(Unit).filter(Unit.id == unit_id).first()
+        return unit.name if unit else None
     
     def get_stock_category_name_by_id(self, category_id: int) -> Optional[str]:
-        """Преобразует ID категории запаса в ее строковое имя."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM stock_categories WHERE id = ?", (category_id,))
-        row = cursor.fetchone()
-        return row[0] if row else None
+        """Convert stock category ID to its string name."""
+        category = self.db.query(StockCategory).filter(StockCategory.id == category_id).first()
+        return category.name if category else None
 
     def get_expense_category_name_by_id(self, category_id: int) -> Optional[str]:
-        """Преобразует ID категории расхода в ее строковое имя."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM expense_categories WHERE id = ?", (category_id,))
-        row = cursor.fetchone()
-        return row[0] if row else None
+        """Convert expense category ID to its string name."""
+        category = self.db.query(ExpenseCategory).filter(ExpenseCategory.id == category_id).first()
+        return category.name if category else None
     
     def get_expense_category_id_by_name(self, name: str) -> Optional[int]:
         """
-        Возвращает ID категории расхода по ее строковому имени (например, 'Сырьё').
+        Return expense category ID by its string name (e.g., 'Materials').
         
         Args:
-            name (str): Строковое имя категории.
+            name: String name of category
             
         Returns:
-            Optional[int]: ID категории или None, если категория не найдена.
+            Category ID or None if not found
         """
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT id FROM expense_categories WHERE name = ?", (name,))
-        row = cursor.fetchone()
-                
-        return row['id'] if row else None 
+        category = self.db.query(ExpenseCategory).filter(ExpenseCategory.name == name).first()
+        return category.id if category else None 
         

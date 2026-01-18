@@ -1,165 +1,125 @@
-import sqlite3
 from typing import Optional, List
+from sqlalchemy.orm import Session
 
-from sql_model.entities import Supplier
+from sql_model.entities import Supplier, ExpenseDocument
+
 
 class SuppliersRepository:
-    """Репозиторий для управления Поставщиками (suppliers)."""
+    """Repository for managing Suppliers using SQLAlchemy ORM."""
 
-    def __init__(self, conn: sqlite3.Connection):
-        self._conn = conn
+    def __init__(self, db: Session):
+        self.db = db
 
-    # --- Вспомогательные методы ---
-
-    def _row_to_entity(self, row: sqlite3.Row) -> Optional[Supplier]:
-        """Преобразует строку из БД в объект Supplier."""
-        if row is None:
-            return None
-        return Supplier(
-            id=row['id'],
-            name=row['name'],
-            contact_person=row['contact_person'],
-            phone=row['phone'],
-            email=row['email'],
-            address=row['address']
-        )
-
-    # --- CRUD Методы ---
+    # --- CRUD Methods ---
 
     def add(self, name: str, contact_person: Optional[str] = None, phone: Optional[str] = None, email: Optional[str] = None, address: Optional[str] = None) -> Supplier:
-        """Добавляет нового поставщика."""
-        cursor = self._conn.cursor()
-        
+        """Add a new supplier."""
         try:
-            cursor.execute(
-                """
-                INSERT INTO suppliers (name, contact_person, phone, email, address) 
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (name, contact_person, phone, email, address)
+            supplier = Supplier(
+                name=name,
+                contact_person=contact_person,
+                phone=phone,
+                email=email,
+                address=address
             )
-            self._conn.commit()
-            return self.by_id(cursor.lastrowid) # Возвращаем созданный объект
-        except sqlite3.IntegrityError as e:
-            self._conn.rollback()
-            raise ValueError(f"Поставщик с именем '{name}' уже существует.")
+            self.db.add(supplier)
+            self.db.flush()
+            supplier_id = supplier.id
+            self.db.commit()
+            return self.by_id(supplier_id)
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
+            if 'UNIQUE' in str(e):
+                raise ValueError(f"Supplier with name '{name}' already exists.")
             raise e
 
     def by_id(self, supplier_id: int) -> Optional[Supplier]:
-        """Возвращает поставщика по ID."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT * FROM suppliers WHERE id = ?", (supplier_id,))
-        return self._row_to_entity(cursor.fetchone())
+        """Return supplier by ID."""
+        return self.db.query(Supplier).filter(Supplier.id == supplier_id).first()
 
     def by_name(self, name: str) -> Optional[Supplier]:
-        """Возвращает поставщика по имени."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT * FROM suppliers WHERE name = ?", (name,))
-        return self._row_to_entity(cursor.fetchone())
+        """Return supplier by name."""
+        return self.db.query(Supplier).filter(Supplier.name == name).first()
 
     def data(self) -> List[Supplier]:
-        """Возвращает список всех поставщиков."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT * FROM suppliers ORDER BY name")
-        return [self._row_to_entity(row) for row in cursor.fetchall()]
+        """Return list of all suppliers."""
+        return self.db.query(Supplier).order_by(Supplier.name).all()
 
     def names(self) -> List[str]:
-        """Возвращает список имен всех поставщиков."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM suppliers ORDER BY name")
-        return [row[0] for row in cursor.fetchall()]
+        """Return list of all supplier names."""
+        return [s.name for s in self.db.query(Supplier).order_by(Supplier.name).all()]
 
     def len(self) -> int:
-        """Возвращает количество поставщиков."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM suppliers")
-        return cursor.fetchone()[0]
+        """Return count of suppliers."""
+        return self.db.query(Supplier).count()
 
     def search(self, query: str) -> List[Supplier]:
-        """Поиск поставщиков по имени, контакту, телефону или email."""
-        cursor = self._conn.cursor()
-        search_pattern = f"%{query}%"
-        cursor.execute(
-            """
-            SELECT * FROM suppliers 
-            WHERE name LIKE ? 
-               OR contact_person LIKE ? 
-               OR phone LIKE ? 
-               OR email LIKE ?
-            ORDER BY name
-            """,
-            (search_pattern, search_pattern, search_pattern, search_pattern)
-        )
-        return [self._row_to_entity(row) for row in cursor.fetchall()]
+        """Search suppliers by name, contact, phone or email."""
+        return self.db.query(Supplier).filter(
+            (Supplier.name.ilike(f"%{query}%")) |
+            (Supplier.contact_person.ilike(f"%{query}%")) |
+            (Supplier.phone.ilike(f"%{query}%")) |
+            (Supplier.email.ilike(f"%{query}%"))
+        ).order_by(Supplier.name).all()
 
     def update(self, supplier_id: int, name: str, contact_person: Optional[str] = None, phone: Optional[str] = None, email: Optional[str] = None, address: Optional[str] = None) -> Supplier:
         """
-        Обновляет существующего поставщика по ID.
-        Возвращает обновленный объект Supplier.
+        Update an existing supplier by ID.
+        Returns updated Supplier object.
         
         Args:
-            supplier_id (int): ID поставщика для обновления.
-            name (str): Новое имя поставщика (обязательно).
-            contact_person (Optional[str]): Новое контактное лицо.
-            phone (Optional[str]): Новый телефон.
-            email (Optional[str]): Новый email.
-            address (Optional[str]): Новый адрес.
+            supplier_id: ID of supplier to update
+            name: New supplier name (required)
+            contact_person: New contact person
+            phone: New phone
+            email: New email
+            address: New address
             
         Raises:
-            ValueError: Если поставщик с ID не найден или новое имя уже занято.
+            ValueError: If supplier not found or new name already taken
         """
-        cursor = self._conn.cursor()
-        
-        # Если контактные данные переданы как пустые строки, преобразуем их в None
+        # Convert empty strings to None
         contact_person = contact_person.strip() if contact_person else None
         phone = phone.strip() if phone else None
         email = email.strip() if email else None
         address = address.strip() if address else None
 
         if not name:
-            raise ValueError("Имя поставщика не может быть пустым.")
+            raise ValueError("Supplier name cannot be empty.")
         
         try:
-            cursor.execute(
-                """
-                UPDATE suppliers 
-                SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?
-                WHERE id = ?
-                """,
-                (name, contact_person, phone, email, address, supplier_id)
-            )
-            self._conn.commit()
+            supplier = self.by_id(supplier_id)
+            if not supplier:
+                raise ValueError(f"Supplier with ID {supplier_id} not found.")
             
-            if cursor.rowcount == 0:
-                raise ValueError(f"Поставщик с ID {supplier_id} не найден.")
+            supplier.name = name
+            supplier.contact_person = contact_person
+            supplier.phone = phone
+            supplier.email = email
+            supplier.address = address
             
-            return self.by_id(supplier_id) # Возвращаем обновленный объект
+            self.db.commit()
+            return self.by_id(supplier_id)
             
-        except sqlite3.IntegrityError as e:
-            self._conn.rollback()
-            # Ошибка возникнет, если новое имя уже занято другим поставщиком
-            raise ValueError(f"Поставщик с именем '{name}' уже существует.")
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
+            if 'UNIQUE' in str(e):
+                raise ValueError(f"Supplier with name '{name}' already exists.")
             raise e
 
     def can_delete_by_id(self, supplier_id: int) -> bool:
         """
-        Проверяет, можно ли удалить поставщика по ID. 
-        Нельзя удалить, если он связан с расходами (таблица expense_documents).
+        Check if supplier can be deleted by ID.
+        Cannot delete if linked to expense documents.
         """
-        cursor = self._conn.cursor()
-        cursor.execute(
-            "SELECT 1 FROM expense_documents WHERE supplier_id = ? LIMIT 1", 
-            (supplier_id,)
-        )
-        return cursor.fetchone() is None
+        count = self.db.query(ExpenseDocument).filter(
+            ExpenseDocument.supplier_id == supplier_id
+        ).count()
+        return count == 0
 
     def can_delete(self, name: str) -> bool:
         """
-        Проверяет, можно ли удалить поставщика по имени. 
+        Check if supplier can be deleted by name.
         """
         supplier = self.by_name(name)
         if not supplier:
@@ -168,25 +128,26 @@ class SuppliersRepository:
     
     def delete_by_id(self, supplier_id: int):
         """
-        Удаляет поставщика по ID. 
-        Вызывает ошибку, если поставщик связан с расходами.
+        Delete supplier by ID.
+        Raises error if supplier is linked to expense documents.
         """
         if not self.can_delete_by_id(supplier_id):
             supplier = self.by_id(supplier_id)
             name = supplier.name if supplier else f"ID {supplier_id}"
-            raise ValueError(f"Поставщик '{name}' связан с существующими расходами. Удаление невозможно.")
+            raise ValueError(f"Supplier '{name}' is linked to existing expenses. Cannot delete.")
         
-        cursor = self._conn.cursor()
         try:
-            cursor.execute("DELETE FROM suppliers WHERE id = ?", (supplier_id,))
-            self._conn.commit()
+            supplier = self.by_id(supplier_id)
+            if supplier:
+                self.db.delete(supplier)
+                self.db.commit()
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
             raise e
 
     def delete(self, name: str):
         """
-        Удаляет поставщика по имени. 
+        Delete supplier by name.
         """
         supplier = self.by_name(name)
         if not supplier:

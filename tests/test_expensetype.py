@@ -1,26 +1,26 @@
 import pytest
-import sqlite3
+from sqlalchemy.orm import Session
 
-from tests.core import conn, get_unit_by_name
+from tests.core import conn, get_unit_by_name, get_category_id_by_name
 
 from repositories.expense_types import ExpenseTypesRepository
+from sql_model.entities import ExpenseCategory
 
 @pytest.fixture
-def setup_ids(conn: sqlite3.Connection):
-    """Предоставляет ID справочных сущностей для тестов."""
+def setup_ids(conn: Session):
+    """Provides IDs of reference entities for tests."""
     return {
         'kg_id': get_unit_by_name(conn, 'kg'),
-        'expense_cat_id': conn.execute("SELECT id FROM expense_categories WHERE name = 'Materials'").fetchone()[0],
-        'stock_cat_id': conn.execute("SELECT id FROM stock_categories WHERE name = 'Materials'").fetchone()[0]
+        'expense_cat_id': get_category_id_by_name(conn, ExpenseCategory, 'Materials'),
     }
 
 class TestExpenseTypesRepository:
     
     @pytest.fixture
-    def repo(self, conn: sqlite3.Connection) -> ExpenseTypesRepository:
+    def repo(self, conn: Session) -> ExpenseTypesRepository:
         return ExpenseTypesRepository(conn)
 
-    def test_add_and_get(self, repo: ExpenseTypesRepository, setup_ids: dict, conn: sqlite3.Connection):
+    def test_add_and_get(self, repo: ExpenseTypesRepository, setup_ids: dict, conn: Session):
        
         repo.add(name='Аренда', default_price=50000, category_name='Utilities')
         expense_type = repo.get('Аренда')
@@ -29,8 +29,9 @@ class TestExpenseTypesRepository:
         assert expense_type.name == 'Аренда'
         assert expense_type.default_price == 50000
         
-        # Теперь conn - это объект соединения, который может выполнять SQL
-        assert expense_type.category_id == conn.execute("SELECT id FROM expense_categories WHERE name = 'Utilities'").fetchone()[0]
+        # Get category ID using ORM query
+        utilities_cat_id = get_category_id_by_name(conn, ExpenseCategory, 'Utilities')
+        assert expense_type.category_id == utilities_cat_id
         assert repo.len() == 1
         
     def test_delete(self, repo: ExpenseTypesRepository):

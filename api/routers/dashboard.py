@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 from api.dependencies import get_model
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -12,7 +12,7 @@ async def get_dashboard(request: Request):
     return templates.TemplateResponse(request, "dashboard/index.html", {})
 
 @router.get("/stats")
-async def get_dashboard_stats(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_dashboard_stats(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     # Calculate daily revenue
     today = datetime.now().strftime("%Y-%m-%d")
     sales = model.sales().data()
@@ -32,7 +32,7 @@ async def get_dashboard_stats(request: Request, model: SQLiteModel = Depends(get
     })
 
 @router.get("/chart")
-async def get_dashboard_chart(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_dashboard_chart(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     now = datetime.now()
     sales = model.sales().data()
     
@@ -60,7 +60,7 @@ async def get_dashboard_chart(request: Request, model: SQLiteModel = Depends(get
     return templates.TemplateResponse(request, "dashboard/chart.html", {"chart_data": chart_data})
 
 @router.get("/recent-activity")
-async def get_recent_activity(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_recent_activity(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     sales = model.sales().data()
     # Sort by date descending and take top 5
     recent_sales = sorted(sales, key=lambda x: x.date, reverse=True)[:5]
@@ -77,7 +77,7 @@ async def get_recent_activity(request: Request, model: SQLiteModel = Depends(get
     return templates.TemplateResponse(request, "dashboard/recent_activity.html", {"activities": activities})
 
 @router.get("/pending-orders")
-async def get_pending_orders(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_pending_orders(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     orders = model.orders().get_pending()
     
     order_data = []

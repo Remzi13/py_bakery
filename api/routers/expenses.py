@@ -8,7 +8,7 @@ from api.models import (
     ExpenseType, ExpenseTypeCreate, 
     ExpenseCategoryCreate, ExpenseDocumentCreate, ExpenseDocumentResponse 
 )
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 templates = Jinja2Templates(directory="templates")
@@ -22,7 +22,7 @@ async def get_expense_documents(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         docs = model.expense_documents().get_documents_with_details()
@@ -42,7 +42,7 @@ async def get_expense_documents(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/documents/new", response_class=HTMLResponse)
-async def get_new_expense_document_form(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_new_expense_document_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     suppliers = model.suppliers().data()
     categories = model.utils().get_expense_category_names()
     types = model.expense_types().data()
@@ -57,7 +57,7 @@ async def get_new_expense_document_form(request: Request, model: SQLiteModel = D
     })
 
 @router.get("/documents/{id}", response_class=HTMLResponse)
-async def get_expense_document_details(id: int, request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_expense_document_details(id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
     """Display expense document details in read-only view"""
     all_docs = model.expense_documents().get_documents_with_details()
     doc = next((d for d in all_docs if d['id'] == id), None)
@@ -74,7 +74,7 @@ async def get_expense_document_details(id: int, request: Request, model: SQLiteM
 @router.post("/documents")
 async def create_expense_document(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # JSON Support
@@ -157,7 +157,7 @@ async def create_expense_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/documents/{id}/items")
-def get_expense_document_items(id: int, model: SQLiteModel = Depends(get_model)):
+def get_expense_document_items(id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         items = model.expense_documents().get_document_items(id)
         return items
@@ -165,7 +165,7 @@ def get_expense_document_items(id: int, model: SQLiteModel = Depends(get_model))
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/documents/{id}")
-async def delete_expense_document(id: int, model: SQLiteModel = Depends(get_model)):
+async def delete_expense_document(id: int, model: SQLAlchemyModel = Depends(get_model)):
     """Delete expense document and rollback stock changes"""
     try:
         model.expense_documents().delete(id)
@@ -184,14 +184,14 @@ async def get_new_category_form(request: Request):
     return templates.TemplateResponse(request, "expenses/category_form.html", {})
 
 @router.get("/types/new", response_class=HTMLResponse)
-async def get_new_type_form(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_new_type_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     categories = model.utils().get_expense_category_names()
     return templates.TemplateResponse(request, "expenses/type_form.html", {"categories": categories})
 
 @router.post("/categories")
 async def create_expense_category(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         if request.headers.get("content-type") == "application/json":
@@ -214,7 +214,7 @@ async def create_expense_category(
 @router.post("/types")
 async def create_expense_type(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         if request.headers.get("content-type") == "application/json":
@@ -250,7 +250,7 @@ async def create_expense_type(
 async def get_expense_type_options(
     request: Request,
     category_filter: Optional[str] = None,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     """Return HTML options for expense types, optionally filtered by category"""
     try:
@@ -276,7 +276,7 @@ async def get_expense_type_options(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/types", response_model=List[ExpenseType])
-def get_expense_types(model: SQLiteModel = Depends(get_model)):
+def get_expense_types(model: SQLAlchemyModel = Depends(get_model)):
     try:
         data = model.expense_types().data()
         results = []
@@ -291,7 +291,7 @@ def get_expense_types(model: SQLiteModel = Depends(get_model)):
          raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/categories", response_model=List[str])
-def get_expense_categories(model: SQLiteModel = Depends(get_model)):
+def get_expense_categories(model: SQLAlchemyModel = Depends(get_model)):
     try:
         return model.utils().get_expense_category_names()
     except Exception as e:

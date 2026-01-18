@@ -1,164 +1,125 @@
-import sqlite3
 from typing import Optional, List, Any
 from datetime import datetime
+from sqlalchemy.orm import Session
 
-# Предполагаем, что WriteOff Entity обновлен в sql_model.entities
-from sql_model.entities import WriteOff 
+from sql_model.entities import WriteOff
+
 
 class WriteOffsRepository:
+    """Repository for WriteOff entities using SQLAlchemy ORM."""
 
-    def __init__(self, conn: sqlite3.Connection, model_instance: Any):
-        self._conn = conn
-        self._model = model_instance # Ссылка на Model для доступа к Stock, Products и Utils
+    def __init__(self, db: Session, model_instance: Any):
+        self.db = db
+        self._model = model_instance  # Reference to Model for Stock, Products and Utils
 
-    # --- Вспомогательные методы ---
-
-    def _row_to_entity(self, row: sqlite3.Row) -> Optional[WriteOff]:
-        """Преобразует строку из БД в объект WriteOff."""
-        if row is None:
-            return None
-        return WriteOff(
-            id=row['id'],
-            # product_id и stock_item_id могут быть None
-            product_id=row['product_id'],
-            stock_item_id=row['stock_item_id'],
-            quantity=row['quantity'],
-            reason=row['reason'],
-            unit_id=row['unit_id'],
-            date=row['date']
-        )
-
-    # --- Основной метод: Регистрация списания ---
+    # --- Main method: Register write-off ---
 
     def add(self, item_name: str, item_type: str, quantity: float, reason: str):
         """
-        Регистрирует списание (готового продукта или запаса/сырья).
+        Register a write-off (finished product or stock/raw material).
 
-        Списание готового продукта (item_type='product') регистрируется в журнале И 
-        уменьшает запасы ингредиентов на складе согласно рецепту.
-        Списание запаса/сырья (item_type='stock') регистрируется в журнале И уменьшает Stock.
+        Write-off of finished product (item_type='product') is registered and
+        deducts ingredients from stock according to recipe.
+        Write-off of stock/raw material (item_type='stock') is registered and
+        deducts from Stock.
 
         Args:
-            item_name (str): Название элемента.
-            item_type (str): Тип элемента ('product' или 'stock').
-            quantity (float): Количество для списания.
-            reason (str): Причина списания.
+            item_name: Item name
+            item_type: Type of item ('product' or 'stock')
+            quantity: Quantity to write off
+            reason: Reason for write-off
 
         Raises:
-            ValueError: Если элемент не найден, количество не положительно или не хватает запаса.
+            ValueError: If item not found, quantity invalid, or insufficient stock
         """
         if item_type not in ['product', 'stock']:
-            raise ValueError("Недопустимый тип элемента. Используйте 'product' или 'stock'.")
+            raise ValueError("Invalid item type. Use 'product' or 'stock'.")
 
         if quantity <= 0:
-            raise ValueError("Количество для списания должно быть положительным.")
+            raise ValueError("Write-off quantity must be positive.")
 
-        cursor = self._conn.cursor()
         stock_repo = self._model.stock()
-
-        # Переменные для записи в таблицу write_offs
+        
+        # Variables for write-offs table
         product_id = None
         stock_item_id = None
         unit_id = None
 
         try:
             if item_type == 'product':
-                # --- ЛОГИКА СПИСАНИЯ ГОТОВОГО ПРОДУКТА (списание ингредиентов) ---
-            
+                # --- LOGIC FOR WRITING OFF FINISHED PRODUCT ---
                 product_repo = self._model.products()
-            
-                # 1. Находим продукт и его рецепт
-                product_entity = product_repo.by_name(item_name) # Получаем Product Entity
+                
+                # 1. Find product and recipe
+                product_entity = product_repo.by_name(item_name)
                 if product_entity is None:
-                    raise ValueError(f"Продукт '{item_name}' не найден в списке продуктов.")
-            
+                    raise ValueError(f"Product '{item_name}' not found.")
+                
                 mats_needed = product_repo.get_materials_for_product(product_entity.id)
-                if not mats_needed:
-                    # Регистрируем факт списания продукта, даже если у него нет рецепта
-                    pass 
-
                 product_id = product_entity.id
-            
-                # 2. Списываем ингредиенты со склада (аналогично продаже)
+                
+                # 2. Deduct ingredients from stock
                 for ing in mats_needed:
                     ing_name = ing['name']
-                    # Общее количество ингредиента, необходимое для списанных продуктов
-                    ing_quantity_needed = ing['quantity'] * quantity 
-                
-                    # Обновляем запас (отрицательное изменение)
-                    # StockRepository.update() содержит проверку на отрицательный остаток
-                    # Мы используем 'set' вместо 'update', так как в StockRepository у нас был set.
-                    # Если в StockRepository есть метод update, то лучше использовать его. 
-                    # Исходя из предоставленных файлов, используем get/set:
+                    ing_quantity_needed = ing['quantity'] * quantity
+                    
                     current_stock = stock_repo.get(ing_name)
                     if current_stock is None:
-                        raise ValueError(f"Ингредиент '{ing_name}' для продукта '{item_name}' не найден на складе.")
-                
+                        raise ValueError(f"Ingredient '{ing_name}' for product '{item_name}' not found in stock.")
+                    
                     new_quantity = current_stock.quantity - ing_quantity_needed
                     if new_quantity < 0:
-                        # Важно: Вызываем ошибку до коммита
-                        raise ValueError(f"Не хватает ингредиента '{ing_name}' для списания {quantity} шт. продукта '{item_name}'. Недостаточно {ing_name}.")
-                
+                        raise ValueError(
+                            f"Insufficient ingredient '{ing_name}' to write off {quantity} "
+                            f"of '{item_name}'. Need {ing_quantity_needed}, have {current_stock.quantity}."
+                        )
+                    
                     stock_repo.set(ing_name, new_quantity)
                 
-                # После успешного списания всех ингредиентов, регистрируем списание продукта.
-            
             elif item_type == 'stock':
-                # --- ЛОГИКА СПИСАНИЯ СЫРЬЯ/ЗАПАСА (уменьшение Stock) ---
-            
+                # --- LOGIC FOR WRITING OFF STOCK/RAW MATERIAL ---
                 current_stock_item = stock_repo.get(item_name)
-
+                
                 if current_stock_item is None:
-                    raise ValueError(f"Элемент '{item_name}' не найден на складе для списания.")
-            
+                    raise ValueError(f"Item '{item_name}' not found in stock.")
+                
                 stock_item_id = current_stock_item.id
                 unit_id = current_stock_item.unit_id
-            
-                # 1. Проверяем остаток перед списанием
+                
+                # 1. Check stock before write-off
                 if current_stock_item.quantity < quantity:
-                    raise ValueError(f"Недостаточно запаса '{item_name}' для списания ({current_stock_item.quantity} < {quantity}).")
-
-                # 2. Уменьшаем количество на складе
+                    raise ValueError(
+                        f"Insufficient stock '{item_name}' to write off "
+                        f"({current_stock_item.quantity} < {quantity})."
+                    )
+                
+                # 2. Decrease stock quantity
                 new_quantity = current_stock_item.quantity - quantity
                 stock_repo.set(item_name, new_quantity)
-
-
-            # 3. Записываем факт списания в журнал (для обоих типов)
-            # Для product: product_id заполнен, stock_item_id и unit_id - None.
-            # Для stock: stock_item_id и unit_id заполнены, product_id - None.
-            cursor.execute(
-                """
-                INSERT INTO writeoffs (product_id, stock_item_id, unit_id, quantity, reason, date) 
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    product_id, 
-                    stock_item_id, 
-                    unit_id,
-                    quantity, 
-                    reason, 
-                    datetime.now().strftime("%Y-%m-%d %H:%M")
-                )
+            
+            # 3. Record write-off in log (for both types)
+            writeoff = WriteOff(
+                product_id=product_id,
+                stock_item_id=stock_item_id,
+                unit_id=unit_id,
+                quantity=quantity,
+                reason=reason,
+                date=datetime.now().strftime("%Y-%m-%d %H:%M")
             )
-            self._conn.commit()
+            self.db.add(writeoff)
+            self.db.commit()
 
         except ValueError as e:
-            # Откат транзакции, если не хватило запасов (важно для product)
-            self._conn.rollback()
+            self.db.rollback()
             raise e
         except Exception as e:
-            self._conn.rollback()
+            self.db.rollback()
             raise e
     
-    
     def data(self) -> List[WriteOff]:
-        """Возвращает список всех списаний (для отображения в таблице)."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT * FROM writeoffs ORDER BY date DESC")
-        return [self._row_to_entity(row) for row in cursor.fetchall()]
+        """Return list of all write-offs (for display in table)."""
+        return self.db.query(WriteOff).order_by(WriteOff.date.desc()).all()
 
     def len(self) -> int:
-        """Возвращает количество записей о списаниях."""
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM writeoffs")
-        return cursor.fetchone()[0]
+        """Return count of write-off records."""
+        return self.db.query(WriteOff).count()

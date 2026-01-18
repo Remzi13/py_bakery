@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from api.dependencies import get_model
 from api.models import ProductCreate, ProductResponse
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 templates = Jinja2Templates(directory="templates")
@@ -16,7 +16,7 @@ async def get_products(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         products_data = model.products().data()
@@ -57,7 +57,7 @@ async def get_new_product_form(request: Request):
     return templates.TemplateResponse(request, "products/form.html", {"product": None})
 
 @router.get("/{product_id}/edit", response_class=HTMLResponse)
-async def get_edit_product_form(product_id: int, request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_edit_product_form(product_id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
     p = model.products().by_id(product_id)
     if not p:
         return HTMLResponse("Product not found", status_code=404)
@@ -66,7 +66,7 @@ async def get_edit_product_form(product_id: int, request: Request, model: SQLite
 @router.post("/", response_model=ProductResponse)
 async def create_product(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # Check for JSON content type (Legacy SPA support)
@@ -133,7 +133,7 @@ async def create_product(
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
-def get_product(product_id: int, model: SQLiteModel = Depends(get_model)):
+def get_product(product_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         p = model.products().by_id(product_id)
         if not p:
@@ -150,7 +150,7 @@ def get_product(product_id: int, model: SQLiteModel = Depends(get_model)):
 async def update_product(
     product_id: int, 
     request: Request, 
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # Check for JSON content type (Legacy SPA support)
@@ -217,7 +217,7 @@ async def update_product(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{product_name}")
-def delete_product(product_name: str, model: SQLiteModel = Depends(get_model)):
+def delete_product(product_name: str, model: SQLAlchemyModel = Depends(get_model)):
     try:
         model.products().delete(product_name)
         return HTMLResponse("") # Return empty string to remove row from DOM

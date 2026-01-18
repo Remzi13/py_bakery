@@ -4,20 +4,20 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from api.dependencies import get_model
 from api.models import StockItem, StockCreate, StockUpdate, StockSet
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/stock", tags=["stock"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/categories", response_model=List[str])
-def get_categories(model: SQLiteModel = Depends(get_model)):
+def get_categories(model: SQLAlchemyModel = Depends(get_model)):
     try:
         return model.utils().get_stock_category_names()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/materials", response_model=List[StockItem])
-def get_materials(model: SQLiteModel = Depends(get_model)):
+def get_materials(model: SQLAlchemyModel = Depends(get_model)):
     try:
         items = model.stock().data()
         results = []
@@ -42,7 +42,7 @@ async def get_stock(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         items = model.stock().data()
@@ -79,12 +79,12 @@ async def get_stock(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/new", response_class=HTMLResponse)
-async def get_new_stock_form(request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_new_stock_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     categories = model.utils().get_stock_category_names()
     return templates.TemplateResponse(request, "stock/form.html", {"item": None, "categories": categories})
 
 @router.get("/{stock_id}/edit", response_class=HTMLResponse)
-async def get_edit_stock_form(stock_id: int, request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_edit_stock_form(stock_id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
     p = model.stock().by_id(stock_id)
     if not p:
          return HTMLResponse("Stock item not found", status_code=404)
@@ -102,7 +102,7 @@ async def get_edit_stock_form(stock_id: int, request: Request, model: SQLiteMode
 
 
 @router.get("/{stock_id}", response_model=StockItem)
-def get_stock_id(stock_id: int, model: SQLiteModel = Depends(get_model)):
+def get_stock_id(stock_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         p = model.stock().by_id(stock_id)
         if not p:
@@ -125,7 +125,7 @@ def get_stock_id(stock_id: int, model: SQLiteModel = Depends(get_model)):
 @router.post("/", response_model=StockItem)
 async def add_stock(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # JSON Support
@@ -158,7 +158,7 @@ async def add_stock(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{name}/delta")
-def update_stock_quantity(name: str, update: StockUpdate, model: SQLiteModel = Depends(get_model)):
+def update_stock_quantity(name: str, update: StockUpdate, model: SQLAlchemyModel = Depends(get_model)):
     try:
         model.stock().update(name, update.quantity_delta)
         return model.stock().get(name)
@@ -173,7 +173,7 @@ def update_stock_quantity(name: str, update: StockUpdate, model: SQLiteModel = D
 async def set_stock_quantity(
     name: str, 
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # JSON Support
@@ -211,7 +211,7 @@ async def set_stock_quantity(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{name}")
-def delete_stock(name: str, model: SQLiteModel = Depends(get_model)):
+def delete_stock(name: str, model: SQLAlchemyModel = Depends(get_model)):
     try:
         model.stock().delete(name)
         return HTMLResponse("") # Remove row

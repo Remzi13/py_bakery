@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from api.dependencies import get_model
 from api.models import OrderCreate, OrderResponse, OrderItemResponse
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 templates = Jinja2Templates(directory="templates")
@@ -16,7 +16,7 @@ def get_orders(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         orders_data = model.orders().data()
@@ -56,7 +56,7 @@ def get_orders(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pending", response_model=List[OrderResponse])
-def get_pending_orders(model: SQLiteModel = Depends(get_model)):
+def get_pending_orders(model: SQLAlchemyModel = Depends(get_model)):
     try:
         orders_data = model.orders().get_pending()
         results = []
@@ -74,7 +74,7 @@ def get_pending_orders(model: SQLiteModel = Depends(get_model)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(order_id: int, model: SQLiteModel = Depends(get_model)):
+def get_order(order_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         order = model.orders().by_id(order_id)
         if not order:
@@ -96,7 +96,7 @@ def get_order(order_id: int, model: SQLiteModel = Depends(get_model)):
 @router.post("/", response_model=OrderResponse)
 async def create_order(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         # JSON Support
@@ -146,7 +146,7 @@ async def create_order(
 async def complete_order(
     request: Request,
     order_id: int, 
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         success = model.orders().complete(order_id)
@@ -163,7 +163,7 @@ async def complete_order(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{order_id}/info", response_class=HTMLResponse)
-def get_order_info(request: Request, order_id: int, model: SQLiteModel = Depends(get_model)):
+def get_order_info(request: Request, order_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         order = model.orders().by_id(order_id)
         if not order:
@@ -182,7 +182,7 @@ def get_order_info(request: Request, order_id: int, model: SQLiteModel = Depends
 async def delete_order(
     request: Request,
     order_id: int, 
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         success = model.orders().delete(order_id)

@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from api.dependencies import get_model
 from api.models import Supplier
-from sql_model.model import SQLiteModel
+from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/suppliers", tags=["suppliers"])
 templates = Jinja2Templates(directory="templates")
@@ -15,7 +15,7 @@ async def get_suppliers(
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     search: Optional[str] = Query(None),
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         if search:
@@ -37,7 +37,7 @@ async def get_new_supplier_form(request: Request):
     return templates.TemplateResponse(request, "suppliers/form.html", {"supplier": None})
 
 @router.get("/{supplier_id}/edit", response_class=HTMLResponse)
-async def get_edit_supplier_form(supplier_id: int, request: Request, model: SQLiteModel = Depends(get_model)):
+async def get_edit_supplier_form(supplier_id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
     supplier = model.suppliers().by_id(supplier_id)
     if not supplier:
          return HTMLResponse("Supplier not found", status_code=404)
@@ -46,7 +46,7 @@ async def get_edit_supplier_form(supplier_id: int, request: Request, model: SQLi
 @router.post("/", response_model=Supplier)
 async def create_supplier(
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         content_type = request.headers.get("content-type")
@@ -92,7 +92,7 @@ async def create_supplier(
 async def update_supplier(
     supplier_id: int,
     request: Request,
-    model: SQLiteModel = Depends(get_model)
+    model: SQLAlchemyModel = Depends(get_model)
 ):
     try:
         form = await request.form()
@@ -111,7 +111,7 @@ async def update_supplier(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{supplier_id}")
-def delete_supplier(supplier_id: int, model: SQLiteModel = Depends(get_model)):
+def delete_supplier(supplier_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
         model.suppliers().delete_by_id(supplier_id)
         return HTMLResponse("")
