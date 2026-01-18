@@ -27,25 +27,24 @@ class ProductsRepository:
             return []
         
         result = []
-        # Query the association table through product_stock relationship
-        # Since we're using direct SQL relationship, we need to query the raw data
-        from sqlalchemy import text
-        cursor_result = self.db.execute(
-            text("""
-            SELECT i.name AS material_name, pi.quantity AS qty, u.name AS unit_name
-            FROM product_stock pi
-            JOIN stock i ON pi.stock_id = i.id
-            LEFT JOIN units u ON i.unit_id = u.id
-            WHERE pi.product_id = :product_id
-            """),
-            {"product_id": product_id}
-        )
+        # Query through association table using ORM
+        from sql_model.entities import product_stock_association
         
-        for row in cursor_result:
+        rows = self.db.query(
+            StockItem.name,
+            product_stock_association.c.quantity,
+        ).join(
+            product_stock_association,
+            StockItem.id == product_stock_association.c.stock_id
+        ).filter(
+            product_stock_association.c.product_id == product_id
+        ).all()
+        
+        for name, qty in rows:
             result.append({
-                'name': row.material_name,
-                'quantity': row.qty,
-                'unit': row.unit_name
+                'name': name,
+                'quantity': qty,
+                'unit': None
             })
         
         return result
@@ -64,12 +63,14 @@ class ProductsRepository:
             if existing_product:
                 # Update: Delete old recipe
                 product_id = existing_product.id
-                from sqlalchemy import delete, text
+                from sqlalchemy import delete
+                from sql_model.entities import product_stock_association
+                
+                # Use ORM delete instead of raw SQL text()
                 self.db.execute(
-                    delete(text("product_stock")).where(
-                        text("product_stock.product_id = :product_id")
-                    ),
-                    {"product_id": product_id}
+                    delete(product_stock_association).where(
+                        product_stock_association.c.product_id == product_id
+                    )
                 )
                 
                 # Update product
@@ -84,6 +85,8 @@ class ProductsRepository:
 
             # Add materials
             from sql_model.entities import product_stock_association
+            from sqlalchemy import insert
+            
             for item in materials:
                 mat_name = item['name']
                 mat_quantity = item['quantity']
@@ -96,13 +99,12 @@ class ProductsRepository:
                 if not stock_item:
                     raise ValueError(f"Material '{mat_name}' not found. Product not saved.")
                 
-                # Add to association table
                 self.db.execute(
-                    text("""
-                    INSERT INTO product_stock (product_id, stock_id, quantity)
-                    VALUES (:product_id, :stock_id, :quantity)
-                    """),
-                    {"product_id": product_id, "stock_id": stock_item.id, "quantity": mat_quantity}
+                    insert(product_stock_association).values(
+                        product_id=product_id,
+                        stock_id=stock_item.id,
+                        quantity=mat_quantity
+                    )
                 )
 
             self.db.commit()
@@ -134,11 +136,14 @@ class ProductsRepository:
             if sales_count > 0:
                 raise ValueError(f"Product '{name}' has been sold and cannot be deleted.")
             
-            # Delete from association table (cascade)
-            from sqlalchemy import text, delete
+            # Delete from association table (cascade) using ORM
+            from sqlalchemy import delete
+            from sql_model.entities import product_stock_association
+            
             self.db.execute(
-                text("DELETE FROM product_stock WHERE product_id = :product_id"),
-                {"product_id": product.id}
+                delete(product_stock_association).where(
+                    product_stock_association.c.product_id == product.id
+                )
             )
             
             # Delete product
@@ -172,14 +177,19 @@ class ProductsRepository:
             existing.name = name
             existing.price = price
 
-            # Delete old recipe
-            from sqlalchemy import text
+            # Delete old recipe using ORM
+            from sqlalchemy import delete
+            from sql_model.entities import product_stock_association
+            
             self.db.execute(
-                text("DELETE FROM product_stock WHERE product_id = :product_id"),
-                {"product_id": product_id}
+                delete(product_stock_association).where(
+                    product_stock_association.c.product_id == product_id
+                )
             )
 
-            # Add new recipe
+            # Add new recipe using ORM insert
+            from sqlalchemy import insert
+            
             for item in materials:
                 mat_name = item['name']
                 mat_quantity = item['quantity']
@@ -192,11 +202,11 @@ class ProductsRepository:
                     raise ValueError(f"Material '{mat_name}' not found. Product not saved.")
 
                 self.db.execute(
-                    text("""
-                    INSERT INTO product_stock (product_id, stock_id, quantity)
-                    VALUES (:product_id, :stock_id, :quantity)
-                    """),
-                    {"product_id": product_id, "stock_id": stock_item.id, "quantity": mat_quantity}
+                    insert(product_stock_association).values(
+                        product_id=product_id,
+                        stock_id=stock_item.id,
+                        quantity=mat_quantity
+                    )
                 )
 
             self.db.commit()
