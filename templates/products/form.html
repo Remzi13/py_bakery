@@ -27,9 +27,12 @@
                 <div class="recipe-editor">
                     <div class="recipe-controls">
                         <div class="form-group" style="flex: 2;">
-                            <select id="recipe-ingredient-select" hx-get="/api/stock" hx-trigger="load"
-                                hx-select="option">
+                            <select id="recipe-ingredient-select">
                                 <option value="" data-i18n="selectIngredient">Select Ingredient...</option>
+                                {% for mat in all_materials %}
+                                <option value="{{ mat.name }}" data-unit="{{ mat.unit_name }}">{{ mat.name }}
+                                    ({{mat.unit_name }})</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group small">
@@ -73,12 +76,13 @@
 
             const name = select.value;
             const qty = qtyInput.value;
+            const unit = select.options[select.selectedIndex].getAttribute('data-unit') || '';
             const idx = list.children.length;
 
             const li = document.createElement('li');
             li.className = 'recipe-item';
             li.innerHTML = `
-                <span><strong>${name}</strong> - ${qty}</span>
+                <span><strong>${name}</strong> - ${qty} ${unit}</span>
                 <input type="hidden" name="materials[${idx}][name]" value="${name}">
                 <input type="hidden" name="materials[${idx}][quantity]" value="${qty}">
                 <button type="button" onclick="this.parentElement.remove()">×</button>
@@ -86,6 +90,7 @@
             list.appendChild(li);
 
             qtyInput.value = '';
+            select.value = '';
         }
     </script>
 </div>

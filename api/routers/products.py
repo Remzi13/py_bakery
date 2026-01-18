@@ -53,8 +53,24 @@ async def get_products(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/new", response_class=HTMLResponse)
-async def get_new_product_form(request: Request):
-    return templates.TemplateResponse(request, "products/form.html", {"product": None})
+async def get_new_product_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
+    # Получаем все данные со склада
+    all_stock_items = model.stock().data()
+    # Получаем утилиты для названий категорий и единиц измерения
+    utils = model.utils()
+    
+    all_materials = []
+    for item in all_stock_items:
+        all_materials.append({
+            "name": item.name,
+            "unit_name": utils.get_unit_name_by_id(item.unit_id)
+        })
+
+    return templates.TemplateResponse(request, "products/form.html", {
+        "request": request, 
+        "product": None, 
+        "all_materials": all_materials
+    })
 
 @router.get("/{product_id}/edit", response_class=HTMLResponse)
 async def get_edit_product_form(product_id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
