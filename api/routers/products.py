@@ -77,7 +77,27 @@ async def get_edit_product_form(product_id: int, request: Request, model: SQLAlc
     p = model.products().by_id(product_id)
     if not p:
         return HTMLResponse("Product not found", status_code=404)
-    return templates.TemplateResponse(request, "products/form.html", {"product": p})
+    
+    # Get materials for this product
+    materials = model.products().get_materials_for_product(product_id)
+    p.materials = materials
+    
+    # Get all available stock items for the dropdown
+    all_stock_items = model.stock().data()
+    utils = model.utils()
+    
+    all_materials = []
+    for item in all_stock_items:
+        all_materials.append({
+            "name": item.name,
+            "unit_name": utils.get_unit_name_by_id(item.unit_id)
+        })
+    
+    return templates.TemplateResponse(request, "products/form.html", {
+        "request": request, 
+        "product": p,
+        "all_materials": all_materials
+    })
 
 @router.post("/", response_model=ProductResponse)
 async def create_product(

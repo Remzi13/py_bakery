@@ -186,6 +186,7 @@ class ProductsRepository:
                     product_stock_association.c.product_id == product_id
                 )
             )
+            self.db.flush()  # Ensure deletion is committed before inserting new materials
 
             # Add new recipe using ORM insert
             from sqlalchemy import insert

@@ -12,7 +12,9 @@
                 <div class="form-group">
                     <label for="product-name" data-i18n="productName">Product Name</label>
                     <input id="product-name" type="text" name="name" value="{{ product.name if product else '' }}"
-                        placeholder="e.g., Sourdough Loaf" data-i18n="productNamePlaceholder" required>
+                        placeholder="e.g., Sourdough Loaf" data-i18n="productNamePlaceholder" required
+                        {% if product %}disabled{% endif %}>
+                    {% if product %}<input type="hidden" name="name" value="{{ product.name }}">{% endif %}
                 </div>
                 <div class="form-group small">
                     <label for="product-price" data-i18n="price">Price (₽)</label>
