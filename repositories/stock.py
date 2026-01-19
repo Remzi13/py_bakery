@@ -49,7 +49,8 @@ class StockRepository:
             self._model.expense_types().add(
                 name=name,
                 default_price=100,
-                category_name="Materials"
+                category_name="Materials",
+                stock=True
             )
             self.db.commit()
         except ValueError:
