@@ -45,7 +45,7 @@ class TestExpenseDocuments:
         items = [{
             'expense_type_id': et.id,
             'quantity': 2.0,
-            'price_per_unit': 100.0,
+            'price': 100.0,
             'unit_id': unit_id
         }]
         
@@ -73,7 +73,7 @@ class TestExpenseDocuments:
         # Verify Items
         doc_items = model.expense_documents().get_document_items(doc_id)
         assert len(doc_items) == 1
-        assert doc_items[0]['total_price'] == 200.0
+        assert doc_items[0]['price'] == 100.0
         assert doc_items[0]['expense_type_name'] == "Service Fee"
 
     def test_expense_updates_stock(self, model: SQLiteModel):
@@ -92,7 +92,7 @@ class TestExpenseDocuments:
         items = [{
             'expense_type_id': et.id,
             'quantity': 10.0,
-            'price_per_unit': 20.0,
+            'price': 20.0,
             'unit_id': unit_id
         }]
         
@@ -112,7 +112,7 @@ class TestExpenseDocuments:
         items2 = [{
             'expense_type_id': et.id,
             'quantity': 5.0,
-            'price_per_unit': 22.0,
+            'price': 22.0,
             'unit_id': unit_id
         }]
         model.expense_documents().add("2024-01-02", sid, 110.0, "", items2)
@@ -136,12 +136,12 @@ class TestExpenseDocuments:
         
         # Add Doc 1: Total 100
         model.expense_documents().add("2024-01-01", sid, 100.0, "", [{
-            'expense_type_id': et.id, 'quantity': 10, 'price_per_unit': 10, 'unit_id': unit_id
+            'expense_type_id': et.id, 'quantity': 10, 'price': 10, 'unit_id': unit_id
         }])
         
         # Add Doc 2: Total 50.50
         model.expense_documents().add("2024-01-02", sid, 50.50, "", [{
-            'expense_type_id': et.id, 'quantity': 5, 'price_per_unit': 10.1, 'unit_id': unit_id
+            'expense_type_id': et.id, 'quantity': 5, 'price': 10.1, 'unit_id': unit_id
         }])
         
         total = model.calculate_expenses()

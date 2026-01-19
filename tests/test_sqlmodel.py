@@ -80,7 +80,7 @@ def populated_model(clean_model: SQLiteModel):
     items = [{
         'expense_type_id': et.id,
         'quantity': 5.0,
-        'price_per_unit': 50.0,
+        'price': 50.0,
         'unit_id': kg_id 
     }]
     
@@ -267,7 +267,7 @@ def test_finance_calculations(populated_model: SQLiteModel):
          items=[{
              'expense_type_id': et_rent.id,
              'quantity': 1.0,
-             'price_per_unit': 1000.0,
+             'price': 1000.0,
              'unit_id': pc_id
          }]
     )

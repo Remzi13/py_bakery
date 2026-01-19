@@ -85,7 +85,7 @@ async def create_expense_document(
             total_amount = 0
             items_data = []
             for item in doc.items:
-                total_amount += item.quantity * item.price_per_unit
+                total_amount += item.price
                 items_data.append(item.dict())
             
             doc_id = model.expense_documents().add(
@@ -127,13 +127,13 @@ async def create_expense_document(
         for idx in parsed_items:
             item = parsed_items[idx]
             qty = float(item['quantity'])
-            price = float(item['price_per_unit'])
-            total_amount += qty * price
+            price = float(item['price'])
+            total_amount += price
             
             items_data.append({
                 "expense_type_id": int(item['expense_type_id']),
                 "quantity": qty,
-                "price_per_unit": price,
+                "price": price,
                 "unit_id": int(item['unit_id'])
             })
             

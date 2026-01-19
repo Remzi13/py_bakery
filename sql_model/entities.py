@@ -238,8 +238,7 @@ class ExpenseItem(Base):
     stock_item_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('stock.id'), nullable=True)
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
-    price_per_unit: Mapped[float] = mapped_column(Integer, nullable=False)
-    total_price: Mapped[float] = mapped_column(Integer, nullable=False)
+    price: Mapped[float] = mapped_column(Float, nullable=False)    
     
     # Relationships
     document: Mapped["ExpenseDocument"] = relationship("ExpenseDocument", back_populates="items")

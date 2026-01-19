@@ -64,7 +64,7 @@ def test_create_expense_document_json(client):
             {
                 "expense_type_id": type_id,
                 "quantity": 5.0,
-                "price_per_unit": 10.0,
+                "price": 10.0,
                 "unit_id": 1
             }
         ]
@@ -106,7 +106,7 @@ def test_create_expense_document_form(client):
         "items[1][expense_type_id]": str(type_id),
         "items[1][quantity]": "2.0",
         "items[1][unit_id]": "1",
-        "items[1][price_per_unit]": "20.0"
+        "items[1][price]": "20.0"
     }
     response = client.post("/api/expenses/documents", data=form_data)
     assert response.status_code == 200, f"Form Doc creation failed: {response.text}"

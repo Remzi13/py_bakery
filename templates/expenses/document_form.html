@@ -78,6 +78,10 @@
                     </div>
 
                     <ul id="expense-items-list" class="recipe-list"></ul>
+                    <div class="form-row" style="justify-content: flex-end; margin-top: 10px; font-weight: bold;">
+                        <span data-i18n="totalAmount">Total Amount:</span>
+                        <span id="expense-total-display" style="margin-left: 10px;">0.00</span>
+                    </div>
                 </div>
 
 
@@ -93,6 +97,18 @@
     </div>
 
     <script>
+        function updateGrandTotal() {
+            const list = document.getElementById('expense-items-list');
+            const items = list.querySelectorAll('.recipe-item');
+            let total = 0;
+            items.forEach(item => {
+                const qty = parseFloat(item.querySelector('input[name*="[quantity]"]').value) || 0;
+                const price = parseFloat(item.querySelector('input[name*="[price]"]').value) || 0;
+                total += price;
+            });
+            document.getElementById('expense-total-display').innerText = total.toFixed(2);
+        }
+
         function addExpenseItemHTML() {
             const typeSelect = document.getElementById('expense-item-type');
             const qtyInput = document.getElementById('expense-item-qty');
@@ -106,11 +122,10 @@
             const typeName = typeSelect.options[typeSelect.selectedIndex].text;
             const qty = qtyInput.value;
             const unitId = unitSelect.value;
-            const price = priceInput.value;
+            const price = priceInput.value || 0;
 
             const li = document.createElement('li');
             li.className = 'recipe-item';
-
             const idx = Date.now();
 
             li.innerHTML = `
@@ -118,13 +133,16 @@
                 <input type="hidden" name="items[${idx}][expense_type_id]" value="${typeId}">
                 <input type="hidden" name="items[${idx}][quantity]" value="${qty}">
                 <input type="hidden" name="items[${idx}][unit_id]" value="${unitId}">
-                <input type="hidden" name="items[${idx}][price_per_unit]" value="${price}">
-                <button type="button" onclick="this.parentElement.remove()">×</button>
+                <input type="hidden" name="items[${idx}][price]" value="${price}">
+                <button type="button" onclick="this.parentElement.remove(); updateGrandTotal();">×</button>
             `;
             list.appendChild(li);
 
             qtyInput.value = '';
             priceInput.value = '';
+
+            // Вызываем пересчет суммы после добавления
+            updateGrandTotal();
         }
 
         document.getElementById('expense-item-type').addEventListener('change', function () {

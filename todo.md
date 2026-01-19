@@ -2,7 +2,7 @@
 * expenses documents
     * непоисходит списание со stock
     * expenses documents unit наду уменьшить     
-    * добавить обшую цену к модальному окну     
+    * добавить обшую цену к модальному окну
 * add product возвращает 307 Temporary Redirect неоткрывает модальное окно
 * "POST /api/stock HTTP/1.1" 307 Temporary Redirect (add)
 * "POST /api/suppliers HTTP/1.1" 307 Temporary Redirect (add)
@@ -18,4 +18,3 @@
     * добавить month expenses 
 
 # REFACTORING
-* переделать базу данных на sqlalchemy

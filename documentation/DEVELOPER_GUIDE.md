@@ -278,7 +278,7 @@ item = model.expense_documents().add_item(
     expense_type_id=1,           # ID типа расхода (например, "Мука")
     stock_item_id=1,             # ID товара на складе (если это товар)
     quantity=50.0,
-    price_per_unit=20.0
+    price=20.0
 )
 
 # READ - получить документ
@@ -288,7 +288,7 @@ print(f"Документ от {doc.supplier.name}: {doc.total_amount}")
 # Получить все позиции в документе
 items = doc.items
 for item in items:
-    print(f"  - {item.expense_type.name}: {item.quantity} {item.unit.name} × {item.price_per_unit}")
+    print(f"  - {item.expense_type.name}: {item.quantity} {item.unit.name} × {item.price}")
 
 # DELETE - удалить документ (удалит и все позиции)
 model.expense_documents().delete(doc.id)

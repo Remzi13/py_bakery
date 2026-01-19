@@ -153,7 +153,7 @@ window.addExpenseItemRow = function () {
         quantity: quantity,
         unit_id: parseInt(unitId),
         unit_name: unitName,
-        price_per_unit: price
+        price: price
     });
 
     updateExpenseItemsList();
@@ -172,17 +172,16 @@ function updateExpenseItemsList() {
     list.innerHTML = '';
     let total = 0;
     window.currentExpenseItems.forEach((item, index) => {
-        const itemTotal = item.quantity * item.price_per_unit;
-        total += itemTotal;
+        total += item.price;
         const li = document.createElement('li');
         li.className = 'recipe-item';
         li.innerHTML = `
-            <span><strong>${item.expense_type_name}</strong>: ${item.quantity} ${item.unit_name} x ${item.price_per_unit} = ${itemTotal.toFixed(2)}</span>
+            <span><strong>${item.expense_type_name}</strong>: ${item.quantity} ${item.unit_name} x ${item.price} = ${item.price.toFixed(2)}</span>
             <button type="button" onclick="removeExpenseItemRow(${index})">×</button>
             <input type="hidden" name="items[${index}][expense_type_id]" value="${item.expense_type_id}">
             <input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">
             <input type="hidden" name="items[${index}][unit_id]" value="${item.unit_id}">
-            <input type="hidden" name="items[${index}][price_per_unit]" value="${item.price_per_unit}">
+            <input type="hidden" name="items[${index}][price]" value="${item.price}">
         `;
         list.appendChild(li);
     });
