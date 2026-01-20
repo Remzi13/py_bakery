@@ -28,6 +28,7 @@ class Unit(Base):
     stock_items: Mapped[List["StockItem"]] = relationship("StockItem", back_populates="unit")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="unit")
     expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="unit")
+    expense_types: Mapped[List["ExpenseType"]] = relationship("ExpenseType", back_populates="unit")
     
     def __repr__(self):
         return f"<Unit(id={self.id}, name={self.name})>"
@@ -131,10 +132,12 @@ class ExpenseType(Base):
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     default_price: Mapped[float] = mapped_column(Integer, nullable=False)
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_categories.id'), nullable=False)
-    stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
+    stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)    
     
     # Relationships
     category: Mapped["ExpenseCategory"] = relationship("ExpenseCategory", back_populates="expense_types")
+    unit: Mapped["Unit"] = relationship("Unit", back_populates="expense_types")
     expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="expense_type")
     
     def __repr__(self):

@@ -1,9 +1,9 @@
 # BUGS
 * expenses documents    
     * unit не должны редактироваться    
+* POST /api/stock HTTP/1.1" 307 Temporary Redirect
+* POST /api/suppliers HTTP/1.1" 307 Temporary Redirect
 * add product возвращает 307 Temporary Redirect неоткрывает модальное окно
-* "POST /api/stock HTTP/1.1" 307 Temporary Redirect (add)
-* "POST /api/suppliers HTTP/1.1" 307 Temporary Redirect (add)
 * нет копки add order
 * не работает перезагрузка страницы по f5
 
