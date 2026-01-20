@@ -16,38 +16,34 @@ class ProductsRepository:
         self.db = db
 
     # --- Helper methods ---
-
     def get_materials_for_product(self, product_id: int) -> List[Dict[str, Any]]:
         """
-        Get list of ingredients and quantities for a given product ID.
-        Returns list of dicts: [{'name': 'Flour', 'quantity': 500.0, 'unit': 'kg'}]
+        Получает список ингредиентов для продукта, используя ORM-связи.
         """
-        product = self.db.query(Product).filter(Product.id == product_id).first()
-        if not product:
-            return []
-        
-        result = []
-        # Query through association table using ORM
-        from sql_model.entities import product_stock_association
-        
-        rows = self.db.query(
-            StockItem.name,
-            product_stock_association.c.quantity,
-        ).join(
-            product_stock_association,
-            StockItem.id == product_stock_association.c.stock_id
-        ).filter(
-            product_stock_association.c.product_id == product_id
-        ).all()
-        
-        for name, qty in rows:
-            result.append({
-                'name': name,
-                'quantity': qty,
-                'unit': None
-            })
-        
-        return result
+        from sql_model.entities import StockItem, Unit, product_stock_association
+
+        # Делаем один запрос, который сразу подгружает связанные данные (Eager Loading)
+        # Это предотвращает проблему N+1 запросов
+        rows = (
+            self.db.query(
+                StockItem.name,
+                product_stock_association.c.quantity,
+                Unit.name.label("unit_name")
+            )
+            .join(product_stock_association, StockItem.id == product_stock_association.c.stock_id)
+            .join(Unit, StockItem.unit_id == Unit.id)
+            .filter(product_stock_association.c.product_id == product_id)
+            .all()
+        )
+
+        return [
+            {
+                "name": row.name,
+                "quantity": row.quantity,
+                "unit_name": row.unit_name # Теперь здесь будет 'kg', 'g' и т.д.
+            }
+            for row in rows
+        ]
 
     # --- CRUD Methods ---
 

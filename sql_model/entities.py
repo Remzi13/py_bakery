@@ -73,6 +73,12 @@ class Product(Base):
     sales: Mapped[List["Sale"]] = relationship("Sale", back_populates="product")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="product")
     order_items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="product")
+
+    materials: Mapped[List["StockItem"]] = relationship(
+        "StockItem", 
+        secondary=product_stock_association,
+        backref="products"
+    )
     
     def __repr__(self):
         return f"<Product(id={self.id}, name={self.name}, price={self.price})>"

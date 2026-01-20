@@ -101,31 +101,15 @@ window.addMaterialToProduct = function () {
 
     const unit = select.selectedOptions[0]?.dataset.unit || '';
     window.currentRecipe.push({ name, quantity, unit });
-    updateRecipeList();
+
     select.value = ""; qtyInput.value = "";
 }
 
 window.removeIngredientFromRecipe = function (index) {
     window.currentRecipe.splice(index, 1);
-    updateRecipeList();
+
 }
 
-function updateRecipeList() {
-    const list = document.getElementById('recipe-list');
-    if (!list) return;
-    list.innerHTML = '';
-    window.currentRecipe.forEach((ing, index) => {
-        const li = document.createElement('li');
-        li.className = 'recipe-item';
-        li.innerHTML = `
-            <span><strong>${ing.name}</strong> - ${ing.quantity} ${ing.unit}</span>
-            <button type="button" onclick="removeIngredientFromRecipe(${index})">×</button>
-        `;
-        list.appendChild(li);
-    });
-    const jsonInput = document.getElementById('recipe-json');
-    if (jsonInput) jsonInput.value = JSON.stringify(window.currentRecipe);
-}
 
 // Expense Items logic
 window.currentExpenseItems = [];
