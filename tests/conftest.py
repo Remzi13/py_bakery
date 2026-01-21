@@ -11,16 +11,28 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import app
-from sql_model.database import Base, get_db
+from api.dependencies import get_db, get_model
+from sql_model.database import Base
 from sql_model.entities import Unit, StockCategory, ExpenseCategory
+from sql_model.model import SQLAlchemyModel
+
+
+@pytest.fixture(scope="function")
+def model(test_db):
+    """Create a model instance with the test database session."""
+    return SQLAlchemyModel(db=test_db)
 
 
 @pytest.fixture(scope="function")
 def test_db():
     """Create a test database session with all tables and reference data."""
-    # Create in-memory SQLite database
+    # Create temporary file DB for tests
+    test_db_file = "test_bakery.db"
+    if os.path.exists(test_db_file):
+        os.remove(test_db_file)
+        
     engine = create_engine(
-        "sqlite:///:memory:",
+        f"sqlite:///{test_db_file}",
         connect_args={"check_same_thread": False},
         echo=False
     )
@@ -58,6 +70,11 @@ def test_db():
     
     session.close()
     engine.dispose()
+    if os.path.exists("test_bakery.db"):
+        try:
+            os.remove("test_bakery.db")
+        except:
+            pass
 
 
 @pytest.fixture(scope="function")
@@ -68,8 +85,16 @@ def client(test_db):
             yield test_db
         finally:
             pass
+            
+    def override_get_model():
+        model = SQLAlchemyModel(db=test_db)
+        try:
+            yield model
+        finally:
+            pass
     
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_model] = override_get_model
     
     with TestClient(app) as test_client:
         yield test_client

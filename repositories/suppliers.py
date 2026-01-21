@@ -37,6 +37,10 @@ class SuppliersRepository:
         """Return supplier by ID."""
         return self.db.query(Supplier).filter(Supplier.id == supplier_id).first()
 
+    def get_by_id(self, supplier_id: int) -> Optional[Supplier]:
+        """Return supplier by ID (alias for by_id)."""
+        return self.by_id(supplier_id)
+
     def by_name(self, name: str) -> Optional[Supplier]:
         """Return supplier by name."""
         return self.db.query(Supplier).filter(Supplier.name == name).first()

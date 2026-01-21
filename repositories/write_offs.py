@@ -116,6 +116,32 @@ class WriteOffsRepository:
             self.db.rollback()
             raise e
     
+    def by_id(self, writeoff_id: int) -> Optional[WriteOff]:
+        """Get write-off record by ID."""
+        return self.db.query(WriteOff).filter(WriteOff.id == writeoff_id).first()
+
+    def delete(self, writeoff_id: int):
+        """Delete a write-off record."""
+        wo = self.by_id(writeoff_id)
+        if wo:
+            try:
+                self.db.delete(wo)
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
+    def get_by_date_range(self, start_date: str, end_date: str) -> List[WriteOff]:
+        """Get write-offs within a date range."""
+        return self.db.query(WriteOff).filter(
+            WriteOff.date >= start_date,
+            WriteOff.date <= end_date + " 23:59"
+        ).order_by(WriteOff.date.desc()).all()
+
+    def get_by_stock_item(self, stock_item_id: int) -> List[WriteOff]:
+        """Get write-offs for a specific stock item."""
+        return self.db.query(WriteOff).filter(WriteOff.stock_item_id == stock_item_id).all()
+
     def data(self) -> List[WriteOff]:
         """Return list of all write-offs (for display in table)."""
         return self.db.query(WriteOff).order_by(WriteOff.date.desc()).all()

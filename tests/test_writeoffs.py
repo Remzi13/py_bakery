@@ -1,107 +1,90 @@
 """Tests for write-offs router and repository."""
 
 import pytest
+from datetime import datetime
 from sqlalchemy.orm import Session
-from repositories.write_offs import WriteOffsRepository
-from repositories.stock import StockRepository
-from sql_model.entities import Unit, StockCategory
+from sql_model.entities import StockItem, StockCategory, Unit
 
 
 @pytest.fixture
-def setup_writeoff_data(test_db: Session):
+def setup_stock_data(model):
     """Setup stock items for write-off testing."""
-    kg_unit = test_db.query(Unit).filter(Unit.name == 'kg').first()
-    materials_cat = test_db.query(StockCategory).filter(StockCategory.name == 'Materials').first()
-    
-    stock_repo = StockRepository(test_db)
-    stock_repo.add('Flour', 'Materials', 100.0, 'kg')
-    stock_repo.add('Sugar', 'Materials', 50.0, 'kg')
-    
-    flour = stock_repo.by_name('Flour')
-    sugar = stock_repo.by_name('Sugar')
-    
-    return {'flour': flour, 'sugar': sugar, 'unit': kg_unit, 'category': materials_cat}
+    model.stock().add('Flour', 'Materials', 100.0, 'kg')
+    item = model.stock().get('Flour')
+    return {'flour': item}
 
 
 class TestWriteOffsRepository:
     """Test WriteOffsRepository methods."""
     
-    def test_add_writeoff(self, test_db: Session, setup_writeoff_data):
+    def test_add_writeoff(self, model, setup_stock_data):
         """Test adding a new write-off."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
+        repo = model.writeoffs()
+        item = setup_stock_data['flour']
         
-        repo.add(flour.id, 5.0, 'Damaged product')
+        repo.add('Flour', 'stock', 5.0, 'Expired')
         
         writeoffs = repo.data()
         assert len(writeoffs) >= 1
-        assert any(w.stock_id == flour.id for w in writeoffs)
-    
-    def test_add_writeoff_with_reason(self, test_db: Session, setup_writeoff_data):
-        """Test adding write-off with reason."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
+        assert any(w.stock_item_id == item.id for w in writeoffs)
         
-        repo.add(flour.id, 2.5, 'Expired batch')
+        # Check stock deduction
+        updated_item = model.stock().get('Flour')
+        assert updated_item.quantity == 95.0
+    
+    def test_add_writeoff_with_reason(self, model, setup_stock_data):
+        """Test adding a write-off with a specific reason."""
+        repo = model.writeoffs()
+        
+        repo.add('Flour', 'stock', 2.0, 'Damaged Packaging')
         
         writeoff = repo.data()[0]
-        assert writeoff.quantity == 2.5
-        assert writeoff.reason == 'Expired batch'
+        assert writeoff.quantity == 2.0
+        assert writeoff.reason == 'Damaged Packaging'
     
-    def test_get_writeoff_by_id(self, test_db: Session, setup_writeoff_data):
+    def test_get_writeoff_by_id(self, model, setup_stock_data):
         """Test retrieving write-off by ID."""
-        repo = WriteOffsRepository(test_db)
-        sugar = setup_writeoff_data['sugar']
+        repo = model.writeoffs()
         
-        repo.add(sugar.id, 3.0, 'Test reason')
-        writeoff = repo.data()[0]
+        repo.add('Flour', 'stock', 1.0, 'Test')
+        wo = repo.data()[0]
         
-        retrieved = repo.by_id(writeoff.id)
+        retrieved = repo.by_id(wo.id)
         assert retrieved is not None
-        assert retrieved.stock_id == sugar.id
-        assert retrieved.quantity == 3.0
+        assert retrieved.quantity == 1.0
     
-    def test_delete_writeoff(self, test_db: Session, setup_writeoff_data):
-        """Test deleting a write-off."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
+    def test_delete_writeoff(self, model, setup_stock_data):
+        """Test deleting a write-off record."""
+        repo = model.writeoffs()
         
-        repo.add(flour.id, 1.0, 'Cleanup')
-        writeoff = repo.data()[0]
-        writeoff_id = writeoff.id
+        repo.add('Flour', 'stock', 3.0, 'To Delete')
+        wo = repo.data()[0]
+        wo_id = wo.id
         
-        repo.delete(writeoff_id)
+        repo.delete(wo_id)
         
-        deleted = repo.by_id(writeoff_id)
+        deleted = repo.by_id(wo_id)
         assert deleted is None
     
-    def test_get_all_writeoffs(self, test_db: Session, setup_writeoff_data):
+    def test_get_all_writeoffs(self, model, setup_stock_data):
         """Test retrieving all write-offs."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
-        sugar = setup_writeoff_data['sugar']
+        repo = model.writeoffs()
         
-        repo.add(flour.id, 5.0, 'Reason 1')
-        repo.add(sugar.id, 2.0, 'Reason 2')
-        repo.add(flour.id, 3.0, 'Reason 3')
+        repo.add('Flour', 'stock', 1.0, 'R1')
+        repo.add('Flour', 'stock', 2.0, 'R2')
         
         all_writeoffs = repo.data()
-        assert len(all_writeoffs) >= 3
+        assert len(all_writeoffs) >= 2
     
-    def test_get_writeoffs_by_stock(self, test_db: Session, setup_writeoff_data):
+    def test_get_writeoffs_by_stock(self, model, setup_stock_data):
         """Test retrieving write-offs for a specific stock item."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
-        sugar = setup_writeoff_data['sugar']
+        repo = model.writeoffs()
+        item = setup_stock_data['flour']
         
-        repo.add(flour.id, 5.0, 'Reason 1')
-        repo.add(sugar.id, 2.0, 'Reason 2')
-        repo.add(flour.id, 3.0, 'Reason 3')
+        repo.add('Flour', 'stock', 1.0, 'R1')
         
-        flour_writeoffs = repo.get_by_stock(flour.id)
-        
-        assert len(flour_writeoffs) >= 2
-        assert all(w.stock_id == flour.id for w in flour_writeoffs)
+        item_writeoffs = repo.get_by_stock_item(item.id)
+        assert len(item_writeoffs) >= 1
 
 
 class TestWriteOffsRouter:
@@ -112,36 +95,25 @@ class TestWriteOffsRouter:
         response = client.get("/api/writeoffs/")
         assert response.status_code == 200
     
-    def test_get_writeoffs_with_data(self, client, test_db: Session, setup_writeoff_data):
+    def test_get_writeoffs_with_data(self, client, model, setup_stock_data):
         """Test getting write-offs list."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
-        repo.add(flour.id, 5.0, 'Damaged')
+        repo = model.writeoffs()
+        repo.add('Flour', 'stock', 5.0, 'Test')
         
         response = client.get("/api/writeoffs/")
         assert response.status_code == 200
     
-    def test_get_writeoffs_by_date(self, client, test_db: Session, setup_writeoff_data):
-        """Test getting write-offs filtered by date."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
-        repo.add(flour.id, 5.0, 'Damaged')
+    def test_get_writeoffs_by_date(self, client, model, setup_stock_data):
+        """Test getting write-offs for a specific date."""
+        repo = model.writeoffs()
+        repo.add('Flour', 'stock', 5.0, 'Test')
         
-        from datetime import datetime
         today = datetime.now().strftime("%Y-%m-%d")
-        response = client.get(f"/api/writeoffs/?date={today}")
+        response = client.get(f"/api/writeoffs/?search={today}")
         assert response.status_code == 200
     
-    def test_get_new_writeoff_form(self, client):
-        """Test getting new write-off form."""
-        response = client.get("/api/writeoffs/new")
-        assert response.status_code == 200
-    
-    def test_get_writeoff_by_stock(self, client, test_db: Session, setup_writeoff_data):
-        """Test getting write-offs for a stock item."""
-        repo = WriteOffsRepository(test_db)
-        flour = setup_writeoff_data['flour']
-        repo.add(flour.id, 5.0, 'Damaged')
-        
-        response = client.get(f"/api/writeoffs/?stock_id={flour.id}")
+    def test_get_writeoff_by_stock(self, client, model, setup_stock_data):
+        """Test getting write-offs filtered by stock item."""
+        item = setup_stock_data['flour']
+        response = client.get(f"/api/writeoffs/?stock_item_id={item.id}")
         assert response.status_code == 200

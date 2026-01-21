@@ -17,13 +17,17 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def get_model() -> Generator[SQLAlchemyModel, None, None]:
+from fastapi import Depends
+
+def get_model(db: Session = Depends(get_db)) -> Generator[SQLAlchemyModel, None, None]:
     """
     Creates a new SQLAlchemyModel instance for each request
-    and ensures the connection is closed after the request is processed.
+    using the provided database session.
     """
-    model = SQLAlchemyModel()
+    model = SQLAlchemyModel(db=db)
     try:
         yield model
     finally:
-        model.close()
+        # Note: we don't call model.close() here because it would close the db session
+        # which is managed by get_db.
+        pass

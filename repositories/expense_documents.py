@@ -12,6 +12,14 @@ class ExpenseDocumentsRepository:
         self.db = db
         self._model = model_instance
 
+    def by_id(self, document_id: int) -> Optional[ExpenseDocument]:
+        """Get document by ID."""
+        return self.db.query(ExpenseDocument).filter(ExpenseDocument.id == document_id).first()
+
+    def data(self) -> List[ExpenseDocument]:
+        """Return all documents."""
+        return self.db.query(ExpenseDocument).order_by(ExpenseDocument.date.desc()).all()
+
     def add(self, date: str, supplier_id: int, total_amount: float, comment: str, items: List[Dict[str, Any]]) -> int:
         """
         Create an expense document and related items.

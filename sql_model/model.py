@@ -20,13 +20,16 @@ class SQLAlchemyModel:
     Encapsulates sessions and provides access to repositories.
     """
 
-    def __init__(self):
+    def __init__(self, db: Session = None):
         """
         Initializes the SQLAlchemy Model.
         Creates database tables if they don't exist.
         """
         # Create session
-        self.db: Session = SessionLocal()
+        if db:
+            self.db = db
+        else:
+            self.db: Session = SessionLocal()
         
         # Initialize repositories
         self._stock_repo = StockRepository(self.db, self)

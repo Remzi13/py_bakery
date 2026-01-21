@@ -59,6 +59,32 @@ class SalesRepository:
             self.db.rollback()
             raise e
 
+    def by_id(self, sale_id: int) -> Optional[Sale]:
+        """Get sale by ID."""
+        return self.db.query(Sale).filter(Sale.id == sale_id).first()
+
+    def delete(self, sale_id: int):
+        """Delete a sale record."""
+        sale = self.by_id(sale_id)
+        if sale:
+            try:
+                self.db.delete(sale)
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
+    def get_by_date_range(self, start_date: str, end_date: str) -> List[Sale]:
+        """Get sales within a date range (inclusive)."""
+        return self.db.query(Sale).filter(
+            Sale.date >= start_date,
+            Sale.date <= end_date + " 23:59"
+        ).order_by(Sale.date.desc()).all()
+
+    def get_by_product(self, product_id: int) -> List[Sale]:
+        """Get sales for a specific product."""
+        return self.db.query(Sale).filter(Sale.product_id == product_id).order_by(Sale.date.desc()).all()
+
     def data(self) -> List[Sale]:
         """Return list of all sales."""
         return self.db.query(Sale).order_by(Sale.date.desc()).all()

@@ -48,6 +48,32 @@ class ExpenseTypesRepository:
         """Get expense type by name."""
         return self.db.query(ExpenseType).filter(ExpenseType.name == name).first()
 
+    def by_id(self, type_id: int) -> Optional[ExpenseType]:
+        """Get expense type by ID."""
+        return self.db.query(ExpenseType).filter(ExpenseType.id == type_id).first()
+
+    def update(self, type_id: int, default_price: float):
+        """Update expense type default price."""
+        exp_type = self.by_id(type_id)
+        if exp_type:
+            try:
+                exp_type.default_price = default_price
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
+    def delete_by_id(self, type_id: int):
+        """Delete expense type by ID."""
+        exp_type = self.by_id(type_id)
+        if exp_type:
+            try:
+                self.db.delete(exp_type)
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
     def delete(self, name: str):
         """
         Delete expense type by name.

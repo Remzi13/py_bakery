@@ -42,11 +42,8 @@ async def get_writeoffs(
                 p = model.products().by_id(wo.product_id)
                 item_name = p.name if p else f"Product #{wo.product_id}"
             elif wo.stock_item_id:
-                cursor = model._conn.cursor()
-                cursor.execute("SELECT name FROM stock WHERE id = ?", (wo.stock_item_id,))
-                row = cursor.fetchone()
-                if row:
-                    item_name = row[0]
+                si = model.stock().by_id(wo.stock_item_id)
+                item_name = si.name if si else f"Stock Item #{wo.stock_item_id}"
             
             wo_dict = wo.__dict__.copy()
             wo_dict['item_name'] = item_name

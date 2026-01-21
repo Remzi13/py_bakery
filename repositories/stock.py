@@ -160,6 +160,13 @@ class StockRepository:
             self.db.rollback()
             raise e
             
+    def get_by_category(self, category_name: str) -> List[StockItem]:
+        """Return stock items by category name."""
+        category_id = self._get_category_id(category_name)
+        if category_id is None:
+            return []
+        return self.db.query(StockItem).filter(StockItem.category_id == category_id).all()
+            
     def len(self) -> int:
         """Return count of stock items."""
         return self.db.query(StockItem).count()

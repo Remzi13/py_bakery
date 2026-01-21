@@ -49,7 +49,7 @@ class TestSuppliersRepositoryIntegration:
     def test_supplier_operations(self, model):
         """Test supplier CRUD operations."""
         # Create
-        model._suppliers_repo.add('Test Supplier', 'test@supplier.com', '555-1234')
+        model._suppliers_repo.add(name='Test Supplier', email='test@supplier.com', phone='555-1234')
         
         # Retrieve
         supplier = model._suppliers_repo.by_name('Test Supplier')

@@ -185,7 +185,7 @@ class Order(Base):
     additional_info: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     
     # Relationships
-    items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="order")
+    items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Order(id={self.id}, status={self.status}, created_date={self.created_date})>"
@@ -222,7 +222,7 @@ class ExpenseDocument(Base):
     
     # Relationships
     supplier: Mapped["Supplier"] = relationship("Supplier", back_populates="expense_documents")
-    items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="document")
+    items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="document", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<ExpenseDocument(id={self.id}, supplier_id={self.supplier_id}, total_amount={self.total_amount})>"

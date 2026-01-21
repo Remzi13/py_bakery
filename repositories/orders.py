@@ -129,6 +129,25 @@ class OrdersRepository:
             'price': item.price
         }
     
+    def get_by_product(self, product_id: int) -> List[SimpleNamespace]:
+        """Get orders containing a specific product."""
+        orders = self.db.query(Order).join(OrderItem).filter(
+            OrderItem.product_id == product_id
+        ).order_by(Order.created_date.desc()).all()
+        
+        result = []
+        for order in orders:
+            order_dict = {
+                'id': order.id,
+                'created_date': order.created_date,
+                'completion_date': order.completion_date,
+                'status': order.status,
+                'additional_info': order.additional_info,
+                'items': [self._item_to_dict(item) for item in order.items]
+            }
+            result.append(SimpleNamespace(**order_dict))
+        return result
+
     def complete(self, order_id: int) -> bool:
         """
         Mark order as completed, create sales records, and deduct inventory.

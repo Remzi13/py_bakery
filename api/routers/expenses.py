@@ -30,7 +30,7 @@ async def get_expense_documents(
         # Filter if search
         if search:
             s = search.lower()
-            docs = [d for d in docs if (d.supplier_name and s in d.supplier_name.lower()) or (d.comment and s in d.comment.lower())]
+            docs = [d for d in docs if (d['supplier_name'] and s in d['supplier_name'].lower()) or (d['comment'] and s in d['comment'].lower())]
 
         if hx_request or (accept and "text/html" in accept):
             if hx_target == "expenses-table-body":
@@ -201,14 +201,14 @@ async def create_expense_category(
              form = await request.form()
              name = form.get("name")
 
-        cursor = model._conn.cursor()
-        cursor.execute("INSERT INTO expense_categories (name) VALUES (?)", (name,))
-        model._conn.commit()
+        from sql_model.entities import ExpenseCategory
+        new_cat = ExpenseCategory(name=name)
+        model.db.add(new_cat)
+        model.db.commit()
         
-        # If HTMX request, we might want to return something else or empty to close modal, 
-        # but the template has hx-on::after-request handling.
         return {"message": "Category created successfully"}
     except Exception as e:
+         model.db.rollback()
          raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/types")
