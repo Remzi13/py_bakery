@@ -3,7 +3,7 @@
         <button class="close" onclick="document.getElementById('product-modal').remove()">&times;</button>
         <h2 data-i18n="{% if product %}editProduct{% else %}addProduct{% endif %}">{% if product %}Edit Product{% else
             %}Add Product{% endif %}</h2>
-        <form {% if product %}hx-put="/api/products/{{ product.id }}" {% else %}hx-post="/api/products" {% endif %}
+        <form {% if product %}hx-put="/api/products/{{ product.id }}" {% else %}hx-post="/api/products/" {% endif %}
             hx-target="#products-table-body" hx-swap="beforeend" {% if product %} hx-swap="outerHTML"
             hx-target="#product-row-{{ product.id }}" {% endif %}
             hx-on::after-request="if(event.detail.successful) document.getElementById('product-modal').remove()">
@@ -12,8 +12,8 @@
                 <div class="form-group">
                     <label for="product-name" data-i18n="productName">Product Name</label>
                     <input id="product-name" type="text" name="name" value="{{ product.name if product else '' }}"
-                        placeholder="e.g., Sourdough Loaf" data-i18n="productNamePlaceholder" required
-                        {% if product %}disabled{% endif %}>
+                        placeholder="e.g., Sourdough Loaf" data-i18n="productNamePlaceholder" required {% if product
+                        %}disabled{% endif %}>
                     {% if product %}<input type="hidden" name="name" value="{{ product.name }}">{% endif %}
                 </div>
                 <div class="form-group small">

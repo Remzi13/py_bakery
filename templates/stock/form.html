@@ -5,7 +5,7 @@
             Stock Item{% endif %}</h2>
 
         <form {% if item %}hx-put="/api/stock/{{ item.name }}/set" hx-target="#stock-row-{{ item.id }}"
-            hx-swap="outerHTML" {% else %}hx-post="/api/stock" hx-target="#stock-table-body" hx-swap="beforeend" {%
+            hx-swap="outerHTML" {% else %}hx-post="/api/stock/" hx-target="#stock-table-body" hx-swap="beforeend" {%
             endif %} hx-on::after-request="if(event.detail.successful) document.getElementById('stock-modal').remove()">
 
             <div class="form-row">
