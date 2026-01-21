@@ -3,12 +3,20 @@
 import pytest
 import os
 import sys
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, Session
-from fastapi.testclient import TestClient
+
+# Define database URL for tests before any imports
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 # Add parent directory to path so we can import modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from fastapi.testclient import TestClient
+from unittest.mock import patch
+
+# Mock init_db globally for the entire test session to prevent it from running during tests
+# We do our own initialization in the test_db fixture
+init_db_patcher = patch('sql_model.database.init_db')
+init_db_patcher.start()
 
 from main import app
 from api.dependencies import get_db, get_model
@@ -25,15 +33,16 @@ def model(test_db):
 
 @pytest.fixture(scope="function")
 def test_db():
-    """Create a test database session with all tables and reference data."""
-    # Create temporary file DB for tests
-    test_db_file = "test_bakery.db"
-    if os.path.exists(test_db_file):
-        os.remove(test_db_file)
-        
+    """Create a test database session in memory with all tables and reference data."""
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.pool import StaticPool
+    from sqlalchemy.orm import sessionmaker
+    
+    # Use StaticPool to keep the memory database alive between connections
     engine = create_engine(
-        f"sqlite:///{test_db_file}",
+        "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
         echo=False
     )
     
@@ -70,11 +79,6 @@ def test_db():
     
     session.close()
     engine.dispose()
-    if os.path.exists("test_bakery.db"):
-        try:
-            os.remove("test_bakery.db")
-        except:
-            pass
 
 
 @pytest.fixture(scope="function")

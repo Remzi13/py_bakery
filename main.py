@@ -6,10 +6,15 @@ from sql_model.database import init_db
 
 from fastapi.templating import Jinja2Templates
 
-app = FastAPI(title="Bakery Manager API")
+from contextlib import asynccontextmanager
 
-# Initialize database once at startup
-init_db()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database once at startup
+    init_db()
+    yield
+
+app = FastAPI(title="Bakery Manager API", lifespan=lifespan)
 
 templates = Jinja2Templates(directory="templates")
 

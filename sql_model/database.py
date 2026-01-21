@@ -5,8 +5,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session, scoped_sessi
 from typing import Generator, Optional
 from sqlalchemy import event
 
-# Database URL
-DATABASE_URL = "sqlite:///./bakery_management.db"
+import os
+
+# Database URL - can be overridden by environment variable for tests
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./bakery_management.db")
 
 # Create engine
 engine = create_engine(
