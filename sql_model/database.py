@@ -5,10 +5,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session, scoped_sessi
 from typing import Generator, Optional
 from sqlalchemy import event
 
-import os
-
-# Database URL - can be overridden by environment variable for tests
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./bakery_management.db")
+# Database URL
+DATABASE_URL = "sqlite:///./bakery_management.db"
 
 # Create engine
 engine = create_engine(
@@ -41,14 +39,21 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def init_db():
+def init_db(engine_to_use=None):
     """Create all tables and populate reference data."""
-    Base.metadata.create_all(bind=engine)
+    if engine_to_use is None:
+        engine_to_use = engine
+        db = SessionLocal()
+    else:
+        # Create a one-off session for initialization with the provided engine
+        InitSession = sessionmaker(autocommit=False, autoflush=False, bind=engine_to_use)
+        db = InitSession()
+
+    Base.metadata.create_all(bind=engine_to_use)
     
     # Populate reference data
     from sql_model.entities import Unit, StockCategory, ExpenseCategory
     
-    db = SessionLocal()
     try:
         # Create default units
         default_units = ['kg', 'g', 'l', 'pc']

@@ -4,21 +4,13 @@ import pytest
 import os
 import sys
 
-# Define database URL for tests before any imports
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-
 # Add parent directory to path so we can import modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from fastapi.testclient import TestClient
-from unittest.mock import patch
-
-# Mock init_db globally for the entire test session to prevent it from running during tests
-# We do our own initialization in the test_db fixture
-init_db_patcher = patch('sql_model.database.init_db')
-init_db_patcher.start()
-
 from main import app
+# Disable automatic database initialization in lifespan for tests
+app.state.skip_init_db = True
 from api.dependencies import get_db, get_model
 from sql_model.database import Base
 from sql_model.entities import Unit, StockCategory, ExpenseCategory
@@ -53,27 +45,13 @@ def test_db():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
     
-    # Create all tables
-    Base.metadata.create_all(bind=engine)
+    # Use the application's init_db to setup the tables and data
+    from sql_model.database import init_db
+    init_db(engine)
     
     # Create session
     TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestSessionLocal()
-    
-    # Populate reference data
-    default_units = ['kg', 'g', 'l', 'pc']
-    for unit_name in default_units:
-        session.add(Unit(name=unit_name))
-    
-    default_stock_categories = ['Materials', 'Packaging', 'Equipment']
-    for cat_name in default_stock_categories:
-        session.add(StockCategory(name=cat_name))
-    
-    default_expense_categories = ['Materials', 'Equipment', 'Utilities', 'Other']
-    for cat_name in default_expense_categories:
-        session.add(ExpenseCategory(name=cat_name))
-    
-    session.commit()
     
     yield session
     

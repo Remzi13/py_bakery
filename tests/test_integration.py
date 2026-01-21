@@ -13,8 +13,8 @@ from repositories.utils import UtilsRepository
 def model(test_db: Session):
     """Create a test model instance with database session."""
     from sql_model.database import init_db
-    # Initialize database with reference data
-    init_db()
+    # Initialize database with reference data using the test engine
+    init_db(test_db.get_bind())
     
     model_instance = SQLAlchemyModel()
     model_instance.db = test_db

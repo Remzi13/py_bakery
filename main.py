@@ -10,8 +10,9 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database once at startup
-    init_db()
+    # Initialize database once at startup unless skipped (for tests)
+    if not getattr(app.state, "skip_init_db", False):
+        init_db()
     yield
 
 app = FastAPI(title="Bakery Manager API", lifespan=lifespan)
