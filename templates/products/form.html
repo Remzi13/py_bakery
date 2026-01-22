@@ -41,17 +41,27 @@
                             <input type="number" id="recipe-quantity" placeholder="Qty" step="0.01"
                                 data-i18n="qtyPlaceholder">
                         </div>
+                        <div class="form-group small">
+                            <select id="recipe-unit-select" title="Recipe Unit">
+                                {% for u in all_units %}
+                                <option value="{{ u.id }}">{{ u.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <button type="button" class="btn-secondary" onclick="addMaterialToRecipe()"
                             data-i18n="add">Add</button>
                     </div>
 
                     <ul id="recipe-list" class="recipe-list">
-                        {% if product and all_materials %}
-                        {% for m in all_materials %}
+                        {% if product and product.materials %}
+                        {% for m in product.materials %}
                         <li class="recipe-item">
-                            <span><strong>{{ m.name }}</strong> - {{ m.quantity }} {{ m.unit_name }}</span>
+                            <span><strong>{{ m.name }}</strong> - {{ m.quantity }} {{ m.recipe_unit_name }} (x{{
+                                m.conversion_factor }}) [Stock: {{ m.unit_name }}]</span>
                             <input type="hidden" name="materials[{{ loop.index0 }}][name]" value="{{ m.name }}">
                             <input type="hidden" name="materials[{{ loop.index0 }}][quantity]" value="{{ m.quantity }}">
+                            <input type="hidden" name="materials[{{ loop.index0 }}][recipe_unit_id]"
+                                value="{{ m.recipe_unit_id }}">
                             <button type="button" onclick="this.parentElement.remove()">×</button>
                         </li>
                         {% endfor %}
@@ -72,21 +82,25 @@
         function addMaterialToRecipe() {
             const select = document.getElementById('recipe-ingredient-select');
             const qtyInput = document.getElementById('recipe-quantity');
+            const unitSelect = document.getElementById('recipe-unit-select');
             const list = document.getElementById('recipe-list');
 
             if (!select.value || !qtyInput.value) return;
 
             const name = select.value;
             const qty = qtyInput.value;
-            const unit = select.options[select.selectedIndex].getAttribute('data-unit') || '';
+            const recipeUnitId = unitSelect.value;
+            const recipeUnitName = unitSelect.options[unitSelect.selectedIndex].text;
+            const stockUnit = select.options[select.selectedIndex].getAttribute('data-unit') || '';
             const idx = list.children.length;
 
             const li = document.createElement('li');
             li.className = 'recipe-item';
             li.innerHTML = `
-                <span><strong>${name}</strong> - ${qty} ${unit}</span>
+                <span><strong>${name}</strong> - ${qty} ${recipeUnitName} [Stock: ${stockUnit}]</span>
                 <input type="hidden" name="materials[${idx}][name]" value="${name}">
                 <input type="hidden" name="materials[${idx}][quantity]" value="${qty}">
+                <input type="hidden" name="materials[${idx}][recipe_unit_id]" value="${recipeUnitId}">                
                 <button type="button" onclick="this.parentElement.remove()">×</button>
             `;
             list.appendChild(li);

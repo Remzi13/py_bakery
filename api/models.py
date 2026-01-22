@@ -17,7 +17,10 @@ class Ingredient(BaseModel):
 class ProductIngredient(BaseModel):
     name: str
     quantity: float
-    unit: Optional[str] = None
+    unit_name: Optional[str] = None
+    conversion_factor: float = 1.0
+    recipe_unit_id: Optional[int] = None
+    recipe_unit_name: Optional[str] = None
 
 class ProductBase(BaseModel):
     name: str

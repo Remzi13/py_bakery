@@ -14,6 +14,8 @@ product_stock_association = Table(
     Column('product_id', Integer, ForeignKey('products.id', ondelete='CASCADE'), primary_key=True),
     Column('stock_id', Integer, ForeignKey('stock.id', ondelete='RESTRICT'), primary_key=True),
     Column('quantity', Float, nullable=False),
+    Column('conversion_factor', Float, nullable=False, default=1.0),
+    Column('recipe_unit_id', Integer, ForeignKey('units.id'), nullable=True),
 )
 
 

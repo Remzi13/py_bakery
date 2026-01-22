@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from sql_model.entities import ExpenseDocument, ExpenseItem, ExpenseType, StockItem, StockCategory, Unit, Supplier
+from sql_model.entities import ExpenseDocument, ExpenseItem, ExpenseType, ExpenseCategory, StockItem, StockCategory, Unit, Supplier
 
 
 class ExpenseDocumentsRepository:

@@ -5,6 +5,7 @@ from typing import List, Optional
 from api.dependencies import get_model
 from api.models import ProductCreate, ProductResponse
 from sql_model.model import SQLAlchemyModel
+from sql_model.entities import StockItem
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 templates = Jinja2Templates(directory="templates")
@@ -63,13 +64,17 @@ async def get_new_product_form(request: Request, model: SQLAlchemyModel = Depend
     for item in all_stock_items:
         all_materials.append({
             "name": item.name,
-            "unit_name": utils.get_unit_name_by_id(item.unit_id)
+            "unit_name": utils.get_unit_name_by_id(item.unit_id),
+            "unit_id": item.unit_id
         })
 
+    all_units = model.utils().get_all_units()
+    
     return templates.TemplateResponse(request, "products/form.html", {
         "request": request, 
         "product": None, 
-        "all_materials": all_materials
+        "all_materials": all_materials,
+        "all_units": all_units
     })
 
 @router.get("/{product_id}/edit", response_class=HTMLResponse)
@@ -80,11 +85,12 @@ async def get_edit_product_form(product_id: int, request: Request, model: SQLAlc
     
     # Get materials for this product
     materials = model.products().get_materials_for_product(product_id)
-    
+    all_units = model.utils().get_all_units()
     return templates.TemplateResponse(request, "products/form.html", {
         "request": request, 
         "product": p,
-        "all_materials": materials
+        "all_materials": materials,
+        "all_units": all_units
     })
 
 @router.post("/", response_model=ProductResponse)
@@ -131,9 +137,21 @@ async def create_product(
             
             for idx in sorted(parsed_materials.keys()):
                 m = parsed_materials[idx]
+                recep_unit_id = int(m.get('recipe_unit_id')) if m.get('recipe_unit_id') else None
+                
+                # Fetch stock unit_id for this material
+                stock_item = model.db.query(StockItem).filter(
+                    StockItem.name == m['name']
+                ).first()
+                
+                stock_unit_id = stock_item.unit_id if stock_item else None
+                conv_factor = model.utils().get_conversion_factor_by_unit_id(recep_unit_id, stock_unit_id)
+                
                 materials_list.append({
                     "name": m['name'],
-                    "quantity": float(m['quantity'])
+                    "quantity": float(m['quantity']),
+                    "conversion_factor": conv_factor,
+                    "recipe_unit_id": recep_unit_id
                 })
         
         new_product = model.products().add(name, price, materials_list)
@@ -212,9 +230,21 @@ async def update_product(
                 materials_list = []
                 for idx in sorted(parsed_materials.keys()):
                     m = parsed_materials[idx]
+                    recep_unit_id = int(m.get('recipe_unit_id')) if m.get('recipe_unit_id') else None
+
+                    # Fetch stock unit_id for this material
+                    stock_item = model.db.query(StockItem).filter(
+                        StockItem.name == m['name']
+                    ).first()
+
+                    stock_unit_id = stock_item.unit_id if stock_item else None
+                    conv_factor = model.utils().get_conversion_factor_by_unit_id(recep_unit_id, stock_unit_id)
+
                     materials_list.append({
                         "name": m['name'],
-                        "quantity": float(m['quantity'])
+                        "quantity": float(m['quantity']),
+                        "conversion_factor": conv_factor,
+                        "recipe_unit_id": recep_unit_id
                     })
             else:
                 # If nothing provided in form, keep existing

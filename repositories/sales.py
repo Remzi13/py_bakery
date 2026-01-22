@@ -35,7 +35,8 @@ class SalesRepository:
             
             for item in recipe:
                 ing_name = item['name']
-                ing_quantity_needed = item['quantity'] * quantity  # Total for all sales
+                conversion = item.get('conversion_factor', 1.0)
+                ing_quantity_needed = item['quantity'] * quantity * conversion
                 
                 # Update stock (negative change)
                 stock_repo.update(ing_name, -ing_quantity_needed)

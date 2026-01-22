@@ -61,7 +61,8 @@ class WriteOffsRepository:
                 # 2. Deduct ingredients from stock
                 for ing in mats_needed:
                     ing_name = ing['name']
-                    ing_quantity_needed = ing['quantity'] * quantity
+                    conversion = ing.get('conversion_factor', 1.0)
+                    ing_quantity_needed = ing['quantity'] * quantity * conversion
                     
                     current_stock = stock_repo.get(ing_name)
                     if current_stock is None:

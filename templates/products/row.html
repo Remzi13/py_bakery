@@ -3,7 +3,8 @@
     <td>{{ product.price }} ₽</td>
     <td style="font-size: 0.85rem; color: var(--text-muted)">
         {% for material in product.materials %}
-        {{ material.name }}: {{ material.quantity }}{% if material.unit %} {{ material.unit }}{% endif %}{% if not
+        {{ material.name }}: {{ material.quantity }}{% if material.recipe_unit_name %} {{ material.recipe_unit_name }}{%
+        endif %}{% if not
         loop.last %}, {% endif %}
         {% endfor %}
     </td>
