@@ -21,26 +21,32 @@
             <div class="logo">Bakery Manager</div>
             <nav>
                 <a href="/management" class="nav-btn active" hx-get="/api/dashboard/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="dashboard">Dashboard</a>
+                    hx-push-url="true" data-tab="dashboard" data-i18n="dashboard">Dashboard</a>
                 <a href="/management#products" class="nav-btn" hx-get="/api/products/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="products">Products</a>
+                    hx-push-url="true" data-tab="products" data-i18n="products">Products</a>
                 <a href="/management#stock" class="nav-btn" hx-get="/api/stock/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="stock">Stock</a>
+                    hx-push-url="true" data-tab="stock" data-i18n="stock">Stock</a>
                 <a href="/management#sales" class="nav-btn" hx-get="/api/sales/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="sales">Sales</a>
+                    hx-push-url="true" data-tab="sales" data-i18n="sales">Sales</a>
                 <a href="/management#orders" class="nav-btn" hx-get="/api/orders/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="orders">Orders</a>
+                    hx-push-url="true" data-tab="orders" data-i18n="orders">Orders</a>
                 <a href="/management#expenses" class="nav-btn" hx-get="/api/expenses/documents" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="expenses">Expenses</a>
+                    hx-push-url="true" data-tab="expenses" data-i18n="expenses">Expenses</a>
                 <a href="/management#suppliers" class="nav-btn" hx-get="/api/suppliers/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="suppliers">Suppliers</a>
+                    hx-push-url="true" data-tab="suppliers" data-i18n="suppliers">Suppliers</a>
                 <a href="/management#writeoffs" class="nav-btn" hx-get="/api/writeoffs/" hx-target="#tab-content"
-                    hx-push-url="true" data-tab="writeoffs">Write-offs</a>
+                    hx-push-url="true" data-tab="writeoffs" data-i18n="writeoffs">Write-offs</a>
 
                 <div
                     style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center;">
-                    <a href="/static/dock.html" class="nav-btn"
-                        style="text-decoration: none; display: inline-block; width: 80%; margin-bottom: 10px;">Documentation</a>
+                    <button id="lang-en" onclick="switchLanguage('en')" class="btn-secondary"
+                        style="padding: 5px 10px; margin: 0 5px; font-size: 0.8rem;">EN</button>
+                    <button id="lang-ru" onclick="switchLanguage('ru')" class="btn-secondary"
+                        style="padding: 5px 10px; margin: 0 5px; font-size: 0.8rem;">RU</button>
+                    <div style="margin-top: 10px;">
+                        <a href="/static/dock.html" class="nav-btn" data-i18n="documentation"
+                            style="text-decoration: none; display: inline-block; width: 80%; margin-bottom: 10px;">Documentation</a>
+                    </div>
                 </div>
             </nav>
         </aside>
@@ -66,9 +72,54 @@
             </div>
         </div>
     </div>
-   
+
     <script>
-        // Optional: extra initialization
+        // Handle navigation button clicks
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.nav-btn[data-tab]');
+            if (btn) {
+                // Update active class
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update page title and translate
+                const pageTitle = document.getElementById('page-title');
+                if (pageTitle) {
+                    const tabKey = btn.getAttribute('data-tab');
+                    pageTitle.setAttribute('data-i18n', tabKey);
+                    if (typeof updatePageLanguage === 'function') {
+                        updatePageLanguage();
+                    }
+                }
+            }
+        });
+
+        // Sync active tab with URL on load
+        window.addEventListener('load', function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                const targetBtn = document.querySelector(`.nav-btn[data-tab="${hash}"]`);
+                if (targetBtn) {
+                    targetBtn.click(); // Trigger HTMX load and our click handler
+                }
+            }
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function () {
+            const hash = window.location.hash.replace('#', '') || 'dashboard';
+            const targetBtn = document.querySelector(`.nav-btn[data-tab="${hash}"]`);
+            if (targetBtn) {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                targetBtn.classList.add('active');
+
+                const pageTitle = document.getElementById('page-title');
+                if (pageTitle) {
+                    pageTitle.setAttribute('data-i18n', hash);
+                    if (typeof updatePageLanguage === 'function') updatePageLanguage();
+                }
+            }
+        });
     </script>
 </body>
 

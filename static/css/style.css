@@ -635,6 +635,12 @@ legend {
     background: #e5e7eb;
 }
 
+.btn-secondary.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
 .btn-danger {
     background: #ef4444;
     color: white;
