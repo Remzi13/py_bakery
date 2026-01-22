@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from sql_model.entities import Product, StockItem
+from sql_model.entities import Product, StockItem, ProductRecipe
 
 
 class ProductsRepository:
@@ -20,7 +20,7 @@ class ProductsRepository:
         """
         Получает список ингредиентов для продукта, используя ORM-связи.
         """
-        from sql_model.entities import StockItem, Unit, product_stock_association
+        from sql_model.entities import Unit
         from sqlalchemy.orm import aliased
 
         RecipeUnit = aliased(Unit)
@@ -29,16 +29,16 @@ class ProductsRepository:
             self.db.query(
                 StockItem.id,
                 StockItem.name,
-                product_stock_association.c.quantity,
-                product_stock_association.c.conversion_factor,
-                product_stock_association.c.recipe_unit_id,
+                ProductRecipe.quantity,
+                ProductRecipe.conversion_factor,
+                ProductRecipe.recipe_unit_id,
                 Unit.name.label("unit_name"),
                 RecipeUnit.name.label("recipe_unit_name")
             )
-            .join(product_stock_association, StockItem.id == product_stock_association.c.stock_id)
+            .join(ProductRecipe, StockItem.id == ProductRecipe.stock_id)
             .join(Unit, StockItem.unit_id == Unit.id)
-            .outerjoin(RecipeUnit, product_stock_association.c.recipe_unit_id == RecipeUnit.id)
-            .filter(product_stock_association.c.product_id == product_id)
+            .outerjoin(RecipeUnit, ProductRecipe.recipe_unit_id == RecipeUnit.id)
+            .filter(ProductRecipe.product_id == product_id)
             .all()
         )
 
@@ -69,15 +69,11 @@ class ProductsRepository:
             if existing_product:
                 # Update: Delete old recipe
                 product_id = existing_product.id
-                from sqlalchemy import delete
-                from sql_model.entities import product_stock_association
 
-                # Use ORM delete instead of raw SQL text()
-                self.db.execute(
-                    delete(product_stock_association).where(
-                        product_stock_association.c.product_id == product_id
-                    )
-                )
+                # Use ORM delete
+                self.db.query(ProductRecipe).filter(
+                    ProductRecipe.product_id == product_id
+                ).delete()
 
                 # Update product
                 existing_product.price = price
@@ -90,9 +86,6 @@ class ProductsRepository:
                 product_id = new_product.id
 
             # Add materials
-            from sql_model.entities import product_stock_association
-            from sqlalchemy import insert
-
             for item in materials:
                 mat_name = item['name']
                 mat_quantity = item['quantity']
@@ -107,15 +100,14 @@ class ProductsRepository:
                 if not stock_item:
                     raise ValueError(f"Material '{mat_name}' not found. Product not saved.")
 
-                self.db.execute(
-                    insert(product_stock_association).values(
-                        product_id=product_id,
-                        stock_id=stock_item.id,
-                        quantity=mat_quantity,
-                        conversion_factor=mat_conversion,
-                        recipe_unit_id=mat_recipe_unit_id
-                    )
+                recipe = ProductRecipe(
+                    product_id=product_id,
+                    stock_id=stock_item.id,
+                    quantity=mat_quantity,
+                    conversion_factor=mat_conversion,
+                    recipe_unit_id=mat_recipe_unit_id
                 )
+                self.db.add(recipe)
 
             self.db.commit()
             return self.by_id(product_id)
@@ -154,14 +146,9 @@ class ProductsRepository:
                 raise ValueError(f"Product '{name}' is part of existing orders and cannot be deleted.")
 
             # Delete from association table (cascade) using ORM
-            from sqlalchemy import delete
-            from sql_model.entities import product_stock_association
-
-            self.db.execute(
-                delete(product_stock_association).where(
-                    product_stock_association.c.product_id == product.id
-                )
-            )
+            self.db.query(ProductRecipe).filter(
+                ProductRecipe.product_id == product.id
+            ).delete()
 
             # Delete product
             self.db.delete(product)
@@ -198,19 +185,12 @@ class ProductsRepository:
             existing.price = price
 
             # Delete old recipe using ORM
-            from sqlalchemy import delete
-            from sql_model.entities import product_stock_association
-
-            self.db.execute(
-                delete(product_stock_association).where(
-                    product_stock_association.c.product_id == product_id
-                )
-            )
+            self.db.query(ProductRecipe).filter(
+                ProductRecipe.product_id == product_id
+            ).delete()
             self.db.flush()  # Ensure deletion is committed before inserting new materials
 
-            # Add new recipe using ORM insert
-            from sqlalchemy import insert
-
+            # Add new recipe using ORM
             for item in materials:
                 mat_name = item['name']
                 mat_quantity = item['quantity']
@@ -224,15 +204,14 @@ class ProductsRepository:
                 if not stock_item:
                     raise ValueError(f"Material '{mat_name}' not found. Product not saved.")
 
-                self.db.execute(
-                    insert(product_stock_association).values(
-                        product_id=product_id,
-                        stock_id=stock_item.id,
-                        quantity=mat_quantity,
-                        conversion_factor=mat_conversion,
-                        recipe_unit_id=mat_recipe_unit_id
-                    )
+                recipe = ProductRecipe(
+                    product_id=product_id,
+                    stock_id=stock_item.id,
+                    quantity=mat_quantity,
+                    conversion_factor=mat_conversion,
+                    recipe_unit_id=mat_recipe_unit_id
                 )
+                self.db.add(recipe)
 
             self.db.commit()
             return self.by_id(product_id)

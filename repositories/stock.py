@@ -140,9 +140,9 @@ class StockRepository:
             return True
         
         # Check if stock is used in product recipes
-        from sql_model.entities import product_stock_association
-        count = self.db.query(product_stock_association).filter(
-            product_stock_association.c.stock_id == stock.id
+        from sql_model.entities import ProductRecipe
+        count = self.db.query(ProductRecipe).filter(
+            ProductRecipe.stock_id == stock.id
         ).count()
         return count == 0
 

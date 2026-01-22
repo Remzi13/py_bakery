@@ -2,21 +2,12 @@
 
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime, Table
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey, DateTime, Table, Index
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sql_model.database import Base
 
 
-# Association table for Product-Stock relationship (many-to-many)
-product_stock_association = Table(
-    'product_stock',
-    Base.metadata,
-    Column('product_id', Integer, ForeignKey('products.id', ondelete='CASCADE'), primary_key=True),
-    Column('stock_id', Integer, ForeignKey('stock.id', ondelete='RESTRICT'), primary_key=True),
-    Column('quantity', Float, nullable=False),
-    Column('conversion_factor', Float, nullable=False, default=1.0),
-    Column('recipe_unit_id', Integer, ForeignKey('units.id'), nullable=True),
-)
+
 
 
 class Unit(Base):
@@ -76,11 +67,10 @@ class Product(Base):
     sales: Mapped[List["Sale"]] = relationship("Sale", back_populates="product")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="product")
     order_items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="product")
-
-    materials: Mapped[List["StockItem"]] = relationship(
-        "StockItem", 
-        secondary=product_stock_association,
-        backref="products"
+    recipes: Mapped[List["ProductRecipe"]] = relationship(
+        "ProductRecipe", 
+        back_populates="product",
+        cascade="all, delete-orphan"
     )
     
     def __repr__(self):
@@ -102,9 +92,48 @@ class StockItem(Base):
     unit: Mapped["Unit"] = relationship("Unit", back_populates="stock_items")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="stock_item")
     expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="stock_item")
+    product_recipes: Mapped[List["ProductRecipe"]] = relationship("ProductRecipe", back_populates="stock_item")
     
     def __repr__(self):
         return f"<StockItem(id={self.id}, name={self.name}, quantity={self.quantity})>"
+
+
+class ProductRecipe(Base):
+    """Рецепт продукта (связь продукт-ингредиент)."""
+    __tablename__ = 'product_recipes'
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[int] = mapped_column(
+        Integer, 
+        ForeignKey('products.id', ondelete='CASCADE'), 
+        nullable=False
+    )
+    stock_id: Mapped[int] = mapped_column(
+        Integer, 
+        ForeignKey('stock.id', ondelete='RESTRICT'), 
+        nullable=False
+    )
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    conversion_factor: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
+    recipe_unit_id: Mapped[Optional[int]] = mapped_column(
+        Integer, 
+        ForeignKey('units.id'), 
+        nullable=True
+    )
+    
+    # Relationships
+    product: Mapped["Product"] = relationship("Product", back_populates="recipes")
+    stock_item: Mapped["StockItem"] = relationship("StockItem", back_populates="product_recipes")
+    unit: Mapped[Optional["Unit"]] = relationship("Unit")
+    
+    # Индексы для быстрого поиска рецептов
+    __table_args__ = (
+        Index('idx_product_recipe_product', 'product_id'),
+        Index('idx_product_recipe_stock', 'stock_id'),
+    )
+    
+    def __repr__(self):
+        return f"<ProductRecipe(id={self.id}, product_id={self.product_id}, stock_id={self.stock_id}, quantity={self.quantity})>"
 
 
 class Sale(Base):
