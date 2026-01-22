@@ -26,7 +26,7 @@ class ExpenseDocumentsRepository:
         Automatically replenishes stock if expense type is marked as 'stock'.
         
         Args:
-            items: List of dicts [{'expense_type_id': int, 'quantity': float, 'price_per_unit': int, 'unit_id': int}]
+            items: List of dicts [{'expense_type_id': int, 'quantity': float, 'price': int, 'unit_id': int}]
         """
         try:
             # 1. Create document
@@ -54,7 +54,7 @@ class ExpenseDocumentsRepository:
         """Add a single item to expense document."""
         exp_type_id = item_data['expense_type_id']
         quantity = item_data['quantity']
-        price = item_data['price_per_unit']
+        price = item_data['price']
         unit_id = item_data['unit_id']
         
         # Get expense type info
@@ -102,15 +102,13 @@ class ExpenseDocumentsRepository:
                 stock_item_id = new_stock.id
         
         # Add expense item record
-        total_price = quantity * price
         expense_item = ExpenseItem(
             document_id=doc_id,
             expense_type_id=exp_type_id,
             stock_item_id=stock_item_id,
             unit_id=unit_id,
             quantity=quantity,
-            price_per_unit=price,
-            total_price=total_price
+            price=price
         )
         self.db.add(expense_item)
 
@@ -152,8 +150,7 @@ class ExpenseDocumentsRepository:
             result.append({
                 "id": item.id,
                 "quantity": item.quantity,
-                "price_per_unit": item.price_per_unit,
-                "total_price": item.total_price,
+                "price": item.price,
                 "expense_type_name": item.expense_type.name if item.expense_type else None,
                 "unit_name": item.unit.name if item.unit else None
             })

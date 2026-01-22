@@ -28,6 +28,7 @@ class Unit(Base):
     stock_items: Mapped[List["StockItem"]] = relationship("StockItem", back_populates="unit")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="unit")
     expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="unit")
+    expense_types: Mapped[List["ExpenseType"]] = relationship("ExpenseType", back_populates="unit")
     
     def __repr__(self):
         return f"<Unit(id={self.id}, name={self.name})>"
@@ -73,6 +74,12 @@ class Product(Base):
     sales: Mapped[List["Sale"]] = relationship("Sale", back_populates="product")
     write_offs: Mapped[List["WriteOff"]] = relationship("WriteOff", back_populates="product")
     order_items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="product")
+
+    materials: Mapped[List["StockItem"]] = relationship(
+        "StockItem", 
+        secondary=product_stock_association,
+        backref="products"
+    )
     
     def __repr__(self):
         return f"<Product(id={self.id}, name={self.name}, price={self.price})>"
@@ -125,10 +132,12 @@ class ExpenseType(Base):
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     default_price: Mapped[float] = mapped_column(Integer, nullable=False)
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_categories.id'), nullable=False)
-    stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
+    stock: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)    
     
     # Relationships
     category: Mapped["ExpenseCategory"] = relationship("ExpenseCategory", back_populates="expense_types")
+    unit: Mapped["Unit"] = relationship("Unit", back_populates="expense_types")
     expense_items: Mapped[List["ExpenseItem"]] = relationship("ExpenseItem", back_populates="expense_type")
     
     def __repr__(self):
@@ -238,8 +247,7 @@ class ExpenseItem(Base):
     stock_item_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('stock.id'), nullable=True)
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'), nullable=False)
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
-    price_per_unit: Mapped[float] = mapped_column(Integer, nullable=False)
-    total_price: Mapped[float] = mapped_column(Integer, nullable=False)
+    price: Mapped[float] = mapped_column(Float, nullable=False)    
     
     # Relationships
     document: Mapped["ExpenseDocument"] = relationship("ExpenseDocument", back_populates="items")

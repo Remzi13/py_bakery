@@ -48,11 +48,20 @@ async def get_new_expense_document_form(request: Request, model: SQLAlchemyModel
     types = model.expense_types().data()
     current_date = datetime.now().strftime("%Y-%m-%dT%H:%M")
     
+    all_types = []
+    for item in types:
+        all_types.append({
+            "id" : item.id,
+            "name": item.name,
+            "unit_id" : item.unit_id,
+            "unit_name": model.utils().get_unit_name_by_id(item.unit_id)
+        })
+    
     return templates.TemplateResponse(request, "expenses/document_form.html", {
         "doc": None, 
         "suppliers": suppliers,
         "categories": categories,
-        "types": types,
+        "types": all_types,
         "current_date": current_date
     })
 
@@ -85,7 +94,7 @@ async def create_expense_document(
             total_amount = 0
             items_data = []
             for item in doc.items:
-                total_amount += item.quantity * item.price_per_unit
+                total_amount += item.price
                 items_data.append(item.dict())
             
             doc_id = model.expense_documents().add(
@@ -127,13 +136,13 @@ async def create_expense_document(
         for idx in parsed_items:
             item = parsed_items[idx]
             qty = float(item['quantity'])
-            price = float(item['price_per_unit'])
-            total_amount += qty * price
+            price = float(item['price'])
+            total_amount += price
             
             items_data.append({
                 "expense_type_id": int(item['expense_type_id']),
                 "quantity": qty,
-                "price_per_unit": price,
+                "price": price,
                 "unit_id": int(item['unit_id'])
             })
             
@@ -186,7 +195,8 @@ async def get_new_category_form(request: Request):
 @router.get("/types/new", response_class=HTMLResponse)
 async def get_new_type_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     categories = model.utils().get_expense_category_names()
-    return templates.TemplateResponse(request, "expenses/type_form.html", {"categories": categories})
+    units = model.utils().get_units()
+    return templates.TemplateResponse(request, "expenses/type_form.html", {"categories": categories, "units": units})
 
 @router.post("/categories")
 async def create_expense_category(
@@ -224,6 +234,7 @@ async def create_expense_type(
                 name=type_data.name,
                 default_price=type_data.default_price,
                 category_name=type_data.category_name,
+                unit_id=type_data.unit_id,
                 stock=type_data.stock
             )
         else:
@@ -231,12 +242,14 @@ async def create_expense_type(
             name = form.get("name")
             default_price = float(form.get("default_price"))
             category_name = form.get("category_name")
+            unit_id = int(form.get("unit_id"))
             stock = form.get("stock") == "true"
             
             model.expense_types().add(
                 name=name,
                 default_price=default_price,
                 category_name=category_name,
+                unit_id=unit_id,
                 stock=stock
             )
             
@@ -296,3 +309,5 @@ def get_expense_categories(model: SQLAlchemyModel = Depends(get_model)):
         return model.utils().get_expense_category_names()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+

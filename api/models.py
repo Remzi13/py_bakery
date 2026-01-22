@@ -108,7 +108,7 @@ class ExpenseCreate(BaseModel):
 class ExpenseItemCreate(BaseModel):
     expense_type_id: int
     quantity: float
-    price_per_unit: float
+    price: float
     unit_id: int
 
 class ExpenseDocumentCreate(BaseModel):

@@ -159,7 +159,6 @@ py_bakery/
 │   ├── css/
 │   │   └── style.css
 │   └── js/
-│       ├── app.js         ← Основная логика
 │       ├── translations.js ← Поддержка языков
 │       └── modules/
 └── database.db            ← SQLite база данных

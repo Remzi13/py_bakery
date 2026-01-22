@@ -91,7 +91,7 @@ model.expense_documents().add_item(
     expense_type_id=1,
     stock_item_id=1,
     quantity=50,
-    price_per_unit=20
+    price=20
 )
 model.expense_documents().delete(1)
 

@@ -217,7 +217,6 @@ py_bakery/
 │   │   ├── style.css
 │   │   └── pos.css
 │   └── js/
-│       ├── app.js
 │       ├── pos.js
 │       └── translations.js
 │

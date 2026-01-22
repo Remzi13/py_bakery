@@ -46,8 +46,8 @@
                     </div>
 
                     <ul id="recipe-list" class="recipe-list">
-                        {% if product and product.materials %}
-                        {% for m in product.materials %}
+                        {% if product and all_materials %}
+                        {% for m in all_materials %}
                         <li class="recipe-item">
                             <span><strong>{{ m.name }}</strong> - {{ m.quantity }} {{ m.unit_name }}</span>
                             <input type="hidden" name="materials[{{ loop.index0 }}][name]" value="{{ m.name }}">

@@ -21,7 +21,7 @@ class ExpenseTypesRepository:
 
     # --- CRUD Methods ---
 
-    def add(self, name: str, default_price: int, category_name: str, stock: bool = False):
+    def add(self, name: str, default_price: int, category_name: str,  unit_id: int, stock: bool = False,):
         """Add a new expense type."""
         try:
             category_id = self._get_category_id(category_name)
@@ -32,7 +32,8 @@ class ExpenseTypesRepository:
                 name=name,
                 default_price=default_price,
                 category_id=category_id,
-                stock=stock
+                unit_id=unit_id,
+                stock=stock                
             )
             self.db.add(expense_type)
             self.db.commit()

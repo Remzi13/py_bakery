@@ -21,7 +21,7 @@ def setup_expense_data(model):
     
     # Create an expense type
     type_repo = model.expense_types()
-    type_repo.add('Flour Purchase', 500.0, 'Materials', False)
+    type_repo.add('Flour Purchase', 500.0, 'Materials', 1, False)
     
     exp_type = type_repo.get('Flour Purchase')
     
@@ -40,7 +40,7 @@ class TestExpenseTypesRepository:
         """Test adding a new expense type."""
         repo = model.expense_types()
         
-        repo.add('Utilities', 100.0, 'Utilities', False)
+        repo.add('Utilities', 100.0, 'Utilities', 1, False)
         
         exp_type = repo.get('Utilities')
         assert exp_type is not None
@@ -58,7 +58,7 @@ class TestExpenseTypesRepository:
         """Test retrieving expense type by ID."""
         repo = model.expense_types()
         
-        repo.add('Equipment', 1000.0, 'Equipment', False)
+        repo.add('Equipment', 1000.0, 'Equipment', 1, False)
         exp_type = repo.get('Equipment')
         
         retrieved = repo.by_id(exp_type.id)
@@ -69,7 +69,7 @@ class TestExpenseTypesRepository:
         """Test updating an expense type."""
         repo = model.expense_types()
         
-        repo.add('Supplies', 50.0, 'Materials', False)
+        repo.add('Supplies', 50.0, 'Materials', 1, False)
         exp_type = repo.get('Supplies')
         
         repo.update(exp_type.id, 75.0)
@@ -81,7 +81,7 @@ class TestExpenseTypesRepository:
         """Test deleting an expense type."""
         repo = model.expense_types()
         
-        repo.add('TempType', 100.0, 'Materials', False)
+        repo.add('TempType', 100.0, 'Materials', 1, False)
         repo.delete('TempType')
         
         deleted = repo.get('TempType')
@@ -91,9 +91,9 @@ class TestExpenseTypesRepository:
         """Test retrieving all expense types."""
         repo = model.expense_types()
         
-        repo.add('Type1', 100.0, 'Materials', False)
-        repo.add('Type2', 200.0, 'Equipment', False)
-        repo.add('Type3', 50.0, 'Utilities', False)
+        repo.add('Type1', 100.0,'Materials', 1, False)
+        repo.add('Type2', 200.0,'Equipment', 1, False)
+        repo.add('Type3', 50.0, 'Utilities', 1, False)
         
         all_types = repo.data()
         assert len(all_types) >= 3
@@ -112,7 +112,7 @@ class TestExpenseDocumentsRepository:
         items = [{
             'expense_type_id': exp_type.id,
             'quantity': 1.0,
-            'price_per_unit': 450,
+            'price': 450,
             'unit_id': unit.id
         }]
         
@@ -131,7 +131,7 @@ class TestExpenseDocumentsRepository:
         items = [{
             'expense_type_id': exp_type.id,
             'quantity': 1.0,
-            'price_per_unit': 450,
+            'price': 450,
             'unit_id': unit.id
         }]
         
@@ -151,7 +151,7 @@ class TestExpenseDocumentsRepository:
         items = [{
             'expense_type_id': exp_type.id,
             'quantity': 1.0,
-            'price_per_unit': 450,
+            'price': 450,
             'unit_id': unit.id
         }]
         
@@ -206,7 +206,7 @@ class TestExpensesRouter:
         items = [{
             'expense_type_id': exp_type.id,
             'quantity': 1.0,
-            'price_per_unit': 450,
+            'price': 450,
             'unit_id': unit.id
         }]
         

@@ -10,6 +10,10 @@ class UtilsRepository:
     def __init__(self, db: Session):
         self.db = db
 
+
+    def get_units(self) -> List[Unit]:
+        return self.db.query(Unit).all()
+
     def get_unit_names(self) -> List[str]:
         """Return list of all unit names (e.g., ['kg', 'g'])."""
         return [unit.name for unit in self.db.query(Unit).order_by(Unit.id).all()]
