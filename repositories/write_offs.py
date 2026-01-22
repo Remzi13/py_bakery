@@ -14,7 +14,7 @@ class WriteOffsRepository:
 
     # --- Main method: Register write-off ---
 
-    def add(self, item_name: str, item_type: str, quantity: float, reason: str):
+    def add(self, item_id: int, item_type: str, quantity: float, reason: str):
         """
         Register a write-off (finished product or stock/raw material).
 
@@ -51,38 +51,38 @@ class WriteOffsRepository:
                 product_repo = self._model.products()
                 
                 # 1. Find product and recipe
-                product_entity = product_repo.by_name(item_name)
+                product_entity = product_repo.by_id(item_id)
                 if product_entity is None:
-                    raise ValueError(f"Product '{item_name}' not found.")
+                    raise ValueError(f"Product with ID {item_id} not found.")
                 
                 mats_needed = product_repo.get_materials_for_product(product_entity.id)
                 product_id = product_entity.id
                 
                 # 2. Deduct ingredients from stock
                 for ing in mats_needed:
-                    ing_name = ing['name']
+                    stock_id = ing['stock_id']
                     conversion = ing.get('conversion_factor', 1.0)
                     ing_quantity_needed = ing['quantity'] * quantity * conversion
                     
-                    current_stock = stock_repo.get(ing_name)
+                    current_stock = stock_repo.by_id(stock_id)
                     if current_stock is None:
-                        raise ValueError(f"Ingredient '{ing_name}' for product '{item_name}' not found in stock.")
+                        raise ValueError(f"Ingredient with ID {stock_id} for product '{item_name}' not found in stock.")
                     
                     new_quantity = current_stock.quantity - ing_quantity_needed
                     if new_quantity < 0:
                         raise ValueError(
-                            f"Insufficient ingredient '{ing_name}' to write off {quantity} "
+                            f"Insufficient ingredient '{current_stock.name}' to write off {quantity} "
                             f"of '{item_name}'. Need {ing_quantity_needed}, have {current_stock.quantity}."
                         )
                     
-                    stock_repo.set(ing_name, new_quantity)
+                    stock_repo.set(stock_id, new_quantity)
                 
             elif item_type == 'stock':
                 # --- LOGIC FOR WRITING OFF STOCK/RAW MATERIAL ---
-                current_stock_item = stock_repo.get(item_name)
+                current_stock_item = stock_repo.by_id(item_id)
                 
                 if current_stock_item is None:
-                    raise ValueError(f"Item '{item_name}' not found in stock.")
+                    raise ValueError(f"Item with ID {item_id} not found in stock.")
                 
                 stock_item_id = current_stock_item.id
                 unit_id = current_stock_item.unit_id
@@ -96,7 +96,7 @@ class WriteOffsRepository:
                 
                 # 2. Decrease stock quantity
                 new_quantity = current_stock_item.quantity - quantity
-                stock_repo.set(item_name, new_quantity)
+                stock_repo.set(stock_item_id, new_quantity)
             
             # 3. Record write-off in log (for both types)
             writeoff = WriteOff(

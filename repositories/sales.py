@@ -15,36 +15,36 @@ class SalesRepository:
 
     # --- CRUD/Logic Methods ---
 
-    def add(self, name: str, price: int, quantity: float, discount: int):
+    def add(self, product_id: int, price: int, quantity: float, discount: int):
         """
         Register a sale and deduct necessary ingredients from stock.
         """
         # Get product and recipe
-        product = self._model.products().by_name(name)
+        product = self._model.products().by_id(product_id)
         if not product:
-            raise ValueError(f"Product '{name}' not found.")
+            raise ValueError(f"Product with ID {product_id} not found.")
             
         # Get recipe (list of ingredients with quantities)
         recipe = self._model.products().get_materials_for_product(product.id)
         if not recipe:
-            raise ValueError(f"Product '{name}' has no recipe. Cannot sell.")
+            raise ValueError(f"Product '{product.name}' has no recipe. Cannot sell.")
 
         try:
             # Deduct ingredients from stock
             stock_repo = self._model.stock()
             
             for item in recipe:
-                ing_name = item['name']
+                stock_id = item['stock_id']
                 conversion = item.get('conversion_factor', 1.0)
                 ing_quantity_needed = item['quantity'] * quantity * conversion
                 
-                # Update stock (negative change)
-                stock_repo.update(ing_name, -ing_quantity_needed)
+                # Update stock (negative change) using stock_id
+                stock_repo.update(stock_id, -ing_quantity_needed)
 
             # Record the sale
             sale = Sale(
                 product_id=product.id,
-                product_name=name,
+                product_name=product.name,
                 price=price,
                 quantity=quantity,
                 discount=discount,

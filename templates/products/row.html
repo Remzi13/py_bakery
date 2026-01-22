@@ -14,8 +14,7 @@
                 hx-target="#modal-container">
                 ✏️
             </button>
-            <button class="btn-icon" title="Delete" data-i18n-title="delete"
-                hx-delete="/api/products/{{ product.name }}"
+            <button class="btn-icon" title="Delete" data-i18n-title="delete" hx-delete="/api/products/{{ product.id }}"
                 hx-confirm="Are you sure you want to delete {{ product.name }}?"
                 hx-target="#product-row-{{ product.id }}" hx-swap="outerHTML">
                 🗑️

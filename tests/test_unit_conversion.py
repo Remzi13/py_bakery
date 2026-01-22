@@ -88,7 +88,7 @@ def test_product_with_unit_conversion(test_db: Session, setup_units_and_material
     # 2. Verify deduction in sale
     # Initial stock: 10.0 kg
     # Sell 2 units: should deduct 2 * 500g * 0.001 = 1.0 kg
-    sales_repo.add(product_name, 100, 2, 0)
+    sales_repo.add(product.id, 100, 2, 0)
     
     # Check remaining stock
     flour_stock = test_db.query(StockItem).filter(StockItem.name == 'Flour').first()
@@ -153,10 +153,11 @@ def test_writeoff_with_unit_conversion(test_db: Session, setup_units_and_materia
     
     product_name = 'WriteOffBread'
     repo.add(product_name, 100, materials)
+    product_entity = repo.by_name(product_name)
     
     # Initial stock: 10.0 kg (from setup)
     # Write off 3 units: should deduct 3 * 500g * 0.001 = 1.5 kg
-    wo_repo.add(product_name, 'product', 3.0, 'Spoilage')
+    wo_repo.add(product_entity.id, 'product', 3.0, 'Spoilage')
     
     # Check remaining stock
     flour_stock = test_db.query(StockItem).filter(StockItem.name == 'Flour').first()

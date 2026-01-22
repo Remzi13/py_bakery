@@ -76,12 +76,12 @@ class StockRepository:
         """Return list of all stock items."""
         return self.db.query(StockItem).all()
 
-    def update(self, name: str, quantity_delta: float):
+    def update(self, stock_item_id: int, quantity_delta: float):
         """
         Change stock quantity by quantity_delta (positive for income, negative for expense).
         
         Args:
-            name: Stock item name
+            stock_item_id: Stock item ID
             quantity_delta: Change amount (positive or negative)
             
         Raises:
@@ -89,10 +89,11 @@ class StockRepository:
             KeyError: If item not found
         """
         # Get current item
-        current_item = self.get(name)
+        current_item = self.by_id(stock_item_id)
         if current_item is None:
-            raise KeyError(f"Stock item '{name}' not found")
+            raise KeyError(f"Stock item with ID {stock_item_id} not found")
         
+        name = current_item.name
         new_quantity = current_item.quantity + quantity_delta
         
         # Check business logic: disallow negative stock
@@ -109,32 +110,32 @@ class StockRepository:
             self.db.rollback()
             raise RuntimeError(f"Error updating stock for '{name}': {e}")
         
-    def set(self, name: str, new_quantity: float):
+    def set(self, stock_item_id: int, new_quantity: float):
         """
         Set new quantity value for stock item.
         
         Args:
-            name: Stock item name
+            stock_item_id: Stock item ID
             new_quantity: New quantity value
             
         Raises:
             KeyError: If item not found
         """
         # Check item exists
-        item = self.get(name)
+        item = self.by_id(stock_item_id)
         if item is None:
-            raise KeyError(f"Stock item '{name}' not found")
+            raise KeyError(f"Stock item with ID {stock_item_id} not found")
         
         try:
             item.quantity = new_quantity
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            raise RuntimeError(f"Error updating stock for '{name}': {e}")
+            raise RuntimeError(f"Error updating stock for ID {stock_item_id}: {e}")
 
-    def can_delete(self, name: str) -> bool:
+    def can_delete(self, stock_item_id: int) -> bool:
         """Check if stock item can be deleted (not used in products)."""
-        stock = self.get(name)
+        stock = self.by_id(stock_item_id)
         if not stock:
             return True
         
@@ -145,17 +146,17 @@ class StockRepository:
         ).count()
         return count == 0
 
-    def delete(self, name: str):
-        """Delete stock item by name."""
-        if not self.can_delete(name):
-            raise ValueError(f"Material '{name}' is used in a product. Cannot delete.")
+    def delete(self, stock_item_id: int):
+        """Delete stock item by ID."""
+        if not self.can_delete(stock_item_id):
+            raise ValueError(f"Material with ID {stock_item_id} is used in a product. Cannot delete.")
         
-        stock = self.get(name)
+        stock = self.by_id(stock_item_id)
         if not stock:
             return
         
         try:
-            self._model.expense_types().delete(name)
+            self._model.expense_types().delete(stock.name)
             self.db.delete(stock)
             self.db.commit()
         except Exception as e:

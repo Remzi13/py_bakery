@@ -22,7 +22,7 @@ class TestWriteOffsRepository:
         repo = model.writeoffs()
         item = setup_stock_data['flour']
         
-        repo.add('Flour', 'stock', 5.0, 'Expired')
+        repo.add(item.id, 'stock', 5.0, 'Expired')
         
         writeoffs = repo.data()
         assert len(writeoffs) >= 1
@@ -35,8 +35,8 @@ class TestWriteOffsRepository:
     def test_add_writeoff_with_reason(self, model, setup_stock_data):
         """Test adding a write-off with a specific reason."""
         repo = model.writeoffs()
-        
-        repo.add('Flour', 'stock', 2.0, 'Damaged Packaging')
+        item = setup_stock_data['flour']
+        repo.add(item.id, 'stock', 2.0, 'Damaged Packaging')
         
         writeoff = repo.data()[0]
         assert writeoff.quantity == 2.0
@@ -45,8 +45,9 @@ class TestWriteOffsRepository:
     def test_get_writeoff_by_id(self, model, setup_stock_data):
         """Test retrieving write-off by ID."""
         repo = model.writeoffs()
+        item = setup_stock_data['flour']
         
-        repo.add('Flour', 'stock', 1.0, 'Test')
+        repo.add(item.id, 'stock', 1.0, 'Test')
         wo = repo.data()[0]
         
         retrieved = repo.by_id(wo.id)
@@ -56,8 +57,9 @@ class TestWriteOffsRepository:
     def test_delete_writeoff(self, model, setup_stock_data):
         """Test deleting a write-off record."""
         repo = model.writeoffs()
+        item = setup_stock_data['flour']
         
-        repo.add('Flour', 'stock', 3.0, 'To Delete')
+        repo.add(item.id, 'stock', 3.0, 'To Delete')
         wo = repo.data()[0]
         wo_id = wo.id
         
@@ -69,9 +71,10 @@ class TestWriteOffsRepository:
     def test_get_all_writeoffs(self, model, setup_stock_data):
         """Test retrieving all write-offs."""
         repo = model.writeoffs()
+        item = setup_stock_data['flour']
         
-        repo.add('Flour', 'stock', 1.0, 'R1')
-        repo.add('Flour', 'stock', 2.0, 'R2')
+        repo.add(item.id, 'stock', 1.0, 'R1')
+        repo.add(item.id, 'stock', 2.0, 'R2')
         
         all_writeoffs = repo.data()
         assert len(all_writeoffs) >= 2
@@ -81,7 +84,7 @@ class TestWriteOffsRepository:
         repo = model.writeoffs()
         item = setup_stock_data['flour']
         
-        repo.add('Flour', 'stock', 1.0, 'R1')
+        repo.add(item.id, 'stock', 1.0, 'R1')
         
         item_writeoffs = repo.get_by_stock_item(item.id)
         assert len(item_writeoffs) >= 1
@@ -98,7 +101,8 @@ class TestWriteOffsRouter:
     def test_get_writeoffs_with_data(self, client, model, setup_stock_data):
         """Test getting write-offs list."""
         repo = model.writeoffs()
-        repo.add('Flour', 'stock', 5.0, 'Test')
+        item = setup_stock_data['flour']
+        repo.add(item.id, 'stock', 5.0, 'Test')
         
         response = client.get("/api/writeoffs/")
         assert response.status_code == 200
@@ -106,7 +110,8 @@ class TestWriteOffsRouter:
     def test_get_writeoffs_by_date(self, client, model, setup_stock_data):
         """Test getting write-offs for a specific date."""
         repo = model.writeoffs()
-        repo.add('Flour', 'stock', 5.0, 'Test')
+        item = setup_stock_data['flour']
+        repo.add(item.id, 'stock', 5.0, 'Test')
         
         today = datetime.now().strftime("%Y-%m-%d")
         response = client.get(f"/api/writeoffs/?search={today}")

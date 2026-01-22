@@ -10,7 +10,7 @@
             <button class="btn-icon" title="Edit" hx-get="/api/stock/{{ item.id }}/edit" hx-target="#modal-container">
                 ✏️
             </button>
-            <button class="btn-icon" title="Delete" hx-delete="/api/stock/{{ item.name }}"
+            <button class="btn-icon" title="Delete" hx-delete="/api/stock/{{ item.id }}"
                 hx-confirm="Are you sure you want to delete {{ item.name }}?" hx-target="#stock-row-{{ item.id }}"
                 hx-swap="outerHTML">
                 🗑️

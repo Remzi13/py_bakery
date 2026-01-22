@@ -58,10 +58,12 @@ async def create_sale(
         product = model.products().by_id(product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-            
-        model.sales().add(product.name, product.price, quantity, discount)
+
+        model.sales().add(product_id, product.price, quantity, discount)
         
         # Get the latest sale back for the row template
+        # We need name and other details for SaleResponse
+        product_name = product.name
         new_sale = model.sales().data()[0] 
         
         if request.headers.get("HX-Request"):

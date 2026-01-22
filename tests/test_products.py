@@ -130,7 +130,7 @@ class TestProductsRepository:
         product = repo.by_name('TempProduct')
         assert product is not None
         
-        repo.delete('TempProduct')
+        repo.delete(product.id)
         
         deleted = repo.by_name('TempProduct')
         assert deleted is None

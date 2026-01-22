@@ -32,7 +32,8 @@
                             <select id="recipe-ingredient-select">
                                 <option value="" data-i18n="selectIngredient">Select Ingredient...</option>
                                 {% for mat in all_materials %}
-                                <option value="{{ mat.name }}" data-unit="{{ mat.unit_name }}">{{ mat.name }}
+                                <option value="{{ mat.id }}" data-name="{{ mat.name }}" data-unit="{{ mat.unit_name }}">
+                                    {{ mat.name }}
                                     ({{mat.unit_name }})</option>
                                 {% endfor %}
                             </select>
@@ -58,6 +59,7 @@
                         <li class="recipe-item">
                             <span><strong>{{ m.name }}</strong> - {{ m.quantity }} {{ m.recipe_unit_name }} (x{{
                                 m.conversion_factor }}) [Stock: {{ m.unit_name }}]</span>
+                            <input type="hidden" name="materials[{{ loop.index0 }}][id]" value="{{ m.stock_id }}">
                             <input type="hidden" name="materials[{{ loop.index0 }}][name]" value="{{ m.name }}">
                             <input type="hidden" name="materials[{{ loop.index0 }}][quantity]" value="{{ m.quantity }}">
                             <input type="hidden" name="materials[{{ loop.index0 }}][recipe_unit_id]"
@@ -87,7 +89,8 @@
 
             if (!select.value || !qtyInput.value) return;
 
-            const name = select.value;
+            const name = select.options[select.selectedIndex].getAttribute('data-name');
+            const stockId = select.value;
             const qty = qtyInput.value;
             const recipeUnitId = unitSelect.value;
             const recipeUnitName = unitSelect.options[unitSelect.selectedIndex].text;
@@ -98,6 +101,7 @@
             li.className = 'recipe-item';
             li.innerHTML = `
                 <span><strong>${name}</strong> - ${qty} ${recipeUnitName} [Stock: ${stockUnit}]</span>
+                <input type="hidden" name="materials[${idx}][id]" value="${stockId}">
                 <input type="hidden" name="materials[${idx}][name]" value="${name}">
                 <input type="hidden" name="materials[${idx}][quantity]" value="${qty}">
                 <input type="hidden" name="materials[${idx}][recipe_unit_id]" value="${recipeUnitId}">                

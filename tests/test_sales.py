@@ -35,8 +35,7 @@ class TestSalesRepository:
         """Test adding a new sale."""
         repo = model.sales()
         product = setup_products_and_stock['bread']
-        
-        repo.add(product.name, product.price, 5.0, 0)
+        repo.add(product.id, product.price, 5.0, 0)
         
         sales = repo.data()
         assert len(sales) >= 1
@@ -47,7 +46,7 @@ class TestSalesRepository:
         repo = model.sales()
         product = setup_products_and_stock['bread']
         
-        repo.add(product.name, product.price, 3.0, 10)
+        repo.add(product.id, product.price, 3.0, 10)
         
         sale = repo.data()[0]
         assert sale.quantity == 3.0
@@ -58,7 +57,7 @@ class TestSalesRepository:
         repo = model.sales()
         product = setup_products_and_stock['bread']
         
-        repo.add(product.name, product.price, 2.0, 5)
+        repo.add(product.id, product.price, 2.0, 5)
         sale = repo.data()[0]
         
         retrieved = repo.by_id(sale.id)
@@ -71,7 +70,7 @@ class TestSalesRepository:
         repo = model.sales()
         product = setup_products_and_stock['bread']
         
-        repo.add(product.name, product.price, 1.0, 0)
+        repo.add(product.id, product.price, 1.0, 0)
         sale = repo.data()[0]
         sale_id = sale.id
         
@@ -86,9 +85,9 @@ class TestSalesRepository:
         bread = setup_products_and_stock['bread']
         cake = setup_products_and_stock['cake']
         
-        repo.add(bread.name, bread.price, 5.0, 0)
-        repo.add(cake.name, cake.price, 3.0, 10)
-        repo.add(bread.name, bread.price, 2.0, 5)
+        repo.add(bread.id, bread.price, 5.0, 0)
+        repo.add(cake.id, cake.price, 3.0, 10)
+        repo.add(bread.id, bread.price, 2.0, 5)
         
         all_sales = repo.data()
         assert len(all_sales) >= 3
@@ -98,7 +97,7 @@ class TestSalesRepository:
         repo = model.sales()
         product = setup_products_and_stock['bread']
         
-        repo.add(product.name, product.price, 5.0, 0)
+        repo.add(product.id, product.price, 5.0, 0)
         
         today = datetime.now().strftime("%Y-%m-%d")
         sales = repo.get_by_date_range(today, today)
@@ -111,9 +110,9 @@ class TestSalesRepository:
         bread = setup_products_and_stock['bread']
         cake = setup_products_and_stock['cake']
         
-        repo.add(bread.name, bread.price, 5.0, 0)
-        repo.add(cake.name, cake.price, 3.0, 0)
-        repo.add(bread.name, bread.price, 2.0, 0)
+        repo.add(bread.id, bread.price, 5.0, 0)
+        repo.add(cake.id, cake.price, 3.0, 0)
+        repo.add(bread.id, bread.price, 2.0, 0)
         
         bread_sales = repo.get_by_product(bread.id)
         
@@ -133,7 +132,7 @@ class TestSalesRouter:
         """Test getting sales list."""
         repo = model.sales()
         product = setup_products_and_stock['bread']
-        repo.add(product.name, product.price, 5.0, 0)
+        repo.add(product.id, product.price, 5.0, 0)
         
         response = client.get("/api/sales/")
         assert response.status_code == 200
@@ -142,7 +141,7 @@ class TestSalesRouter:
         """Test getting sales for a specific date."""
         repo = model.sales()
         product = setup_products_and_stock['bread']
-        repo.add(product.name, product.price, 5.0, 0)
+        repo.add(product.id, product.price, 5.0, 0)
         
         today = datetime.now().strftime("%Y-%m-%d")
         response = client.get(f"/api/sales/?search={today}")

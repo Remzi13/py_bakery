@@ -59,8 +59,8 @@ class TestStockRepository:
         repo = model.stock()
         
         repo.add('Butter', 'Materials', 30.0, 'kg')
-        
-        repo.set('Butter', 45.0)
+        item = repo.get('Butter')
+        repo.set(item.id, 45.0)
         
         updated = repo.get('Butter')
         assert updated.quantity == 45.0
@@ -70,8 +70,8 @@ class TestStockRepository:
         repo = model.stock()
         
         repo.add('Eggs', 'Materials', 100.0, 'pc')
-        
-        repo.update('Eggs', 50.0)
+        item = repo.get('Eggs')
+        repo.update(item.id, 50.0)
         
         updated = repo.get('Eggs')
         assert updated.quantity == 150.0
@@ -81,8 +81,8 @@ class TestStockRepository:
         repo = model.stock()
         
         repo.add('Salt', 'Materials', 100.0, 'kg')
-        
-        repo.update('Salt', -25.0)
+        item = repo.get('Salt')
+        repo.update(item.id, -25.0)
         
         updated = repo.get('Salt')
         assert updated.quantity == 75.0
@@ -95,7 +95,7 @@ class TestStockRepository:
         item = repo.get('Temporary')
         item_id = item.id
         
-        repo.delete('Temporary')
+        repo.delete(item_id)
         
         deleted = repo.by_id(item_id)
         assert deleted is None

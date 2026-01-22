@@ -27,6 +27,7 @@ class ProductsRepository:
 
         rows = (
             self.db.query(
+                StockItem.id,
                 StockItem.name,
                 product_stock_association.c.quantity,
                 product_stock_association.c.conversion_factor,
@@ -43,6 +44,7 @@ class ProductsRepository:
 
         return [
             {
+                "stock_id": row.id,
                 "name": row.name,
                 "quantity": row.quantity,
                 "unit_name": row.unit_name,
@@ -132,17 +134,24 @@ class ProductsRepository:
         """Get product by ID (without recipe)."""
         return self.db.query(Product).filter(Product.id == id).first()
 
-    def delete(self, name: str):
+    def delete(self, product_id: int):
         """Delete product and all related recipes."""
-        product = self.by_name(name)
+        product = self.by_id(product_id)
         if not product:
             return
+        
+        name = product.name
 
         try:
-            # Check if product has sales
-            sales_count = len(product.sales)
-            if sales_count > 0:
+            # Check for related items (prevent IntegrityError)
+            if len(product.sales) > 0:
                 raise ValueError(f"Product '{name}' has been sold and cannot be deleted.")
+            
+            if len(product.write_offs) > 0:
+                raise ValueError(f"Product '{name}' has write-off records and cannot be deleted.")
+            
+            if len(product.order_items) > 0:
+                raise ValueError(f"Product '{name}' is part of existing orders and cannot be deleted.")
 
             # Delete from association table (cascade) using ORM
             from sqlalchemy import delete
@@ -158,9 +167,12 @@ class ProductsRepository:
             self.db.delete(product)
             self.db.commit()
 
+        except ValueError as e:
+            self.db.rollback()
+            raise e
         except Exception as e:
             self.db.rollback()
-            raise RuntimeError(f"Error deleting product '{name}' and its recipes: {e}")
+            raise RuntimeError(f"Error deleting product with ID {product_id} and its recipes: {e}")
 
     def update(self, product_id: int, name: str, price: int, materials: List[Dict[str, Any]]):
         """

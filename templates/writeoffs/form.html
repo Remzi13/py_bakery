@@ -15,8 +15,8 @@
 
             <div class="form-group" id="stock-category-group">
                 <label for="writeoff-category" data-i18n="category">Category</label>
-                <select id="writeoff-category" hx-get="/api/stock" hx-trigger="change" hx-target="#writeoff-item-select"
-                    hx-include="#writeoff-category">
+                <select id="writeoff-category" hx-get="/api/stock?format=options" hx-trigger="change"
+                    hx-target="#writeoff-item-select" hx-include="#writeoff-category">
                     <option value="" data-i18n="allCategories">All Categories</option>
                     {% for cat in categories %}
                     <option value="{{ cat }}">{{ cat }}</option>
@@ -26,7 +26,7 @@
 
             <div class="form-group">
                 <label for="writeoff-item-select" data-i18n="itemName">Item Name</label>
-                <select id="writeoff-item-select" name="item_name" required>
+                <select id="writeoff-item-select" name="item_id" required>
                     <!-- Options loaded via HTMX or JS -->
                 </select>
             </div>
@@ -56,12 +56,12 @@
 
             if (type === 'product') {
                 catGroup.style.display = 'none';
-                // Trigger HTMX to load products
-                htmx.ajax('GET', '/api/products', { target: '#writeoff-item-select', select: 'option' });
+                // Trigger HTMX to load products as options
+                htmx.ajax('GET', '/api/products?format=options', { target: '#writeoff-item-select' });
             } else {
                 catGroup.style.display = 'block';
-                // Trigger HTMX to load stock
-                htmx.ajax('GET', '/api/stock', { target: '#writeoff-item-select', select: 'option' });
+                // Trigger HTMX to load stock as options
+                htmx.ajax('GET', '/api/stock?format=options', { target: '#writeoff-item-select' });
             }
         }
         // Initialize

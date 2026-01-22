@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/writeoffs", tags=["writeoffs"])
 templates = Jinja2Templates(directory="templates")
 
 class WriteOffCreate(BaseModel):
-    item_name: str
+    item_id: int
     item_type: str # 'product' or 'stock'
     quantity: float
     reason: str
@@ -70,23 +70,32 @@ async def add_writeoff(
         # JSON Support
         if request.headers.get("content-type") == "application/json":
             data = await request.json()
-            item_name = data.get("item_name")
+            item_id = int(data.get("item_id"))
             item_type = data.get("item_type")
             quantity = float(data.get("quantity"))
             reason = data.get("reason")
         else:
             form = await request.form()
-            item_name = form.get("item_name")
+            item_id = int(form.get("item_id"))
             item_type = form.get("item_type")
             quantity = float(form.get("quantity"))
             reason = form.get("reason")
 
         model.writeoffs().add(
-            item_name=item_name,
+            item_id=item_id,
             item_type=item_type,
             quantity=quantity,
             reason=reason
         )
+        
+        # Get the item name for UI enrichment
+        item_name = "Unknown"
+        if item_type == 'product':
+            p = model.products().by_id(item_id)
+            item_name = p.name if p else f"Product #{item_id}"
+        else:
+            si = model.stock().by_id(item_id)
+            item_name = si.name if si else f"Stock Item #{item_id}"
         
         # Get the latest record
         all_wo = model.writeoffs().data()
@@ -102,5 +111,13 @@ async def add_writeoff(
         return latest_dict
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{writeoff_id}")
+async def delete_writeoff(writeoff_id: int, model: SQLAlchemyModel = Depends(get_model)):
+    try:
+        model.writeoffs().delete(writeoff_id)
+        return HTMLResponse("")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

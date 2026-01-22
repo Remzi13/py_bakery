@@ -14,6 +14,7 @@ templates = Jinja2Templates(directory="templates")
 async def get_products(
     request: Request,
     search: Optional[str] = None,
+    format: Optional[str] = None,
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
@@ -26,6 +27,12 @@ async def get_products(
         if search:
             s = search.lower()
             products_data = [p for p in products_data if s in p.name.lower()]
+
+        if format == "options":
+            options = ""
+            for p in products_data:
+                options += f'<option value="{p.id}">{p.name}</option>'
+            return HTMLResponse(content=options)
 
         results = []
         for p in products_data:
@@ -63,6 +70,7 @@ async def get_new_product_form(request: Request, model: SQLAlchemyModel = Depend
     all_materials = []
     for item in all_stock_items:
         all_materials.append({
+            "id": item.id,
             "name": item.name,
             "unit_name": utils.get_unit_name_by_id(item.unit_id),
             "unit_id": item.unit_id
@@ -137,18 +145,17 @@ async def create_product(
             
             for idx in sorted(parsed_materials.keys()):
                 m = parsed_materials[idx]
+                item_id = int(m.get('id'))
                 recep_unit_id = int(m.get('recipe_unit_id')) if m.get('recipe_unit_id') else None
                 
-                # Fetch stock unit_id for this material
-                stock_item = model.db.query(StockItem).filter(
-                    StockItem.name == m['name']
-                ).first()
+                # Fetch stock unit_id for this material by ID
+                stock_item = model.stock().by_id(item_id)
                 
                 stock_unit_id = stock_item.unit_id if stock_item else None
                 conv_factor = model.utils().get_conversion_factor_by_unit_id(recep_unit_id, stock_unit_id)
                 
                 materials_list.append({
-                    "name": m['name'],
+                    "name": stock_item.name if stock_item else m.get('name'),
                     "quantity": float(m['quantity']),
                     "conversion_factor": conv_factor,
                     "recipe_unit_id": recep_unit_id
@@ -230,18 +237,17 @@ async def update_product(
                 materials_list = []
                 for idx in sorted(parsed_materials.keys()):
                     m = parsed_materials[idx]
+                    item_id = int(m.get('id'))
                     recep_unit_id = int(m.get('recipe_unit_id')) if m.get('recipe_unit_id') else None
 
-                    # Fetch stock unit_id for this material
-                    stock_item = model.db.query(StockItem).filter(
-                        StockItem.name == m['name']
-                    ).first()
+                    # Fetch stock unit_id for this material by ID
+                    stock_item = model.stock().by_id(item_id)
 
                     stock_unit_id = stock_item.unit_id if stock_item else None
                     conv_factor = model.utils().get_conversion_factor_by_unit_id(recep_unit_id, stock_unit_id)
 
                     materials_list.append({
-                        "name": m['name'],
+                        "name": stock_item.name if stock_item else m.get('name'),
                         "quantity": float(m['quantity']),
                         "conversion_factor": conv_factor,
                         "recipe_unit_id": recep_unit_id
@@ -270,10 +276,10 @@ async def update_product(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/{product_name}")
-def delete_product(product_name: str, model: SQLAlchemyModel = Depends(get_model)):
+@router.delete("/{product_id}")
+def delete_product(product_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
-        model.products().delete(product_name)
+        model.products().delete(product_id)
         return HTMLResponse("") # Return empty string to remove row from DOM
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

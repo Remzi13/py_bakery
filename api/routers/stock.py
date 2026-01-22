@@ -39,6 +39,7 @@ def get_materials(model: SQLAlchemyModel = Depends(get_model)):
 async def get_stock(
     request: Request,
     search: Optional[str] = None,
+    format: Optional[str] = None,
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
@@ -46,13 +47,19 @@ async def get_stock(
 ):
     try:
         items = model.stock().data()
-        results = []
         
         # Filter if search
         if search:
             s = search.lower()
             items = [i for i in items if s in i.name.lower()]
 
+        if format == "options":
+            options = ""
+            for item in items:
+                options += f'<option value="{item.id}">{item.name}</option>'
+            return HTMLResponse(content=options)
+
+        results = []
         utils = model.utils()
         for item in items:
             cat_name = utils.get_stock_category_name_by_id(item.category_id)
@@ -157,11 +164,11 @@ async def add_stock(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{name}/delta")
-def update_stock_quantity(name: str, update: StockUpdate, model: SQLAlchemyModel = Depends(get_model)):
+@router.put("/{stock_id}/delta")
+def update_stock_quantity(stock_id: int, update: StockUpdate, model: SQLAlchemyModel = Depends(get_model)):
     try:
-        model.stock().update(name, update.quantity_delta)
-        return model.stock().get(name)
+        model.stock().update(stock_id, update.quantity_delta)
+        return model.stock().by_id(stock_id)
     except KeyError as e:
          raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
@@ -169,9 +176,9 @@ def update_stock_quantity(name: str, update: StockUpdate, model: SQLAlchemyModel
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{name}/set")
+@router.put("/{stock_id}/set")
 async def set_stock_quantity(
-    name: str, 
+    stock_id: int, 
     request: Request,
     model: SQLAlchemyModel = Depends(get_model)
 ):
@@ -180,20 +187,17 @@ async def set_stock_quantity(
         if request.headers.get("content-type") == "application/json":
             data = await request.json()
             update = StockSet(**data)
-            model.stock().set(name, update.quantity)
-            return model.stock().get(name)
+            model.stock().set(stock_id, update.quantity)
+            return model.stock().by_id(stock_id)
 
         # Form Support
         form = await request.form()
         quantity = float(form.get("quantity"))
         
-        model.stock().set(name, quantity)
-        updated = model.stock().get(name)
+        model.stock().set(stock_id, quantity)
+        updated = model.stock().by_id(stock_id)
         
         # We need category and unit names for the row template
-        # Ideally repo.get() returns them or we fetch them
-        # repo.get() returns StockItem Entity which has ids.
-        
         cat_name = model.utils().get_stock_category_name_by_id(updated.category_id)
         unit_name = model.utils().get_unit_name_by_id(updated.unit_id)
         
@@ -210,10 +214,10 @@ async def set_stock_quantity(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/{name}")
-def delete_stock(name: str, model: SQLAlchemyModel = Depends(get_model)):
+@router.delete("/{stock_id}")
+def delete_stock(stock_id: int, model: SQLAlchemyModel = Depends(get_model)):
     try:
-        model.stock().delete(name)
+        model.stock().delete(stock_id)
         return HTMLResponse("") # Remove row
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
