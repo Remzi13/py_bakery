@@ -4,7 +4,7 @@
         <h2 data-i18n="{% if item %}editStock{% else %}addStock{% endif %}">{% if item %}Edit Stock Item{% else %}Add
             Stock Item{% endif %}</h2>
 
-        <form {% if item %}hx-put="/api/stock/{{ item.name }}/set" hx-target="#stock-row-{{ item.id }}"
+        <form {% if item %}hx-put="/api/stock/{{ item.id }}/set" hx-target="#stock-row-{{ item.id }}"
             hx-swap="outerHTML" {% else %}hx-post="/api/stock/" hx-target="#stock-table-body" hx-swap="beforeend" {%
             endif %} hx-on::after-request="if(event.detail.successful) document.getElementById('stock-modal').remove()">
 

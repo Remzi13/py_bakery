@@ -1,19 +1,24 @@
 # BUGS
 * expenses documents    
     * unit не должны редактироваться    
-* POST /api/stock HTTP/1.1" 307 Temporary Redirect
-* POST /api/suppliers HTTP/1.1" 307 Temporary Redirect
-* add product возвращает 307 Temporary Redirect неоткрывает модальное окно
 * нет копки add order
 * не работает перезагрузка страницы по f5
+* stock 
+    * можно добавлять stock item с отрицательными занчения     
 
 # TODO
-* починить перевод на русский
+* добавить SoftDelete
+* для продуктов надо добавить категории (Regular, Drink, Special)
 * в suppliers добавить поле комментарии 
 * dashboard
     * total revenu -> month revenu
     * добавить month expenses 
 * в расходах при изменения на складе делаются в две транзакции
+* добавить сборку под PyInstaller
+* сделать миграцию баз данных 
+* создать таблицу clients и добавить в orders
+
 
 # REFACTORING
-* обрашнея к элементам должно быть только через id
+* надо упростить api/routers/products.py
+* добавить поле низкий запас в stock item

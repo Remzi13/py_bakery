@@ -91,13 +91,31 @@ async def get_edit_product_form(product_id: int, request: Request, model: SQLAlc
     if not p:
         return HTMLResponse("Product not found", status_code=404)
     
-    # Get materials for this product
-    materials = model.products().get_materials_for_product(product_id)
+    # Get materials for this product (recipe)
+    product_materials = model.products().get_materials_for_product(product_id)
+    
+    # Get all stock items for dropdown (same as in new product form)
+    all_stock_items = model.stock().data()
+    utils = model.utils()
+    
+    all_materials = []
+    for item in all_stock_items:
+        all_materials.append({
+            "id": item.id,
+            "name": item.name,
+            "unit_name": utils.get_unit_name_by_id(item.unit_id),
+            "unit_id": item.unit_id
+        })
+    
     all_units = model.utils().get_all_units()
+    
+    # Add materials to product object for rendering
+    p.materials = product_materials
+    
     return templates.TemplateResponse(request, "products/form.html", {
         "request": request, 
         "product": p,
-        "all_materials": materials,
+        "all_materials": all_materials,
         "all_units": all_units
     })
 
