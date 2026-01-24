@@ -170,7 +170,7 @@ class OrdersRepository:
             # For each item in order create sale
             for item in order.items:
                 self.model.sales().add(
-                    name=item.product_name,
+                    product_id=item.product_id,
                     price=item.price,
                     quantity=item.quantity,
                     discount=0
