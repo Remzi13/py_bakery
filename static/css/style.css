@@ -724,7 +724,6 @@ legend {
 
 .info-modal {
     max-width: 500px;
-    /* Делаем её чуть уже, чем форму ввода */
 }
 
 .order-details-body h3 {
@@ -758,9 +757,7 @@ legend {
 
 .info-comment-box {
     background-color: #fcf8e3;
-    /* Светло-бежевый фон, как у заметки */
     border-left: 4px solid #f1c40f;
-    /* Желтая полоса слева */
     padding: 10px 15px;
     margin: 15px 0;
     border-radius: 4px;
@@ -775,4 +772,63 @@ legend {
     text-transform: uppercase;
     font-size: 0.8rem;
     color: #a88b32;
+}
+
+.order-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Скрываем стандартный чекбокс */
+.switch-button input {
+    display: none;
+}
+
+.switch-button {
+    display: inline-block;
+    margin-top: 25px;
+    /* Подгоняем под уровень соседнего инпута */
+}
+
+/* Базовый стиль кнопки */
+.button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.button-content .icon {
+    display: none;
+}
+
+.button-content:hover {
+    background: #e8e8e8;
+    border-color: #bbb;
+}
+
+.switch-button input:checked+.button-content {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #388E3C;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(1px);
+}
+
+.switch-button input:checked+.button-content .icon {
+    display: inline-block;
 }

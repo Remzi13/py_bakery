@@ -13,6 +13,7 @@ templates = Jinja2Templates(directory="templates")
 def get_orders(
     request: Request,
     search: Optional[str] = None,
+    format: Optional[str] = None, 
     hx_request: Optional[str] = Header(None, alias="HX-Request"),
     hx_target: Optional[str] = Header(None, alias="HX-Target"),
     accept: Optional[str] = Header(None, alias="Accept"),
@@ -20,27 +21,21 @@ def get_orders(
 ):
     try:
         orders_data = model.orders().data()
-        
-        # Filter by search
+       
+
         if search:
             s = search.lower()
             orders_data = [o for o in orders_data if s in str(o.id) or (o.additional_info and s in o.additional_info.lower())]
 
         orders_data.sort(key=lambda x: x.status, reverse=True)
-        
-        if hx_request or (accept and "text/html" in accept):
-            if hx_target == "orders-table-body":
-                return templates.TemplateResponse(request, "orders/rows.html", {"orders": orders_data}) # This uses rows in a loop? No, list.html does.
-                # Actually, I should probably create orders/rows.html like I did for products.
-            
-            if not hx_request and accept and "text/html" in accept:
-                # Wrap in html for standard browser requests (full page)
-                content = templates.get_template("orders/list.html").render({"request": request, "orders": orders_data})
-                return HTMLResponse(f"<!DOCTYPE html><html><body>{content}</body></html>")
-                
-            return templates.TemplateResponse(request, "orders/list.html", {"orders": orders_data})
-            
-        # For JSON response, convert to dicts that match OrderResponse
+
+        if format == "options":
+            options = ""
+            for o in orders_data:
+                info = o.additional_info[:20] + "..." if o.additional_info else "No info"
+                options += f'<option value="{o.id}">Order #{o.id} ({info})</option>'
+            return HTMLResponse(content=options)
+
         results = []
         for order in orders_data:
             results.append({
@@ -51,10 +46,44 @@ def get_orders(
                 "additional_info": order.additional_info,
                 "items": order.items
             })
+        
+        if hx_request or (accept and "text/html" in accept):
+            if hx_target == "orders-table-body":
+                return templates.TemplateResponse(request, "orders/rows.html", {"orders": results})
+            
+            if not hx_request and accept and "text/html" in accept:
+                content = templates.get_template("orders/list.html").render({"request": request, "orders": results})
+                return HTMLResponse(f"<!DOCTYPE html><html><body>{content}</body></html>")
+                
+            return templates.TemplateResponse(request, "orders/list.html", {"orders": results})
+               
+        
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/new", response_class=HTMLResponse)
+def get_new_order_form(request: Request, model: SQLAlchemyModel = Depends(get_model)):
+    try:
+        products_data = model.products().data()
+        
+        products = []
+        for p in products_data:
+            products.append({
+                "id": p.id,
+                "name": p.name,
+                "price": p.price
+            })
+        
+        return templates.TemplateResponse(request, "orders/form.html", {
+            "request": request,
+            "products": products,
+            "currency": "₽"
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+        
 @router.get("/pending", response_model=List[OrderResponse])
 def get_pending_orders(model: SQLAlchemyModel = Depends(get_model)):
     try:

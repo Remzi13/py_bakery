@@ -1,25 +1,29 @@
-<div class="table-container">
-    <div class="table-header-actions">
-        <div class="search-wrapper">
-            <input type="text" name="search" placeholder="Search orders..." data-i18n="searchOrders"
-                hx-get="/api/orders/" hx-trigger="keyup changed delay:500ms, search" hx-target="#orders-table-body">
+<section id="orders-view" class="view active">
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="search-wrapper">
+                <input type="text" name="search" placeholder="Search orders..." data-i18n="searchOrders"
+                    hx-get="/api/orders/" hx-trigger="keyup changed delay:500ms, search" hx-target="#orders-table-body">
+            </div>
+            <button class="btn-primary" hx-get="/api/orders/new" hx-target="#modal-container" hx-trigger="click"
+                data-i18n="addOrder">Add Order</button>
         </div>
+        <table class="data-table" id="orders-table">
+            <thead>
+                <tr>
+                    <th data-i18n="orderId">Order ID</th>
+                    <th data-i18n="created">Created</th>
+                    <th data-i18n="completionDate">Completion Date</th>
+                    <th data-i18n="status">Status</th>
+                    <th data-i18n="items">Items</th>
+                    <th data-i18n="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table-body">
+                {% for order in orders %}
+                {% include "orders/row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <table class="data-table" id="orders-table">
-        <thead>
-            <tr>
-                <th data-i18n="orderId">Order ID</th>
-                <th data-i18n="created">Created</th>
-                <th data-i18n="completionDate">Completion Date</th>
-                <th data-i18n="status">Status</th>
-                <th data-i18n="items">Items</th>
-                <th data-i18n="actions">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="orders-table-body">
-            {% for order in orders %}
-            {% include "orders/row.html" %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+</section>

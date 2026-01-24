@@ -1,0 +1,104 @@
+<div id="order-modal" class="modal show" role="dialog" aria-modal="true">
+    <div class="modal-content large-modal">
+        <button class="close" onclick="document.getElementById('order-modal').remove()">&times;</button>
+
+        <h2 data-i18n="newOrder">New order</h2>
+
+        <form hx-post="/api/orders/" hx-target="#orders-table-body" hx-swap="afterbegin"
+            hx-on::after-request="if(event.detail.successful) document.getElementById('order-modal').remove()">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="completion-date" data-i18n="completionDate">Completion date</label>
+                    <input id="completion-date" type="date" name="completion_date" required>
+                </div>
+                <div class="form-group">
+                    <label class="switch-button">
+                        <input type="checkbox" name="complete_now" value="true">
+                        <div class="button-content">
+                            <span class="icon">✓</span>
+                            <span data-i18n="completeNow">Complete now</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <fieldset>
+                <legend data-i18n="orderItems">Order items</legend>
+
+                <div class="order-editor">
+                    <div class="order-controls">
+                        <div class="form-group" style="flex: 1.5;">
+                            <select id="item-product-select">
+                                <option value="" data-i18n="selectProduct">Select product...</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" data-name="{{ product.name }}"
+                                    data-price="{{ product.price }}">
+                                    {{ product.name }} ({{ product.price }} {{ currency }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <input type="number" id="item-quantity" placeholder="Qty" value="1" min="1">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <button type="button" class="btn-secondary" onclick="addItemToOrder()"
+                                data-i18n="add">Add</button>
+                        </div>
+                    </div>
+
+                    <ul id="order-items-list" class="recipe-list">
+                    </ul>
+                </div>
+            </fieldset>
+
+            <div class="form-group">
+                <label for="additional-info" data-i18n="additionalInfo">Additional info</label>
+                <textarea id="additional-info" name="additional_info" rows="2"
+                    placeholder="Comment to order..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('order-modal').remove()"
+                    data-i18n="cancel">Cancel</button>
+                <button type="submit" class="btn-primary" data-i18n="createOrder">Create order</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Set the date to tomorrow by default
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('completion-date').valueAsDate = tomorrow;
+
+        function addItemToOrder() {
+            const select = document.getElementById('item-product-select');
+            const qtyInput = document.getElementById('item-quantity');
+            const list = document.getElementById('order-items-list');
+
+            if (!select.value || !qtyInput.value) return;
+
+            const productId = select.value;
+            const name = select.options[select.selectedIndex].getAttribute('data-name');
+            const price = select.options[select.selectedIndex].getAttribute('data-price');
+            const qty = qtyInput.value;
+            const idx = list.children.length;
+
+            const li = document.createElement('li');
+            li.className = 'recipe-item'; // Используем те же стили, что и в продуктах
+            li.innerHTML = `
+                <span><strong>${name}</strong> — ${qty} шт. (по ${price} {{ currency }})</span>
+                <input type="hidden" name="items[${idx}][product_id]" value="${productId}">
+                <input type="hidden" name="items[${idx}][quantity]" value="${qty}">
+                <button type="button" onclick="this.parentElement.remove()">×</button>
+            `;
+            list.appendChild(li);
+
+            // Очистка полей после добавления
+            qtyInput.value = '1';
+            select.value = '';
+        }
+    </script>
+</div>
