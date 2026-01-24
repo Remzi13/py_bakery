@@ -8,7 +8,7 @@
             {{ order.status|capitalize }}
         </span>
     </td>
-    <td>{{ order.items|length }} items</td>
+    <td>{{ order.order_items|length }} items</td>
     <td>
         <div class="actions">
             {% if order.status == 'pending' %}

@@ -38,13 +38,14 @@ def get_orders(
 
         results = []
         for order in orders_data:
+            items_list = list(order.items) if order.items else []
             results.append({
                 "id": order.id,
                 "created_date": order.created_date,
                 "completion_date": order.completion_date,
                 "status": order.status,
                 "additional_info": order.additional_info,
-                "items": order.items
+                "order_items": items_list
             })
         
         if hx_request or (accept and "text/html" in accept):
@@ -136,11 +137,29 @@ async def create_order(
             completion_date = order_data.completion_date
             additional_info = order_data.additional_info
             complete_now = order_data.complete_now
-        else:
+        else:            
+            
             form = await request.form()
-            # Parsing items from form (similar to expenses if needed, or simplified)
-            # POS usually sends JSON. If we want HTMX to create orders, we need form parsing.
-            items = [] # TODO: Parse from form if needed
+            products_list = []
+            parsed_products = {}
+            for key, value in form.items():
+                if key.startswith("items["):
+                    parts = key.split("][")
+                    index = parts[0].replace("items[", "")
+                    field = parts[1].replace("]", "")
+                    if index not in parsed_products:
+                        parsed_products[index] = {}
+                    parsed_products[index][field] = value
+            
+            for idx in sorted(parsed_products.keys()):
+                m = parsed_products[idx]
+                products_list.append({
+                    "product_id" : m["product_id"],
+                    "quantity" : m["quantity"]
+                })                
+                
+
+            items = products_list
             completion_date = form.get("completion_date")
             additional_info = form.get("additional_info")
             complete_now = form.get("complete_now") == "true"
