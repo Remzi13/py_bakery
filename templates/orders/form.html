@@ -49,7 +49,12 @@
                     </div>
 
                     <ul id="order-items-list" class="recipe-list">
+
                     </ul>
+                </div>
+                <div class="form-row" style="justify-content: flex-end; margin-top: 10px; font-weight: bold;">
+                    <span data-i18n="totalAmount">Total Amount:</span>
+                    <span id="expense-total-display" style="margin-left: 10px;">0.00</span>
                 </div>
             </fieldset>
 
@@ -68,6 +73,19 @@
     </div>
 
     <script>
+
+        function updateGrandTotal() {
+            const list = document.getElementById('order-items-list');
+            const items = list.querySelectorAll('.recipe-item');
+            let total = 0;
+            items.forEach(item => {
+                const qty = parseFloat(item.querySelector('input[name*="[quantity]"]').value) || 0;
+                const price = parseFloat(item.querySelector('input[name*="[price]"]').value) || 0;
+                total += price * qty;
+            });
+            document.getElementById('expense-total-display').innerText = total.toFixed(2);
+        }
+
         // Set the date to tomorrow by default
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -92,6 +110,7 @@
                 <span><strong>${name}</strong> — ${qty} шт. (по ${price} {{ currency }})</span>
                 <input type="hidden" name="items[${idx}][product_id]" value="${productId}">
                 <input type="hidden" name="items[${idx}][quantity]" value="${qty}">
+                <input type="hidden" name="items[${idx}][price]" value="${price}">
                 <button type="button" onclick="this.parentElement.remove()">×</button>
             `;
             list.appendChild(li);
@@ -99,6 +118,8 @@
             // Очистка полей после добавления
             qtyInput.value = '1';
             select.value = '';
+
+            updateGrandTotal()
         }
     </script>
 </div>
