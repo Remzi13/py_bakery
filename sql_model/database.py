@@ -56,7 +56,7 @@ def init_db(engine_to_use=None):
     
     try:
         # Create default units
-        default_units = ['kg', 'g', 'l', 'pc']
+        default_units = ['kg', 'g', 'l', 'ml', 'pc']
         for unit_name in default_units:
             if not db.query(Unit).filter(Unit.name == unit_name).first():
                 db.add(Unit(name=unit_name))
@@ -145,7 +145,7 @@ def initialize_db(db_session: Session):
     
     try:
         # Create default units
-        default_units = ['kg', 'g', 'l', 'pc']
+        default_units = ['kg', 'g', 'l', 'ml', 'pc']
         for unit_name in default_units:
             if not db_session.query(Unit).filter(Unit.name == unit_name).first():
                 db_session.add(Unit(name=unit_name))
