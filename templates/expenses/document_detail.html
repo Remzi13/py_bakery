@@ -19,10 +19,7 @@
                 <label data-i18n="comment">Comment</label>
                 <div class="readonly-field">{{ doc['comment'] if doc['comment'] else '-' }}</div>
             </div>
-            <div class="form-group">
-                <label data-i18n="totalAmount">Total Amount</label>
-                <div class="readonly-field">{{ doc['total_amount'] }}</div>
-            </div>
+
         </div>
 
         <fieldset>
@@ -36,8 +33,7 @@
                             <th data-i18n="expenseType">Expense Type</th>
                             <th data-i18n="quantity">Quantity</th>
                             <th data-i18n="unit">Unit</th>
-                            <th data-i18n="pricePerUnit">Price/Unit</th>
-                            <th data-i18n="totalPrice">Total</th>
+                            <th data-i18n="pricePerUnit">Price</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,6 +50,10 @@
                 {% else %}
                 <p data-i18n="noItems">No items</p>
                 {% endif %}
+            </div>
+            <div class="form-row" style="justify-content: flex-end; margin-top: 10px; font-weight: bold;">
+                <span data-i18n="totalAmount">Total Amount:</span>
+                <span id="expense-total-display" style="margin-left: 10px;">{{ doc['total_amount'] }}</span>
             </div>
         </fieldset>
 

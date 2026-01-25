@@ -70,6 +70,10 @@
                         {% endif %}
                     </ul>
                 </div>
+                <div class="form-row" style="justify-content: flex-end; margin-top: 10px; font-weight: bold;">
+                    <span data-i18n="totalAmount">Total :</span>
+                    <span id="expense-total-display" style="margin-left: 10px;">0.00</span>
+                </div>
             </fieldset>
 
             <div class="form-actions">
@@ -81,6 +85,18 @@
     </div>
 
     <script>
+
+        function updateTotal() {
+            const list = document.getElementById('recipe-list');
+            const items = list.querySelectorAll('.recipe-item');
+            let total = 0;
+            items.forEach(item => {
+                const qty = parseFloat(item.querySelector('input[name*="[quantity]"]').value) || 0;
+                total += qty;
+            });
+            document.getElementById('expense-total-display').innerText = total.toFixed(2);
+        }
+
         function addMaterialToRecipe() {
             const select = document.getElementById('recipe-ingredient-select');
             const qtyInput = document.getElementById('recipe-quantity');
@@ -111,6 +127,8 @@
 
             qtyInput.value = '';
             select.value = '';
+
+            updateTotal();
         }
     </script>
 </div>
