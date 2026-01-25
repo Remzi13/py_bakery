@@ -50,26 +50,26 @@ def seed_full_data():
         
         # Combined existing items and new items from the image
         stock_items_list = [            
-            {"name": "Flour DANUBI",    "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw}, # New
-            {"name": "Rye Flour",       "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Butter 82%",      "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Yeast dry",       "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},     # New
-            {"name": "Sugar",           "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},            
-            {"name": "Eggs C1",         "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Scallions",       "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},   # New
-            {"name": "Potato",          "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},      # New
-            {"name": "Cream 20%",       "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},   # New
-            {"name": "Chiken",          "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},      # New
-            {"name": "Champignons",     "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw}, # New
-            {"name": "Beef minced 7%",  "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw}, # New
-            {"name": "Tomato chopped",  "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw}, # New
-            {"name": "Sausage mini",    "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},   # New         
-            {"name": "Corn starch",     "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Cottage cheese",  "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Sour cream 20%",  "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Cinnamon",        "qty": 100.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Milk 3.2%",       "qty": 100.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},
-            {"name": "Wate",            "qty": 100.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},   
+            {"name": "Flour DANUBI",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Rye Flour",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Butter 82%",      "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Yeast dry",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Sugar",           "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Eggs C1",         "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Scallions",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Potato",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Cream 20%",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Chiken",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Champignons",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Beef minced 7%",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Tomato chopped",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Sausage mini",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Corn starch",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Cottage cheese",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Sour cream 20%",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Cinnamon",        "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Milk 3.2%",       "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},
+            {"name": "Wate",            "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},   
         ]
 
         stock_map = {} 
@@ -202,8 +202,9 @@ def seed_full_data():
                         # Check if recipe link already exists to prevent duplicates
                         exists = db.query(ProductRecipe).filter_by(product_id=p_id, stock_id=s_id).first()
                         if not exists:
-                            con_factor = 1000
-                            db.add(ProductRecipe(product_id=p_id, stock_id=s_id, quantity=qty, conversion_factor=con_factor, recipe_unit_id=r_id ))
+                            con_factor = 0.001
+                            quantity = qty  * 1000
+                            db.add(ProductRecipe(product_id=p_id, stock_id=s_id, quantity=quantity , conversion_factor=con_factor, recipe_unit_id=r_id ))
 
         # --- 6. SUPPLIERS ---
         print("🤝 Seeding suppliers...")
