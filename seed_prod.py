@@ -50,26 +50,26 @@ def seed_full_data():
         
         # Combined existing items and new items from the image
         stock_items_list = [            
-            {"name": "Flour DANUBI",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Brasno",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
             {"name": "Rye Flour",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Butter 82%",      "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Yeast dry",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Sugar",           "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Eggs C1",         "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Scallions",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Potato",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Cream 20%",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Chiken",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Champignons",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Beef minced 7%",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Tomato chopped",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Sausage mini",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Corn starch",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Cottage cheese",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Sour cream 20%",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Maslac 82%",      "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Kvasac suvi",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Secer",           "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Jaja M",         "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Luk mladi",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Krompir",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Pavlaka za kuvanje",       "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Pileci batak I karabatak bez kosti",          "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Sampinjoni",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Junece mleveno meso 7",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Paradaiz seckani Lidl",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Poli viršla",    "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Scrob kukuruzni",     "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Sir svezi",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
+            {"name": "Kisela pavlaka 20",  "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
             {"name": "Cinnamon",        "qty": 1000.0,   "unit": u_kg, "rep_unit": u_g, "cat": cat_raw},
-            {"name": "Milk 3.2%",       "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},
-            {"name": "Wate",            "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},   
+            {"name": "Mleko 2,8",       "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},
+            {"name": "Voda",            "qty": 1000.0,   "unit": u_l,  "rep_unit": u_ml, "cat": cat_raw},   
         ]
 
         stock_map = {} 
@@ -94,12 +94,41 @@ def seed_full_data():
         print("🥐 Seeding products...")
         
         products_list = [            
-            {"name": "Pies scallions and eggs", "price": 130.0},
-            {"name": "Pies krompir", "price": 130.0},
-            {"name": "Pies chiken and champignons", "price": 170.0},
-            {"name": "Pies beef", "price": 170.0},  
-            {"name": "Tvorog", "price": 260.0},
-            {"name": "Cinamon", "price": 150},
+            {"name": "Pies Luk mladi and eggs", "price": 130.0},
+            {"name": "Pies krompir", "price": 130.0},            
+            {"name": "Pies beef", "price": 170.0},              
+            {"name": "Cinamon", "price": 150},            
+            {"name": "Pies with cabbage and egg", "price": 100.0}, # Пирожки с капустой и яйцом
+            {"name": "Pies with green onions and egg", "price": 100.0}, # Пирожки с зеленым луком и яйцом
+            {"name": "Pies with Krompir", "price": 100.0}, # Пирожки с картофелем
+            {"name": "Pies with chicken and Sampinjoni", "price": 150.0}, # Пирожки с курицей и грибами
+            {"name": "Pies with beef and spinach", "price": 150.0}, # Пирожки с говядиной и шпинатом
+            {"name": "Hot dog mini", "price": 120.0},
+            {"name": "Pies with red fish, Sir svezi and parsley", "price": 220.0}, # Пирожки с красной рыбой, творожным сыром и зеленью
+            {"name": "Pies with red fish and egg", "price": 150.0}, # Пирожки с красной рыбой и яйцом
+            {"name": "Pies with cheese", "price": 150.0}, # Плетенки с сыром
+            {"name": "Pies with Krompir and cheese", "price": 150.0}, # Плетенки с картофелем и сыром
+            {"name": "Pies with Sir svezi", "price": 150.0},
+            {"name": "Vengerka with Sir svezi", "price": 260.0}, # Венгерская ватрушка с творогом
+            {"name": "Moskovskaya plushka", "price": 100.0}, # Московская плюшка
+            {"name": "Pletenica with apples", "price": 150.0}, # Плетеница с яблоком
+            {"name": "Kolach boravina", "price": 150.0}, # Колач боравница
+            {"name": "Kolpch limun", "price": 150.0}, # Колпч лимун
+            {"name": "Pies with cherries", "price": 100.0}, # Пирожки с вишней
+            {"name": "Pies with blackberry", "price": 120.0}, # Пирожки с малиной
+            {"name": "Tvorog", "price": 250.0}, # Творожная запеканка
+            {"name": "Sharlotka", "price": 150.0}, # Шарлотка
+            {"name": "Pletenka lemon", "price": 150.0}, # Плетенка лимонная
+            {"name": "Pletenka chocolate", "price": 100.0}, # Плетенка с шоколадом и заварным кремом
+            {"name": "Pletenka poppy seed", "price": 150.0}, # Плетенка с маком
+            {"name": "Pletenka cinnamon", "price": 150.0}, # Плетенка корица
+            {"name": "Rom bab", "price": 200.0}, # Ром баба
+            {"name": "Oblepikhoviy limonad", "price": 200.0}, # Облепиховый лимонад
+            {"name": "Kurabie", "price": 50.0}, # Курабье
+            {"name": "Pesochnoe koltso", "price": 120.0}, # Песочное кольцо
+            {"name": "Pies with apples", "price": 100.0}, # Пирожки с яблоками
+            {"name": "Pies with jam", "price": 100.0}, # Пирожки с повидлом
+            {"name": "Fruit and berry mix", "price": 100.0}, # Фруктово-ягодный микс
         ]
 
         product_map = {}
@@ -112,81 +141,413 @@ def seed_full_data():
         
         # Data calculated from your spreadsheet (summing dough + filling where needed)
         recipes = {                        
-            "Pies scallions and eggs": [
-                ("Flour DANUBI", 0.01899), 
-                ("Eggs C1", 0.00696 + 0.02232), 
-                ("Yeast dry", 0.00019),
-                ("Butter 82%", 0.00188), 
-                ("Milk 3.2%", 0.00314 + 0.00304),
-                ("Sugar", 0.00251),
-                ("Water", 0.00633),
-                ("Scallions", 0.01964)
+            "Pies Luk mladi and eggs": [
+                ("Brasno", 0.01899), 
+                ("Jaja M", 0.00696 + 0.02232), 
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188), 
+                ("Mleko 2,8", 0.00314 + 0.00304),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Luk mladi", 0.01964)
             ],
             "Pies krompir": [
-                ("Flour DANUBI", 0.01899), 
-                ("Eggs C1", 0.00696),
-                ("Yeast dry", 0.00019),
-                ("Butter 82%", 0.00188 + 0.00283),
-                ("Milk 3.2%", 0.00314 + 0.00452),
-                ("Sugar", 0.00251),
-                ("Water", 0.00633),
-                ("Potato", 0.03765)
+                ("Brasno", 0.01899), 
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188 + 0.00283),
+                ("Mleko 2,8", 0.00314 + 0.00452),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Krompir", 0.03765)
             ],
-            "Pies chiken and champignons": [
-                ("Flour DANUBI", 0.01899),
-                ("Eggs C1", 0.00696),
-                ("Yeast dry", 0.00019),
-                ("Butter 82%", 0.00188),
-                ("Milk 3.2%", 0.00314),
-                ("Sugar", 0.00251),
-                ("Water", 0.00633),
-                ("Cream 20%", 0.00569),
-                ("Chiken", 0.02112),
-                ("Champignons", 0.01819)
+            "Pies Pileci batak I karabatak bez kosti and Sampinjoni": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Pavlaka za kuvanje", 0.00569),
+                ("Pileci batak I karabatak bez kosti", 0.02112),
+                ("Sampinjoni", 0.01819)
             ],
             "Pies beef": [
-                ("Flour DANUBI", 0.01899), 
-                ("Eggs C1", 0.00696),
-                ("Yeast dry", 0.00019),
-                ("Butter 82%", 0.00188),
-                ("Milk 3.2%", 0.00314),
-                ("Sugar", 0.00251),
-                ("Water", 0.00633),
-                ("Beef minced 7%", 0.03441),
-                ("Tomato chopped", 0.01059)
+                ("Brasno", 0.01899), 
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Junece mleveno meso 7", 0.03441),
+                ("Paradaiz seckani Lidl", 0.01059)
             ],
             "Hot dog mini": [
-                ("Flour DANUBI", 0.01899),
-                ("Eggs C1", 0.00696),
-                ("Yeast dry", 0.00019),
-                ("Butter 82%", 0.00188),
-                ("Milk 3.2%", 0.00314),
-                ("Sugar", 0.00251),
-                ("Water", 0.00633),
-                ("Sausage mini", 0.033)
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Poli viršla", 0.033)
             ],
             "Tvorog":[
-                ("Flour DANUBI", 0.03322),
-                ("Eggs C1", 0.01217 + 0.00444),
-                ("Yeast dry", 0.00034),
-                ("Butter 82%", 0.0033),
-                ("Milk 3.2%", 0.0055),
-                ("Sugar", 0.0044 + 0.00901),
-                ("Water", 0.01107),
-                ("Corn starch", 0.006),
-                ("Cottage cheese", 0.06004),
-                ("Sour cream 20%", 0.01051)
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217 + 0.00444),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.00901),
+                ("Vodar", 0.01107),
+                ("Scrob kukuruzni", 0.006),
+                ("Sir svezi", 0.06004),
+                ("Kisela pavlaka 20", 0.01051)
             ],
             "Cinamon": [
-                ("Flour DANUBI", 0.03322),
-                ("Eggs C1", 0.01217),
-                ("Yeast dry", 0.00034),
-                ("Butter 82%", 0.0033 + 0.00465),
-                ("Milk 3.2%", 0.0055),
-                ("Sugar", 0.0044 + 0.0155),
-                ("Water", 0.01107),
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
                 ("Cinnamon", 0.00155)
-            ]
+            ],
+            "Pies with cabbage and egg": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.02232),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314 + 0.00304),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+            ],
+            "Pies with green onions and egg": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.02232),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314 + 0.00304),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Luk mladi", 0.01964)
+            ],
+            "Pies with Krompir": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188 + 0.00283),
+                ("Mleko 2,8", 0.00314 + 0.00452),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Krompir", 0.03765)
+            ],
+            "Pies with chicken and Sampinjoni": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Pavlaka za kuvanje", 0.00569),
+                ("Pileci batak I karabatak bez kosti", 0.02112),
+                ("Sampinjoni", 0.01819)
+            ],
+            "Pies with beef and spinach": [
+                ("Brasno", 0.01899), 
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Junece mleveno meso 7", 0.03441),
+                ("Paradaiz seckani Lidl", 0.01059)
+            ],
+            "Pies with red fish, Sir svezi and parsley": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Sir svezi", 0.03002),
+            ],
+            "Pies with red fish and egg": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.02232),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314 + 0.00304),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+            ],
+            "Pies with cheese": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Sir svezi", 0.03002),
+            ],
+            "Pies with Krompir and cheese": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188 + 0.00283),
+                ("Mleko 2,8", 0.00314 + 0.00452),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Krompir", 0.03765),
+                ("Sir svezi", 0.03002),
+            ],
+            "Pies with Sir svezi": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.00444),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251 + 0.00901),
+                ("Vodar", 0.00633),
+                ("Sir svezi", 0.06004),
+                ("Kisela pavlaka 20", 0.01051)
+            ],
+            "Cinamon": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pies with red fish and egg": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.02232),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314 + 0.00304),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+            ],
+            "Pies with cheese": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Sir svezi", 0.03002),
+            ],
+            "Pies with Krompir and cheese": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188 + 0.00283),
+                ("Mleko 2,8", 0.00314 + 0.00452),
+                ("Secer", 0.00251),
+                ("Vodar", 0.00633),
+                ("Krompir", 0.03765),
+                ("Sir svezi", 0.03002),
+            ],
+            "Pies with Sir svezi": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.01244),
+                ("Kvasac suvi", 0.00197),
+                ("Maslac 82%", 0.00376),
+                ("Mleko 2,8", 0.00628),
+                ("Secer", 0.00602),
+                ("Vodar", 0.01266),
+                ("Sir svezi", 0.06004),
+                ("Kisela pavlaka 20", 0.01051)
+            ],                
+            "Pletenka poppy seed": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pletenka cinnamon": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Rom bab": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Oblepikhoviy limonad": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Kurabie": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pesochnoe koltso": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pies with apples": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.00444),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251 + 0.00901),
+                ("Vodar", 0.00633),
+            ],
+            "Pies with jam": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.00444),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+                ("Secer", 0.00251 + 0.00901),
+                ("Vodar", 0.00633),
+            ],
+            "Fruit and berry mix": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Sharlotka": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pletenka lemon": [
+                ("Brasno", 0.03322),  
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pletenka chocolate": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Vengerka with Sir svezi": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.01244),
+                ("Kvasac suvi", 0.00197),
+                ("Maslac 82%", 0.00376),
+                ("Mleko 2,8", 0.00628),
+                ("Secer", 0.00602),
+                ("Vodar", 0.01266),
+                ("Sir svezi", 0.06004),
+                ("Kisela pavlaka 20", 0.01051)
+            ],
+            "Moskovskaya plushka": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Pletenica with apples": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Kolach boravina": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+                ("Maslac 82%", 0.0033 + 0.00465),
+                ("Mleko 2,8", 0.0055),
+                ("Secer", 0.0044 + 0.0155),
+                ("Vodar", 0.01107),
+                ("Cinnamon", 0.00155)
+            ],
+            "Kolpch limun": [
+                ("Brasno", 0.03322),
+                ("Jaja M", 0.01217),
+                ("Kvasac suvi", 0.00034),
+            ],
+            "Pies with cherries": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.00444),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+            ],
+            "Pies with blackberry": [
+                ("Brasno", 0.01899),
+                ("Jaja M", 0.00696 + 0.00444),
+                ("Kvasac suvi", 0.00019),
+                ("Maslac 82%", 0.00188),
+                ("Mleko 2,8", 0.00314),
+            ],
         }
 
         for prod_name, ingredients in recipes.items():
@@ -213,6 +574,7 @@ def seed_full_data():
             {"name": "Lidl (sava)", "contact_person": "Sarah Miller", "phone": "+1-555-0202", "email": "none@globalgrain.com"},
             {"name": "Metro Zemun ", "contact_person": "Mike Ross", "phone": "+1-555-0303", "email": "none@globalgrain.com"},
             {"name": "Metro (delivery)", "contact_person": "Customer Support", "phone": "8-800-111-22-33", "email": "none@globalgrain.com"}
+            {"name": "Super Vero", "contact_person": "Anna Smith", "phone": "+1-555-0404", "email": "mail@mail.com"},
         ]
 
         for s_data in suppliers_list:
