@@ -282,7 +282,7 @@ async def get_expense_type_options(
         # Build HTML options
         options_html = '<option value="" data-i18n="selectExpenseType">Select Expense Type...</option>\n'
         for et in data:
-            options_html += f'<option value="{et.id}" data-price="{et.default_price}">{et.name}</option>\n'
+            options_html += f'<option value="{et.id}" data-price="{et.default_price}" data-unit-id="{et.unit_id}" >{et.name}</option>\n'
         
         return HTMLResponse(content=options_html)
     except Exception as e:
