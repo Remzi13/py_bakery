@@ -15,20 +15,17 @@ async def get_dashboard(request: Request):
 async def get_dashboard_stats(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     # Calculate daily revenue
     today = datetime.now().strftime("%Y-%m-%d")
-    sales = model.sales().data()
-    daily_revenue = sum(s.price * s.quantity * (1 - s.discount / 100) for s in sales if s.date.startswith(today))
+    sales = model.sales().data()    
+    monthly_revenue = sum(s.price * s.quantity * (1 - s.discount / 100) for s in sales if s.date.startswith(today[:7]))
     
-    # Low stock items
-    stock = model.stock().data()
-    low_stock_count = len([item for item in stock if item.quantity < 10])
+    monthly_expenses = sum(e.total_amount for e in model.expense_documents().data() if e.date.startswith(today[:7]))
     
-    # Just a placeholder for profit margin for now, or calculate if possible
-    profit_margin = 0 # Need costs vs sales
+    profit_margin = (monthly_revenue - monthly_expenses) / monthly_revenue * 100
     
     return templates.TemplateResponse(request, "dashboard/stats.html", {
-        "daily_revenue": daily_revenue,
-        "low_stock_count": low_stock_count,
-        "profit_margin": profit_margin
+        "monthly_revenue": monthly_revenue,
+        "monthly_expenses": monthly_expenses,    
+        "profit_margin": round(profit_margin, 2)
     })
 
 @router.get("/chart")

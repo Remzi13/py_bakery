@@ -20,6 +20,9 @@ const translations = {
         // Dashboard
         dashboard: "Dashboard",
         totalRevenue: "Total Revenue",
+        monthlyRevenue: "Monthly Revenue",
+        monthlyExpenses: "Monthly Expenses",
+        vsLastMonth: "↑ 12% vs last month",
         vsLastWeek: "↑ 12% vs last week",
         lowStockItems: "Low Stock Items",
         itemsToRestock: "Items to restock",
@@ -159,8 +162,9 @@ const translations = {
         // Dashboard
         dashboard: "Панель управления",
         totalRevenue: "Общие доходы",
-        vsLastWeek: "↑ 12% по сравнению с прошлой неделей",
-        lowStockItems: "Товары с низким запасом",
+        monthlyRevenue: "Доход за месяц",
+        vsLastMonth: "↑ 12% по сравнению с прошлым месяцем",
+        monthlyExpenses: "Расходы за месяц",
         itemsToRestock: "Товаров для пополнения",
         profitMargin: "Рентабельность",
         addSale: "➕ Добавить продажу",
