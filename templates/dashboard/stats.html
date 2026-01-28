@@ -3,7 +3,7 @@
     <p class="stat-value" id="stats-sales">{{ "%.2f"|format(monthly_revenue) }} ₽</p>
     <div class="stat-trend trend-up" data-i18n="vsLastMonth">↑ 12% vs last month</div>
 </div>
-<div class="card">
+<div class="card" hx-swap="oob">
     <h3 data-i18n="monthlyExpenses">Monthly Expenses</h3>
     <p class="stat-value" id="stats-expenses">{{ "%.2f"|format(monthly_expenses) }} ₽</p>
 </div>

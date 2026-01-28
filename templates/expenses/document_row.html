@@ -1,5 +1,5 @@
 <tr id="expense-doc-row-{{ doc.id }}" class="cursor-pointer" hx-get="/api/expenses/documents/{{ doc.id }}"
-    hx-target="#modal-container">
+    hx-target="#modal-container" {% if hx_oob_swap %}hx-swap-oob="{{ hx_oob_swap }}" {% endif %}>
     <td><strong>{{ doc.supplier_name if doc.supplier_name else '-' }}</strong></td>
     <td>{{ doc.items_count }}</td>
     <td>{{ "%.2f"|format(doc.total_amount) }} ₽</td>

@@ -160,7 +160,7 @@ async def create_expense_document(
         all_docs = model.expense_documents().get_documents_with_details()
         new_doc = next((d for d in all_docs if d['id'] == doc_id), None)
         
-        return templates.TemplateResponse(request, "expenses/document_row.html", {"doc": new_doc})
+        return templates.TemplateResponse(request, "expenses/document_row.html", {"doc": new_doc, "hx_oob_swap": "beforeend:#expenses-table-body"})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

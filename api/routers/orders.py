@@ -175,7 +175,7 @@ async def create_order(
         full_order = model.orders().by_id(new_order.id)
         
         if request.headers.get("HX-Request"):
-             return templates.TemplateResponse(request, "orders/row.html", {"order": full_order})
+            return templates.TemplateResponse(request, "orders/row.html", {"order": full_order, "hx_oob_swap": "afterbegin:#orders-table-body"})
 
         return {
             "id": full_order.id,

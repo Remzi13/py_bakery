@@ -3,7 +3,7 @@
         <button class="close" onclick="document.getElementById('expense-document-modal').remove()">&times;</button>
         <h2 data-i18n="newExpenseDocument">New Expense Document</h2>
 
-        <form hx-post="/api/expenses/documents" hx-target="#expenses-table-body" hx-swap="beforeend"
+        <form hx-post="/api/expenses/documents" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) document.getElementById('expense-document-modal').remove()"
             id="expense-doc-form">
 

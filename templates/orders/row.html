@@ -1,4 +1,4 @@
-<tr id="order-row-{{ order.id }}">
+<tr id="order-row-{{ order.id }}" {% if hx_oob_swap %}hx-swap-oob="{{ hx_oob_swap }}" {% endif %}>
     <td>#{{ order.id }}</td>
     <td>{{ order.created_date }}</td>
     <td>{{ order.completion_date }}</td>

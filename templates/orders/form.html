@@ -4,7 +4,7 @@
 
         <h2 data-i18n="newOrder">New order</h2>
 
-        <form hx-post="/api/orders/" hx-target="#orders-table-body" hx-swap="afterbegin"
+        <form hx-post="/api/orders/" hx-swap="none"
             hx-on::after-request="if(event.detail.successful) document.getElementById('order-modal').remove()">
 
             <div class="form-row">
