@@ -22,25 +22,34 @@ echo -e "${BLUE}========================================${NC}"
 echo ""
 
 # Проверяем, установлен ли Python
-if ! command -v python &> /dev/null; then
-    echo -e "${RED}❌ Python не найден. Пожалуйста, установите Python.${NC}"
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}❌ Python3 не найден. Пожалуйста, установите Python3.${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ Python найден:${NC} $(python --version)"
+echo -e "${GREEN}✅ Python найден:${NC} $(python3 --version)"
 echo ""
+
+# Проверяем, установлен ли pip
+if ! command -v pip3 &> /dev/null; then
+     # Если pip3 нет, пробуем через python3 -m pip
+     PIP_CMD="python3 -m pip"
+else
+     PIP_CMD="pip3"
+fi
+
 
 # Проверяем, установлены ли зависимости
 echo -e "${BLUE}Проверка зависимостей...${NC}"
-if ! python -c "import fastapi" 2>/dev/null; then
+if ! python3 -c "import fastapi" 2>/dev/null; then
     echo -e "${YELLOW}⚠️  FastAPI не установлен. Установка...${NC}"
-    pip install fastapi uvicorn -q
+    $PIP_CMD install fastapi uvicorn -q
     echo -e "${GREEN}✅ FastAPI установлен${NC}"
 fi
 
-if ! python -c "import uvicorn" 2>/dev/null; then
+if ! python3 -c "import uvicorn" 2>/dev/null; then
     echo -e "${YELLOW}⚠️  Uvicorn не установлен. Установка...${NC}"
-    pip install uvicorn -q
+    $PIP_CMD install uvicorn -q
     echo -e "${GREEN}✅ Uvicorn установлен${NC}"
 fi
 
@@ -80,4 +89,5 @@ echo -e "${YELLOW}⏹️  Нажмите Ctrl+C для остановки сер
 echo ""
 
 # Запускаем Uvicorn с автоперезагрузкой
-uvicorn main:app --host $HOST --port $PORT --reload
+# Запускаем Uvicorn с автоперезагрузкой
+python3 -m uvicorn main:app --host $HOST --port $PORT --reload

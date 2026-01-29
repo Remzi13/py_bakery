@@ -7,7 +7,8 @@ from api.models import Sale, SaleCreate
 from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/sales", tags=["sales"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 @router.get("/", response_model=List[Sale])
 async def get_sales(

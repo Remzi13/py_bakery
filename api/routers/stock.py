@@ -7,7 +7,8 @@ from api.models import StockItem, StockCreate, StockUpdate, StockSet
 from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/stock", tags=["stock"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 @router.get("/categories", response_model=List[str])
 def get_categories(model: SQLAlchemyModel = Depends(get_model)):

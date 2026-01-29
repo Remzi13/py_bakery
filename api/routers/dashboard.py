@@ -5,7 +5,8 @@ from sql_model.model import SQLAlchemyModel
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 @router.get("/")
 async def get_dashboard(request: Request):
@@ -20,7 +21,10 @@ async def get_dashboard_stats(request: Request, model: SQLAlchemyModel = Depends
     
     monthly_expenses = sum(e.total_amount for e in model.expense_documents().data() if e.date.startswith(today[:7]))
     
-    profit_margin = (monthly_revenue - monthly_expenses) / monthly_revenue * 100
+    if monthly_revenue > 0:
+        profit_margin = (monthly_revenue - monthly_expenses) / monthly_revenue * 100
+    else:
+        profit_margin = 0
     
     return templates.TemplateResponse(request, "dashboard/stats.html", {
         "monthly_revenue": monthly_revenue,

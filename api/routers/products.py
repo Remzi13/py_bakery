@@ -8,7 +8,8 @@ from sql_model.model import SQLAlchemyModel
 from sql_model.entities import StockItem
 
 router = APIRouter(prefix="/api/products", tags=["products"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 @router.get("/", response_model=List[ProductResponse])
 async def get_products(

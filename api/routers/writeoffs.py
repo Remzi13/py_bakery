@@ -8,7 +8,8 @@ from sql_model.model import SQLAlchemyModel
 from sql_model.entities import WriteOff
 
 router = APIRouter(prefix="/api/writeoffs", tags=["writeoffs"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 class WriteOffCreate(BaseModel):
     item_id: int

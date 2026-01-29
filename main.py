@@ -17,7 +17,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Bakery Manager API", lifespan=lifespan)
 
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 # Include Routers
 app.include_router(products.router)
@@ -30,7 +31,7 @@ app.include_router(orders.router)
 app.include_router(dashboard.router)
 
 # Mount Static Files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=get_resource_path("static")), name="static")
 
 @app.get("/")
 async def read_landing(request: Request):

@@ -6,7 +6,8 @@ from typing import Generator, Optional
 from sqlalchemy import event
 
 # Database URL
-DATABASE_URL = "sqlite:///./bakery_management.db"
+from api.utils import get_database_url
+DATABASE_URL = get_database_url()
 
 # Create engine
 engine = create_engine(

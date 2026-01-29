@@ -11,7 +11,8 @@ from api.models import (
 from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
-templates = Jinja2Templates(directory="templates")
+from api.utils import get_resource_path
+templates = Jinja2Templates(directory=get_resource_path("templates"))
 
 # --- Documents API (New System) ---
 
