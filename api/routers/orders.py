@@ -98,7 +98,7 @@ def get_pending_orders(model: SQLAlchemyModel = Depends(get_model)):
                 "completion_date": order.completion_date,
                 "status": order.status,
                 "additional_info": order.additional_info,
-                "items": order.items
+                "order_items": order.items
             })
         return results
     except Exception as e:

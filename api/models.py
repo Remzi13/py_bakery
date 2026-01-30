@@ -161,4 +161,4 @@ class OrderResponse(BaseModel):
     completion_date: Optional[str]
     status: str
     additional_info: Optional[str]
-    items: List[OrderItemResponse]
+    order_items: List[OrderItemResponse]
