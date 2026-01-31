@@ -70,7 +70,7 @@ def init_db(engine_to_use=None):
                 db.add(StockCategory(name=cat_name))
         
         # Create default expense categories
-        default_expense_categories = ['Materials', 'Equipment', 'Utilities', 'Other']
+        default_expense_categories = ['Materials', 'Equipment', 'Utilities', 'Inventory', 'Salary', 'Other']
         for cat_name in default_expense_categories:
             if not db.query(ExpenseCategory).filter(ExpenseCategory.name == cat_name).first():
                 db.add(ExpenseCategory(name=cat_name))
