@@ -142,6 +142,13 @@ const translations = {
         language: "Language",
         english: "English",
         russian: "Русский",
+        backToHome: "Back to Home",
+        expenseTypes: "Expense Types",
+        searchExpenseTypes: "Search types...",
+        allCategories: "All Categories",
+        noItemsInDocument: "No items added yet",
+        clickToAddItem: "Click on types from the left to add them",
+        documentSavedSuccessfully: "Document saved successfully",
     },
     ru: {
         // Common
@@ -283,6 +290,13 @@ const translations = {
         language: "Язык",
         english: "English",
         russian: "Русский",
+        backToHome: "На главную",
+        expenseTypes: "Типы расходов",
+        searchExpenseTypes: "Поиск типов...",
+        allCategories: "Все категории",
+        noItemsInDocument: "Позиции еще не добавлены",
+        clickToAddItem: "Нажмите на типы слева, чтобы добавить их",
+        documentSavedSuccessfully: "Документ успешно сохранен",
     }
 };
 

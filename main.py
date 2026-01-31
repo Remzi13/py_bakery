@@ -59,3 +59,34 @@ async def read_management(request: Request):
 @app.get("/pos")
 async def read_pos(request: Request):
     return templates.TemplateResponse(request, "pos.html", {})
+
+@app.get("/expenses")
+async def read_expenses_entry(request: Request):
+    from sql_model.database import SessionLocal
+    from sql_model.model import SQLAlchemyModel
+    db = SessionLocal()
+    try:
+        model = SQLAlchemyModel(db)
+        suppliers = model.suppliers().data()
+        categories = model.utils().get_expense_category_names()
+        types = model.expense_types().data()
+        
+        all_types = []
+        for item in types:
+            all_types.append({
+                "id" : item.id,
+                "name": item.name,
+                "unit_id" : item.unit_id,
+                "unit_name": model.utils().get_unit_name_by_id(item.unit_id),
+                "category_id": item.category_id,
+                "category_name": model.utils().get_expense_category_name_by_id(item.category_id),
+                "default_price": item.default_price
+            })
+            
+        return templates.TemplateResponse(request, "expenses_entry.html", {
+            "suppliers": suppliers,
+            "categories": categories,
+            "types": all_types
+        })
+    finally:
+        db.close()

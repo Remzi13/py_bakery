@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Expenses Entry Panel — Quick entry for bakery expenses">
+    <title>Expenses - Bakery Manager</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/expenses_entry.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="/static/js/translations.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body class="expenses-body">
+    <div class="expenses-container">
+        <!-- Header -->
+        <header class="expenses-header">
+            <div class="expenses-header-content">
+                <h1>💸 <span data-i18n="addExpense">Add Expense</span></h1>
+                <a href="/" class="btn-secondary">← <span data-i18n="backToHome">Back to Home</span></a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="expenses-main">
+            <!-- Left Side: Catalog of Expense Types -->
+            <section class="catalog-panel">
+                <div class="panel-header">
+                    <h2 data-i18n="expenseTypes">Expense Types</h2>
+                    <div class="search-wrapper">
+                        <input type="text" id="type-search" placeholder="Search types..." class="search-input"
+                            data-i18n="searchExpenseTypes">
+                    </div>
+                </div>
+                <div class="catalog-filters">
+                    <select id="category-filter" class="filter-select">
+                        <option value="" data-i18n="allCategories">All Categories</option>
+                        {% for c in categories %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="catalog-grid" class="catalog-grid">
+                    {% for t in types %}
+                    <div class="type-card" data-id="{{ t.id }}" data-name="{{ t.name }}"
+                        data-price="{{ t.default_price }}" data-unit-id="{{ t.unit_id }}"
+                        data-category="{{ t.category_name }}">
+                        <span class="type-name">{{ t.name }}</span>
+                        <span class="type-meta">{{ t.category_name }} • {{ t.unit_name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Right Side: Current Document Form -->
+            <section class="document-panel">
+                <form id="expense-doc-form" hx-post="/api/expenses/documents" hx-swap="none"
+                    hx-on::after-request="if(event.detail.successful) resetExpenseForm()">
+                    <div class="panel-header">
+                        <h2 data-i18n="newExpenseDocument">New Expense Document</h2>
+                        <button type="button" class="btn-clear" onclick="resetExpenseForm()"
+                            data-i18n="clear">Clear</button>
+                    </div>
+
+                    <div class="document-info">
+                        <div class="doc-form-row">
+                            <div class="doc-form-group">
+                                <label data-i18n="date">Date</label>
+                                <input type="datetime-local" name="date" class="doc-input" required id="doc-date">
+                            </div>
+                            <div class="doc-form-group">
+                                <label data-i18n="supplier">Supplier</label>
+                                <select name="supplier_id" class="doc-select" required>
+                                    <option value="" data-i18n="selectSupplier">Select Supplier...</option>
+                                    {% for s in suppliers %}
+                                    <option value="{{ s.id }}">{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="doc-form-group">
+                            <label data-i18n="comment">Comment</label>
+                            <input type="text" name="comment" class="doc-input" placeholder="Optional comment"
+                                data-i18n="commentPlaceholder">
+                        </div>
+                    </div>
+
+                    <div class="items-list-container">
+                        <div id="empty-state" class="empty-state"
+                            style="padding: 2rem; text-align: center; color: #a0aec0;">
+                            <p data-i18n="noItemsInDocument">No items added yet</p>
+                            <p style="font-size: 0.8rem;" data-i18n="clickToAddItem">Click on types from the left to add
+                                them</p>
+                        </div>
+                        <div id="expense-items-list">
+                            <!-- Items will be added here -->
+                        </div>
+                    </div>
+
+                    <div class="doc-summary">
+                        <div class="summary-line">
+                            <span data-i18n="totalAmount">Total Amount</span>
+                            <span id="total-display">0.00 ₽</span>
+                        </div>
+                    </div>
+
+                    <div class="doc-actions">
+                        <button type="submit" class="btn-submit" data-i18n="save">Save Document</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/expenses_entry.js"></script>
+</body>
+
+</html>
