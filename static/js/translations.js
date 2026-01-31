@@ -28,6 +28,7 @@ const translations = {
         itemsToRestock: "Items to restock",
         profitMargin: "Profit Margin",
         addSale: "➕ Add Sale",
+        addOrder: "➕ Add Order",
         addExpense: "➕ Add Expense",
         salesTrendLastWeek: "Sales Trend (Last 7 Days)",
         recentActivity: "Recent Activity",
@@ -168,6 +169,7 @@ const translations = {
         itemsToRestock: "Товаров для пополнения",
         profitMargin: "Рентабельность",
         addSale: "➕ Добавить продажу",
+        addOrder: "➕ Добавить заказ",
         addExpense: "➕ Добавить расход",
         salesTrendLastWeek: "Тренд продаж (последние 7 дней)",
         recentActivity: "Недавняя деятельность",
@@ -335,4 +337,9 @@ function updatePageLanguage() {
 document.addEventListener('DOMContentLoaded', () => {
     updatePageLanguage();
     updateLanguageButtons();
+});
+
+// Re-apply translations after HTMX content is loaded and settled
+document.addEventListener('htmx:afterSettle', () => {
+    updatePageLanguage();
 });
