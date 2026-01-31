@@ -46,6 +46,9 @@
                         <a href="/static/dock.html" class="nav-btn" data-i18n="documentation"
                             style="text-decoration: none; display: inline-block; width: 80%; margin-bottom: 10px;">Documentation</a>
                     </div>
+                    <div style="margin-top: auto; padding-top: 10px; font-size: 0.7rem; color: var(--text-muted); opacity: 0.6; text-align: center;">
+                        App: v{{ app_version }} | DB: v{{ get_db_version() }}
+                    </div>
                 </div>
             </nav>
         </aside>

@@ -288,3 +288,15 @@ class ExpenseItem(Base):
     
     def __repr__(self):
         return f"<ExpenseItem(id={self.id}, document_id={self.document_id}, quantity={self.quantity})>"
+
+
+class SystemSettings(Base):
+    """Системные настройки и метаданные."""
+    __tablename__ = "system_settings"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    key: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    value: Mapped[str] = mapped_column(String, nullable=False)
+    
+    def __repr__(self):
+        return f"<SystemSettings(key={self.key}, value={self.value})>"

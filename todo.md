@@ -28,8 +28,6 @@
 # FEATURES
 * добавить SoftDelete
 * для продуктов надо добавить категории (Regular, Drink, Special)
-* добавить сборку под PyInstaller
-* сделать миграцию баз данных 
 
 # REFACTORING
 * надо упростить api/routers/products.py

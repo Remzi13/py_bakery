@@ -53,7 +53,8 @@ def init_db(engine_to_use=None):
     Base.metadata.create_all(bind=engine_to_use)
     
     # Populate reference data
-    from sql_model.entities import Unit, StockCategory, ExpenseCategory
+    from sql_model.entities import Unit, StockCategory, ExpenseCategory, SystemSettings
+    from api.version import DB_VERSION
     
     try:
         # Create default units
@@ -74,6 +75,10 @@ def init_db(engine_to_use=None):
             if not db.query(ExpenseCategory).filter(ExpenseCategory.name == cat_name).first():
                 db.add(ExpenseCategory(name=cat_name))
         
+        # Create default database version
+        if not db.query(SystemSettings).filter(SystemSettings.key == 'db_version').first():
+            db.add(SystemSettings(key='db_version', value=DB_VERSION))
+            
         db.commit()
     finally:
         db.close()
@@ -142,7 +147,8 @@ def initialize_db(db_session: Session):
     Base.metadata.create_all(bind=engine_to_use)
     
     # Populate reference data
-    from sql_model.entities import Unit, StockCategory, ExpenseCategory
+    from sql_model.entities import Unit, StockCategory, ExpenseCategory, SystemSettings
+    from api.version import DB_VERSION
     
     try:
         # Create default units
@@ -163,6 +169,10 @@ def initialize_db(db_session: Session):
             if not db_session.query(ExpenseCategory).filter(ExpenseCategory.name == cat_name).first():
                 db_session.add(ExpenseCategory(name=cat_name))
         
+        # Create default database version
+        if not db_session.query(SystemSettings).filter(SystemSettings.key == 'db_version').first():
+            db_session.add(SystemSettings(key='db_version', value=DB_VERSION))
+
         db_session.commit()
     except Exception as e:
         db_session.rollback()
