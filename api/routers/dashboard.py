@@ -83,7 +83,8 @@ async def get_pending_orders(request: Request, model: SQLAlchemyModel = Depends(
     
     order_data = []
     for order in orders:
-        total = sum(item['price'] * item['quantity'] for item in order.items)
+        subtotal = sum(item['price'] * item['quantity'] for item in order.items)
+        total = subtotal * (1 - (order.discount or 0) / 100)
         order_data.append({
             "id": order.id,
             "completion_date": order.completion_date,

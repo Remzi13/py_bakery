@@ -25,6 +25,7 @@
 * добавить таблицу с категориями и возможность редактировать
 
 # REFACTORING
+* надо переписать (pos.html, pos.css, pos.js)
 * надо упростить api/routers/products.py
 * добавить поле низкий запас в stock item
 * вынести константы default_units

@@ -13,6 +13,11 @@
                     <input id="completion-date" type="date" name="completion_date" required>
                 </div>
                 <div class="form-group">
+                    <label for="discount">Discount (%)</label>
+                    <input id="discount" type="number" name="discount" min="0" max="100" value="0"
+                        oninput="updateGrandTotal()">
+                </div>
+                <div class="form-group">
                     <label class="switch-button">
                         <input type="checkbox" name="complete_now" value="true">
                         <div class="button-content">
@@ -77,12 +82,17 @@
         function updateGrandTotal() {
             const list = document.getElementById('order-items-list');
             const items = list.querySelectorAll('.recipe-item');
-            let total = 0;
+            const discountInput = document.getElementById('discount');
+            const discount = parseFloat(discountInput.value) || 0;
+
+            let itemsTotal = 0;
             items.forEach(item => {
                 const qty = parseFloat(item.querySelector('input[name*="[quantity]"]').value) || 0;
                 const price = parseFloat(item.querySelector('input[name*="[price]"]').value) || 0;
-                total += price * qty;
+                itemsTotal += price * qty;
             });
+
+            const total = itemsTotal * (1 - discount / 100);
             document.getElementById('expense-total-display').innerText = total.toFixed(2);
         }
 
@@ -111,7 +121,7 @@
                 <input type="hidden" name="items[${idx}][product_id]" value="${productId}">
                 <input type="hidden" name="items[${idx}][quantity]" value="${qty}">
                 <input type="hidden" name="items[${idx}][price]" value="${price}">
-                <button type="button" onclick="this.parentElement.remove()">×</button>
+                <button type="button" onclick="this.parentElement.remove(); updateGrandTotal()">×</button>
             `;
             list.appendChild(li);
 

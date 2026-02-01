@@ -25,7 +25,9 @@
 
             <h3 style="margin-top: 20px;" data-i18n="items">Items</h3>
             <ul class="recipe-list">
+                {% set ns = namespace(subtotal=0) %}
                 {% for item in order.items %}
+                {% set ns.subtotal = ns.subtotal + (item.price * item.quantity) %}
                 <li class="recipe-item">
                     <span><strong>{{ item.product_name }}</strong> x {{ item.quantity }}</span>
                     <span>{{ "%.2f"|format(item.price) }} {{ currency }} (Total: {{ "%.2f"|format(item.price *
@@ -33,6 +35,22 @@
                 </li>
                 {% endfor %}
             </ul>
+
+            <div class="order-summary"
+                style="margin-top: 20px; border-top: 1px solid var(--bg-hover); padding-top: 15px; text-align: right;">
+                <p style="margin-bottom: 5px;"><strong><span data-i18n="subtotal">Subtotal</span>:</strong> {{
+                    "%.2f"|format(ns.subtotal) }} {{ currency }}</p>
+                {% if order.discount > 0 %}
+                <p style="margin-bottom: 5px; color: var(--error-color);">
+                    <strong><span data-i18n="discount">Discount</span> ({{ order.discount }}%):</strong>
+                    -{{ "%.2f"|format(ns.subtotal * order.discount / 100) }} {{ currency }}
+                </p>
+                {% endif %}
+                <p style="font-size: 1.25em; color: var(--primary-color); margin-top: 10px;">
+                    <strong><span data-i18n="totalAmount">Total Amount</span>:</strong>
+                    {{ "%.2f"|format(ns.subtotal * (1 - order.discount / 100)) }} {{ currency }}
+                </p>
+            </div>
         </div>
 
         <div class="form-actions" style="margin-top: 20px;">

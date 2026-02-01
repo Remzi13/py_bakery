@@ -16,6 +16,7 @@ const translations = {
         confirm: "Confirm",
         cancel: "Cancel",
         discount: "Discount (%)",
+        subtotal: "Subtotal",
 
         // Dashboard
         dashboard: "Dashboard",
@@ -167,6 +168,7 @@ const translations = {
         confirm: "Подтвердить",
         cancel: "Отменить",
         discount: "Скидка (%)",
+        subtotal: "Подытог",
 
         // Dashboard
         dashboard: "Панель управления",

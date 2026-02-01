@@ -147,6 +147,7 @@ class OrderCreate(BaseModel):
     completion_date: Optional[str] = None
     additional_info: Optional[str] = None
     complete_now: bool = False
+    discount: int = 0
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -161,4 +162,5 @@ class OrderResponse(BaseModel):
     completion_date: Optional[str]
     status: str
     additional_info: Optional[str]
+    discount: int
     order_items: List[OrderItemResponse]

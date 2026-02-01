@@ -58,6 +58,11 @@
                         <span class="summary-label">Subtotal:</span>
                         <span id="order-subtotal" class="summary-value">₽0.00</span>
                     </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Discount (%):</span>
+                        <input type="number" id="order-discount-input" class="summary-input" value="0" min="0"
+                            max="100">
+                    </div>
                     <div class="summary-row total-row">
                         <span class="summary-label">Total:</span>
                         <span id="order-total" class="summary-value">₽0.00</span>
@@ -85,6 +90,11 @@
                 <div class="form-group">
                     <label for="completion-date">Completion Date & Time</label>
                     <input type="datetime-local" id="completion-date" name="completion_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-discount">Discount (%)</label>
+                    <input type="number" id="modal-discount" name="discount" min="0" max="100" value="0">
                 </div>
 
                 <div class="form-group">

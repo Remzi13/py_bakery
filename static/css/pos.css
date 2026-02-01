@@ -288,6 +288,23 @@
     font-weight: 500;
 }
 
+.summary-input {
+    width: 60px;
+    padding: 0.2rem 0.4rem;
+    border: 2px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    text-align: right;
+    font-family: inherit;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.summary-input:focus {
+    outline: none;
+    border-color: #3182ce;
+}
+
 .summary-value {
     font-weight: 700;
     color: #2d3748;

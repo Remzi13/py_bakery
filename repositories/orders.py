@@ -13,7 +13,7 @@ class OrdersRepository:
         self.db = db
         self.model = model
     
-    def add(self, items: List[dict], completion_date: Optional[str] = None, additional_info: Optional[str] = None, complete_now: bool = False) -> Order:
+    def add(self, items: List[dict], completion_date: Optional[str] = None, additional_info: Optional[str] = None, complete_now: bool = False, discount: int = 0) -> Order:
         """
         Create a new order with items.
         
@@ -22,6 +22,7 @@ class OrdersRepository:
             completion_date: Optional completion date/time
             additional_info: Optional additional information
             complete_now: Whether to mark as completed immediately
+            discount: Discount percentage (0-100)
         
         Returns:
             Created Order object
@@ -34,7 +35,8 @@ class OrdersRepository:
             created_date=created_date,
             completion_date=completion_date,
             status=status,
-            additional_info=additional_info
+            additional_info=additional_info,
+            discount=discount
         )
         self.db.add(order)
         self.db.flush()
@@ -76,6 +78,7 @@ class OrdersRepository:
                 'completion_date': order.completion_date,
                 'status': order.status,
                 'additional_info': order.additional_info,
+                'discount': order.discount,
                 'items': [self._item_to_dict(item) for item in order.items]
             }
             result.append(SimpleNamespace(**order_dict))
@@ -96,6 +99,7 @@ class OrdersRepository:
                 'completion_date': order.completion_date,
                 'status': order.status,
                 'additional_info': order.additional_info,
+                'discount': order.discount,
                 'items': [self._item_to_dict(item) for item in order.items]
             }
             result.append(SimpleNamespace(**order_dict))
@@ -115,6 +119,7 @@ class OrdersRepository:
             'completion_date': order.completion_date,
             'status': order.status,
             'additional_info': order.additional_info,
+            'discount': order.discount,
             'items': [self._item_to_dict(item) for item in order.items]
         }
         return SimpleNamespace(**order_dict)
@@ -143,6 +148,7 @@ class OrdersRepository:
                 'completion_date': order.completion_date,
                 'status': order.status,
                 'additional_info': order.additional_info,
+                'discount': order.discount,
                 'items': [self._item_to_dict(item) for item in order.items]
             }
             result.append(SimpleNamespace(**order_dict))
@@ -173,7 +179,7 @@ class OrdersRepository:
                     product_id=item.product_id,
                     price=item.price,
                     quantity=item.quantity,
-                    discount=0
+                    discount=order.discount
                 )
             
             # Update order status

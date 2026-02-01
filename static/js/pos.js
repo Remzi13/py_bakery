@@ -17,9 +17,23 @@ function setupEventListeners() {
     const createOrderBtn = document.getElementById('create-order-btn');
     const clearBtn = document.getElementById('clear-order-btn');
     const orderForm = document.getElementById('order-form');
+    const discountInput = document.getElementById('order-discount-input');
+    const modalDiscountInput = document.getElementById('modal-discount');
 
     searchInput.addEventListener('input', (e) => {
         filterProducts(e.target.value);
+    });
+
+    discountInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        modalDiscountInput.value = val;
+        updateOrderSummary();
+    });
+
+    modalDiscountInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        discountInput.value = val;
+        updateOrderSummary();
     });
 
     completeNowBtn.addEventListener('click', completeNow);
@@ -163,11 +177,14 @@ function renderOrder() {
 // Update order summary (totals)
 function updateOrderSummary() {
     const subtotal = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const total = subtotal; // Can add tax/discount here if needed
+    const discountInput = document.getElementById('order-discount-input');
+    const discount = parseFloat(discountInput.value) || 0;
+
+    const total = subtotal * (1 - discount / 100);
 
     document.getElementById('order-subtotal').textContent = `${CURRENCY}${subtotal.toFixed(2)}`;
     document.getElementById('order-total').textContent = `${CURRENCY}${total.toFixed(2)}`;
-    return subtotal;
+    return total;
 }
 
 // Complete order now (immediate sale)
@@ -177,6 +194,8 @@ async function completeNow() {
     const completeNowBtn = document.getElementById('complete-now-btn');
     completeNowBtn.disabled = true;
     completeNowBtn.textContent = 'Processing...';
+
+    const discount = parseInt(document.getElementById('order-discount-input').value) || 0;
 
     try {
         const response = await fetch('/api/orders/', {
@@ -189,7 +208,8 @@ async function completeNow() {
                     product_id: item.productId,
                     quantity: item.quantity
                 })),
-                complete_now: true
+                complete_now: true,
+                discount: discount
             })
         });
 
@@ -238,6 +258,7 @@ async function submitOrderForm(e) {
     const formData = new FormData(e.target);
     const completionDate = formData.get('completion_date');
     const additionalInfo = formData.get('additional_info');
+    const discount = parseInt(formData.get('discount')) || 0;
 
     try {
         const response = await fetch('/api/orders/', {
@@ -251,7 +272,8 @@ async function submitOrderForm(e) {
                     quantity: item.quantity
                 })),
                 completion_date: completionDate,
-                additional_info: additionalInfo || null
+                additional_info: additionalInfo || null,
+                discount: discount
             })
         });
 

@@ -46,6 +46,7 @@ def get_orders(
                 "completion_date": order.completion_date,
                 "status": order.status,
                 "additional_info": order.additional_info,
+                "discount": order.discount,
                 "order_items": items_list
             })
         
@@ -98,6 +99,7 @@ def get_pending_orders(model: SQLAlchemyModel = Depends(get_model)):
                 "completion_date": order.completion_date,
                 "status": order.status,
                 "additional_info": order.additional_info,
+                "discount": order.discount,
                 "order_items": order.items
             })
         return results
@@ -117,6 +119,7 @@ def get_order(order_id: int, model: SQLAlchemyModel = Depends(get_model)):
             "completion_date": order.completion_date,
             "status": order.status,
             "additional_info": order.additional_info,
+            "discount": order.discount,
             "items": order.items
         }
     except HTTPException:
@@ -138,6 +141,7 @@ async def create_order(
             completion_date = order_data.completion_date
             additional_info = order_data.additional_info
             complete_now = order_data.complete_now
+            discount = order_data.discount
         else:            
             
             form = await request.form()
@@ -164,12 +168,14 @@ async def create_order(
             completion_date = form.get("completion_date")
             additional_info = form.get("additional_info")
             complete_now = form.get("complete_now") == "true"
+            discount = int(form.get("discount", 0))
 
         new_order = model.orders().add(
             items=items,
             completion_date=completion_date,
             additional_info=additional_info,
-            complete_now=complete_now
+            complete_now=complete_now,
+            discount=discount
         )
         
         # Get full order with items
@@ -186,6 +192,7 @@ async def create_order(
             "completion_date": full_order.completion_date,
             "status": full_order.status,
             "additional_info": full_order.additional_info,
+            "discount": full_order.discount,
             "order_items": full_order.items
         }
     except ValueError as e:

@@ -149,3 +149,95 @@ class TestOrdersRouter:
         
         response = client.get(f"/api/orders/{order.id}/info")
         assert response.status_code == 200
+    
+    def test_add_order_with_discount(self, model, setup_products_for_orders):
+        """Test adding an order with discount."""
+        repo = model.orders()
+        bread = setup_products_for_orders['bread']
+        
+        items = [{'product_id': bread.id, 'quantity': 10.0}]
+        order = repo.add(items, discount=15)
+        
+        assert order.discount == 15
+        retrieved = repo.by_id(order.id)
+        assert retrieved.discount == 15
+    
+    def test_add_order_with_zero_discount(self, model, setup_products_for_orders):
+        """Test adding an order with zero discount (default)."""
+        repo = model.orders()
+        cake = setup_products_for_orders['cake']
+        
+        items = [{'product_id': cake.id, 'quantity': 5.0}]
+        order = repo.add(items)
+        
+        assert order.discount == 0
+        retrieved = repo.by_id(order.id)
+        assert retrieved.discount == 0
+    
+    def test_complete_order_applies_discount(self, model, setup_products_for_orders):
+        """Test that completing an order applies the discount to sales."""
+        from sql_model.entities import StockCategory, Unit
+        
+        repo = model.orders()
+        sales_repo = model.sales()
+        stock_repo = model.stock()
+        products_repo = model.products()
+        
+        # Setup stock category and unit
+        category = model.db.query(StockCategory).filter(StockCategory.name == "Materials").first()
+        if not category:
+            category = StockCategory(name="Materials")
+            model.db.add(category)
+            model.db.commit()
+        
+        unit = model.db.query(Unit).filter(Unit.name == "kg").first()
+        if not unit:
+            unit = Unit(name="kg")
+            model.db.add(unit)
+            model.db.commit()
+        
+        # Add stock item (using names, not IDs)
+        stock_repo.add("Flour", "Materials", 100.0, "kg")
+        flour = stock_repo.get("Flour")
+        
+        # Create product with recipe
+        bread = products_repo.add("TestBread", 200, [
+            {"name": "Flour", "quantity": 0.5, "conversion_factor": 1.0}
+        ])
+        
+        # Create order with 20% discount
+        items = [{'product_id': bread.id, 'quantity': 5.0}]
+        order = repo.add(items, discount=20)
+        
+        # Complete the order
+        repo.complete(order.id)
+        
+        # Check that sale was created with correct discount
+        sales = sales_repo.data()
+        latest_sale = sales[-1]
+        assert latest_sale.discount == 20
+        assert latest_sale.product_id == bread.id
+        assert latest_sale.quantity == 5.0
+    
+    def test_get_all_orders_includes_discount(self, model, setup_products_for_orders):
+        """Test that retrieving all orders includes discount field."""
+        repo = model.orders()
+        bread = setup_products_for_orders['bread']
+        cake = setup_products_for_orders['cake']
+        
+        repo.add([{'product_id': bread.id, 'quantity': 10.0}], discount=10)
+        repo.add([{'product_id': cake.id, 'quantity': 5.0}], discount=25)
+        
+        all_orders = repo.data()
+        assert all(hasattr(order, 'discount') for order in all_orders)
+    
+    def test_pending_orders_includes_discount(self, model, setup_products_for_orders):
+        """Test that pending orders include discount field."""
+        repo = model.orders()
+        donut = setup_products_for_orders['donut']
+        
+        repo.add([{'product_id': donut.id, 'quantity': 20.0}], discount=15)
+        
+        pending = repo.get_pending()
+        assert len(pending) >= 1
+        assert all(hasattr(order, 'discount') for order in pending)

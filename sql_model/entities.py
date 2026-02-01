@@ -223,6 +223,7 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String, nullable=False)  # 'pending' or 'completed'
     completion_date: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     additional_info: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    discount: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     
     # Relationships
     items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
