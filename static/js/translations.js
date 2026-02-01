@@ -127,6 +127,7 @@ const translations = {
         address: "Address",
         contact: "Contact",
         saveSupplier: "Save Supplier",
+        selectSupplier: "Select Supplier",
 
         // Write-offs
         addWriteoff: "Add Record",
@@ -275,6 +276,7 @@ const translations = {
         address: "Адрес",
         contact: "Контакт",
         saveSupplier: "Сохранить поставщика",
+        selectSupplier: "Выбрать поставщика",
 
         // Write-offs
         addWriteoff: "Добавить запись",
