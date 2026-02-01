@@ -161,7 +161,9 @@ async def create_expense_document(
         all_docs = model.expense_documents().get_documents_with_details()
         new_doc = next((d for d in all_docs if d['id'] == doc_id), None)
         
-        return templates.TemplateResponse(request, "expenses/document_row.html", {"doc": new_doc, "hx_oob_swap": "beforeend:#expenses-table-body"})
+        response = templates.TemplateResponse(request, "expenses/document_row.html", {"doc": new_doc, "hx_oob_swap": "beforeend:#expenses-table-body"})
+        response.headers["HX-Trigger"] = "dashboard-update"
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -180,7 +182,9 @@ async def delete_expense_document(id: int, model: SQLAlchemyModel = Depends(get_
     try:
         model.expense_documents().delete(id)
         # Return empty response - HTMX will remove the row
-        return HTMLResponse(content="", status_code=200)
+        response = HTMLResponse(content="", status_code=200)
+        response.headers["HX-Trigger"] = "dashboard-update"
+        return response
     except ValueError as e:
         # Stock validation error
         raise HTTPException(status_code=400, detail=str(e))

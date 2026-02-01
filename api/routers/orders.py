@@ -176,7 +176,9 @@ async def create_order(
         full_order = model.orders().by_id(new_order.id)
         
         if request.headers.get("HX-Request"):
-            return templates.TemplateResponse(request, "orders/row.html", {"order": full_order, "hx_oob_swap": "afterbegin:#orders-table-body"})
+            response = templates.TemplateResponse(request, "orders/row.html", {"order": full_order, "hx_oob_swap": "afterbegin:#orders-table-body"})
+            response.headers["HX-Trigger"] = "dashboard-update"
+            return response
 
         return {
             "id": full_order.id,
@@ -184,7 +186,7 @@ async def create_order(
             "completion_date": full_order.completion_date,
             "status": full_order.status,
             "additional_info": full_order.additional_info,
-            "items": full_order.items
+            "order_items": full_order.items
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -202,7 +204,17 @@ async def complete_order(
         if success:
             if request.headers.get("HX-Request"):
                 order = model.orders().by_id(order_id)
-                return templates.TemplateResponse(request, "orders/row.html", {"order": order})
+                target = request.headers.get("HX-Target")
+                
+                # If we are in the orders table, return the updated row
+                if target and target.startswith("order-row-"):
+                    response = templates.TemplateResponse(request, "orders/row.html", {"order": order})
+                else:
+                    # Otherwise (e.g. from dashboard), return empty and let trigger refresh
+                    response = HTMLResponse("")
+                
+                response.headers["HX-Trigger"] = "dashboard-update"
+                return response
             return {"message": f"Order {order_id} completed successfully"}
         else:
             raise HTTPException(status_code=400, detail="Failed to complete order")
@@ -237,7 +249,9 @@ async def delete_order(
         success = model.orders().delete(order_id)
         if success:
             if request.headers.get("HX-Request"):
-                return HTMLResponse("")
+                response = HTMLResponse("")
+                response.headers["HX-Trigger"] = "dashboard-update"
+                return response
             return {"message": f"Order {order_id} deleted successfully"}
         else:
             raise HTTPException(status_code=404, detail="Order not found")

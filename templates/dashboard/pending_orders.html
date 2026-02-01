@@ -15,7 +15,7 @@
                 hx-get="/api/orders/{{ order.id }}/info" hx-target="#modal-container"
                 data-i18n="infoOrder">Info</button>
             <button class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem;"
-                hx-post="/api/orders/{{ order.id }}/complete" hx-target="#dashboard-pending-orders" hx-swap="innerHTML"
+                hx-post="/api/orders/{{ order.id }}/complete" hx-swap="none"
                 hx-confirm="Are you sure you want to complete this order?" data-i18n="completeOrder">Complete</button>
         </div>
     </div>

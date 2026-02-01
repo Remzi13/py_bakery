@@ -68,7 +68,9 @@ async def create_sale(
         new_sale = model.sales().data()[0] 
         
         if request.headers.get("HX-Request"):
-            return templates.TemplateResponse(request, "sales/row.html", {"sale": new_sale})
+            response = templates.TemplateResponse(request, "sales/row.html", {"sale": new_sale})
+            response.headers["HX-Trigger"] = "dashboard-update"
+            return response
             
         return {"message": "Sale created successfully"}
     except ValueError as e:
