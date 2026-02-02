@@ -17,10 +17,14 @@
 <body class="pos-body">
     <div class="pos-container">
         <!-- Header -->
-        <header class="pos-header">
-            <div class="pos-header-content">
-                <h1>🛒 POS Order Entry</h1>
-                <a href="/" class="btn-secondary">← Back to Home</a>
+
+        <header class="view-header"
+            style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h1 id="page-title" data-i18n="posTitle" style="margin: 0;">POS Order Entry</h1>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="/" class="btn-secondary">← <span data-i18n="backToHome">Back to Home</span></a>
             </div>
         </header>
 

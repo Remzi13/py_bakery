@@ -81,10 +81,10 @@ class SQLAlchemyModel:
     def calculate_income(self) -> float:
         """Calculate total income from sales."""
         from sql_model.entities import Sale
-        from sqlalchemy import func
+        from sqlalchemy import func, Float
         
         result = self.db.query(
-            func.sum(Sale.price * Sale.quantity * (1 - func.cast(Sale.discount, float) / 100))
+            func.sum(Sale.price * Sale.quantity * (1 - func.cast(Sale.discount, Float) / 100))
         ).scalar()
         return float(result) if result is not None else 0.0
 

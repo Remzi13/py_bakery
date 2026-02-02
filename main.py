@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard
+from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard, reports
 from sql_model.database import init_db, SessionLocal
 from sql_model.entities import SystemSettings
 from api.version import APP_VERSION
@@ -44,6 +44,7 @@ app.include_router(suppliers.router)
 app.include_router(writeoffs.router)
 app.include_router(orders.router)
 app.include_router(dashboard.router)
+app.include_router(reports.router)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory=get_resource_path("static")), name="static")
@@ -88,5 +89,17 @@ async def read_expenses_entry(request: Request):
             "categories": categories,
             "types": all_types
         })
+    finally:
+        db.close()
+
+@app.get("/reports")
+async def read_reports(request: Request):
+    from sql_model.database import SessionLocal
+    from sql_model.model import SQLAlchemyModel
+    db = SessionLocal()
+    try:
+        model = SQLAlchemyModel(db)
+        from api.routers.reports import get_reports_page
+        return await get_reports_page(request, model)
     finally:
         db.close()

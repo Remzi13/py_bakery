@@ -43,6 +43,7 @@ const translations = {
         suppliers: "Suppliers",
         ingredients: "Ingredients",
         writeoffs: "Write-offs",
+        reports: "Reports",
         documentation: "Documentation",
 
         // Orders
@@ -140,6 +141,25 @@ const translations = {
         itemTypeProduct: "Product",
         itemTypeStock: "Stock Item",
 
+        // Reports
+        reportsTitle: "Business Reports",
+        revenueVsExpenses: "Revenue vs Expenses",
+        topProducts: "Top Selling Products",
+        expenseBreakdown: "Expense Breakdown",
+        netProfit: "Net Profit",
+        totalRevenueReport: "Total Revenue",
+        totalExpensesReport: "Total Expenses",
+        avgOrderValue: "Avg Order Value",
+        profitMarginReport: "Profit Margin",
+        dailyRevenue: "Daily Revenue",
+        monthlyRevenueReport: "Monthly Revenue",
+        selectPeriod: "Select Period",
+        last7Days: "Last 7 Days",
+        last30Days: "Last 30 Days",
+        thisMonth: "This Month",
+        thisYear: "This Year",
+        noDataToDisplay: "No data available for selected period",
+
         // Language Switch
         language: "Language",
         english: "English",
@@ -193,6 +213,7 @@ const translations = {
         suppliers: "Поставщики",
         ingredients: "Ингредиенты",
         writeoffs: "Списания",
+        reports: "Отчёты",
         documentation: "Документация",
 
         // Orders
@@ -289,6 +310,25 @@ const translations = {
         recordWriteoff: "Зарегистрировать списание",
         itemTypeProduct: "Товар",
         itemTypeStock: "Товар на складе",
+
+        // Reports
+        reportsTitle: "Бизнес-отчёты",
+        revenueVsExpenses: "Доходы vs Расходы",
+        topProducts: "Популярные товары",
+        expenseBreakdown: "Структура расходов",
+        netProfit: "Чистая прибыль",
+        totalRevenueReport: "Общий доход",
+        totalExpensesReport: "Общие расходы",
+        avgOrderValue: "Средний чек",
+        profitMarginReport: "Рентабельность",
+        dailyRevenue: "Дневная выручка",
+        monthlyRevenueReport: "Месячная выручка",
+        selectPeriod: "Выберите период",
+        last7Days: "Последние 7 дней",
+        last30Days: "Последние 30 дней",
+        thisMonth: "Этот месяц",
+        thisYear: "Этот год",
+        noDataToDisplay: "Нет данных для отображения за выбранный период",
 
         // Language Switch
         language: "Язык",
