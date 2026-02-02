@@ -131,7 +131,7 @@ const translations = {
         selectSupplier: "Select Supplier",
 
         // Write-offs
-        addWriteoff: "Add Record",
+        addWriteoff: "Add Write-off",
         searchWriteoffs: "Search write-offs...",
         itemType: "Item Type",
         selectItem: "Select Item",
@@ -281,7 +281,7 @@ const translations = {
         selectSupplier: "Выбрать поставщика",
 
         // Write-offs
-        addWriteoff: "Добавить запись",
+        addWriteoff: "Добавить списание",
         searchWriteoffs: "Поиск списаний...",
         itemType: "Тип товара",
         selectItem: "Выбрать товар",

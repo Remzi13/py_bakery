@@ -5,6 +5,10 @@
                 hx-get="/api/writeoffs/" hx-trigger="keyup changed delay:500ms, search"
                 hx-target="#writeoffs-table-body">
         </div>
+        <button class="btn-primary" hx-get="/api/writeoffs/new" hx-target="#modal-container" hx-trigger="click"
+            data-i18n="addWriteoff">
+            Add Write-off
+        </button>
     </div>
     <table class="data-table" id="writeoffs-table">
         <thead>

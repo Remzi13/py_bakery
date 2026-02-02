@@ -1,7 +1,7 @@
 <div id="writeoff-modal" class="modal show" role="dialog" aria-modal="true">
     <div class="modal-content">
         <button class="close" onclick="document.getElementById('writeoff-modal').remove()">&times;</button>
-        <h2 data-i18n="addWriteOff">Add Write-off</h2>
+        <h2 data-i18n="addWriteoff">Add Write-off</h2>
         <form hx-post="/api/writeoffs/" hx-target="#writeoffs-table-body" hx-swap="afterbegin"
             hx-on::after-request="if(event.detail.successful) document.getElementById('writeoff-modal').remove()">
 
@@ -45,7 +45,7 @@
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="document.getElementById('writeoff-modal').remove()"
                     data-i18n="cancel">Cancel</button>
-                <button type="submit" class="btn-primary" data-i18n="save">Save Write-off</button>
+                <button type="submit" class="btn-primary" data-i18n="recordWriteoff">Record Write-off</button>
             </div>
         </form>
     </div>
