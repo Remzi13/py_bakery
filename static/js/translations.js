@@ -158,6 +158,10 @@ const translations = {
         thisMonth: "This Month",
         thisYear: "This Year",
         noDataToDisplay: "No data available for selected period",
+        lowStockWarning: "Low Stock Warning",
+        recentWriteoffsHeading: "Recent Write-offs",
+        item: "Item",
+        stockActivity: "Stock Activity",
 
         // Language Switch
         language: "Language",
@@ -328,6 +332,10 @@ const translations = {
         thisMonth: "Этот месяц",
         thisYear: "Этот год",
         noDataToDisplay: "Нет данных для отображения за выбранный период",
+        lowStockWarning: "Предупреждение о низком запасе",
+        recentWriteoffsHeading: "Последние списания",
+        item: "Товар",
+        stockActivity: "Активность на складе",
 
         // Language Switch
         language: "Язык",

@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List, Optional, Dict, Any
 from api.dependencies import get_model
 from sql_model.model import SQLAlchemyModel
-from sql_model.entities import Sale, ExpenseDocument, ExpenseCategory, ExpenseItem, ExpenseType, Product
+from sql_model.entities import Sale, ExpenseDocument, ExpenseCategory, ExpenseItem, ExpenseType, Product, StockItem, WriteOff, Unit
 from sqlalchemy import func, Float
 from datetime import datetime, timedelta
 
@@ -75,9 +75,27 @@ async def get_reports_page(
      .join(ExpenseDocument, ExpenseDocument.id == ExpenseItem.document_id)\
      .group_by(ExpenseCategory.name).all()
 
+    # Stock Status
+    low_stock = model.db.query(StockItem).filter(StockItem.quantity < 10).order_by(StockItem.quantity.asc()).limit(10).all()
+    
+    # Recent Write-offs
+    recent_writeoffs = model.db.query(WriteOff).order_by(WriteOff.date.desc()).limit(10).all()
+    
     return templates.TemplateResponse(request, "reports.html", {
         "summary": summary,
         "sales_by_day": [{"day": row.day, "revenue": float(row.revenue)} for row in sales_by_day],
         "top_products": [{"name": row.product_name, "revenue": float(row.revenue)} for row in top_products],
-        "expenses_by_category": [{"name": row.name, "total": float(row.total)} for row in expenses_by_category]
+        "expenses_by_category": [{"name": row.name, "total": float(row.total)} for row in expenses_by_category],
+        "low_stock": [{
+            "name": item.name,
+            "quantity": item.quantity,
+            "unit": item.unit.name if item.unit else ""
+        } for item in low_stock],
+        "recent_writeoffs": [{
+            "item_name": (item.stock_item.name if item.stock_item else (item.product.name if item.product else "Unknown")),
+            "quantity": item.quantity,
+            "reason": item.reason,
+            "date": item.date,
+            "unit": item.unit.name if item.unit else ""
+        } for item in recent_writeoffs]
     })

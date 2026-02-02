@@ -85,6 +85,67 @@
             </div>
         </div>
 
+        <!-- Stock Activity Section -->
+        <h2 style="margin-top: 40px; margin-bottom: 20px; font-size: 1.5rem; color: #2d3748;" data-i18n="stockActivity">
+            Stock Activity</h2>
+        <div class="stock-activity-grid">
+            <div class="activity-card card">
+                <h3 data-i18n="lowStockWarning">Low Stock Warning</h3>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="item">Item</th>
+                                <th data-i18n="quantity">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in low_stock %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td class="low-stock-val">{{ "{:,.2f}".format(item.quantity) }} {{ item.unit }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" style="text-align: center; color: var(--text-muted); padding: 20px;">No
+                                    low stock alerts</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="activity-card card">
+                <h3 data-i18n="recentWriteoffsHeading">Recent Write-offs</h3>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="item">Item</th>
+                                <th data-i18n="quantity">Quantity</th>
+                                <th data-i18n="reason">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_writeoffs %}
+                            <tr>
+                                <td>{{ item.item_name }}</td>
+                                <td>{{ "{:,.2f}".format(item.quantity) }} {{ item.unit }}</td>
+                                <td class="reason-cell">{{ item.reason }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No
+                                    recent write-offs</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <footer
             style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.8rem; color: var(--text-muted); opacity: 0.7;">
             App: v{{ app_version }} | DB: v{{ get_db_version() }}
@@ -308,6 +369,67 @@
             .chart-container:nth-child(1) {
                 grid-column: span 1;
             }
+
+            .stock-activity-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Stock Activity Styles */
+        .stock-activity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .activity-card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+
+        .activity-card h3 {
+            margin: 0 0 15px;
+            font-size: 1.1rem;
+            color: #4a5568;
+            font-weight: 700;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            flex: 1;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .report-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .report-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .low-stock-val {
+            color: #c53030;
+            font-weight: 700;
+        }
+
+        .reason-cell {
+            color: var(--text-muted);
+            font-style: italic;
         }
     </style>
 </body>
