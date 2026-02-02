@@ -15,7 +15,7 @@ const translations = {
         rejectConfirm: "Are you sure you want to reject this?",
         confirm: "Confirm",
         cancel: "Cancel",
-        discount: "Discount (%)",
+        discount: "Discount",
         subtotal: "Subtotal",
 
         // Dashboard
@@ -97,7 +97,6 @@ const translations = {
         product: "Product",
         selectProduct: "Select Product",
         quantityPcs: "Quantity (pcs)",
-        discount: "Discount (%)",
         total: "Total",
         registerSale: "Register Sale",
 

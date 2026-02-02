@@ -1,0 +1,9 @@
+{% for product in products %}
+<div class="product-card" hx-post="/api/pos/cart/add/{{ product.id }}" hx-target="#order-panel-inner"
+    hx-swap="outerHTML">
+    <div class="product-name">{{ product.name }}</div>
+    <div class="product-price">₽{{ "{:,.2f}".format(product.price) }}</div>
+</div>
+{% else %}
+<div class="loading-message">No products found</div>
+{% endfor %}

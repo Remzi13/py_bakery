@@ -17,9 +17,8 @@
 <body class="pos-body">
     <div class="pos-container">
         <!-- Header -->
-
         <header class="view-header"
-            style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+            style="margin: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h1 id="page-title" data-i18n="posTitle" style="margin: 0;">POS Order Entry</h1>
             </div>
@@ -35,7 +34,9 @@
                 <div class="panel-header">
                     <h2>Products</h2>
                     <div class="search-wrapper">
-                        <input type="text" id="product-search" placeholder="Search products..." class="search-input">
+                        <input type="text" name="search" placeholder="Search products..." class="search-input"
+                            hx-get="/api/pos/products-grid" hx-trigger="keyup changed delay:300ms, load"
+                            hx-target="#products-grid">
                     </div>
                 </div>
                 <div id="products-grid" class="products-grid">
@@ -44,42 +45,9 @@
             </div>
 
             <!-- Right Panel: Current Order -->
-            <div class="order-panel">
-                <div class="panel-header">
-                    <h2>Current Order</h2>
-                    <button id="clear-order-btn" class="btn-danger-small" style="display: none;">Clear</button>
-                </div>
-
-                <div id="order-items" class="order-items">
-                    <div class="empty-order">
-                        <p>No items in order</p>
-                        <p class="empty-order-hint">Click on products to add them</p>
-                    </div>
-                </div>
-
-                <div class="order-summary">
-                    <div class="summary-row">
-                        <span class="summary-label">Subtotal:</span>
-                        <span id="order-subtotal" class="summary-value">₽0.00</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Discount (%):</span>
-                        <input type="number" id="order-discount-input" class="summary-input" value="0" min="0"
-                            max="100">
-                    </div>
-                    <div class="summary-row total-row">
-                        <span class="summary-label">Total:</span>
-                        <span id="order-total" class="summary-value">₽0.00</span>
-                    </div>
-                </div>
-
-                <div class="order-actions">
-                    <button id="complete-now-btn" class="btn-submit btn-complete" disabled>
-                        ✓ Complete Now
-                    </button>
-                    <button id="create-order-btn" class="btn-submit btn-create" disabled>
-                        📋 Create Order
-                    </button>
+            <div class="order-panel" id="order-panel" hx-get="/api/pos/cart" hx-trigger="load">
+                <div id="order-panel-inner">
+                    <div class="loading-message">Loading cart...</div>
                 </div>
             </div>
         </div>
@@ -90,7 +58,8 @@
         <div class="modal-content">
             <button class="close" onclick="closeOrderModal()">×</button>
             <h2>Create Order</h2>
-            <form id="order-form">
+            <form id="order-form" hx-post="/api/pos/checkout" hx-target="#order-panel-inner"
+                hx-on::after-request="if(event.detail.successful) closeOrderModal()">
                 <div class="form-group">
                     <label for="completion-date">Completion Date & Time</label>
                     <input type="datetime-local" id="completion-date" name="completion_date" required>
@@ -98,6 +67,7 @@
 
                 <div class="form-group">
                     <label for="modal-discount">Discount (%)</label>
+                    <!-- This will be pre-filled or handled by the server cart state -->
                     <input type="number" id="modal-discount" name="discount" min="0" max="100" value="0">
                 </div>
 
@@ -119,7 +89,58 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="/static/js/pos.js"></script>
+    <script>
+        // Modal functions
+        function openOrderModal() {
+            const modal = document.getElementById('order-modal');
+            modal.style.display = 'flex';
+
+            // Set minimum completion date to current time
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('completion-date').min = now.toISOString().slice(0, 16);
+
+            // Sync discount from main panel
+            const mainDiscount = document.getElementById('cart-discount-input');
+            if (mainDiscount) {
+                document.getElementById('modal-discount').value = mainDiscount.value;
+            }
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('order-modal');
+            modal.style.display = 'none';
+            document.getElementById('order-form').reset();
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Listen for custom events from HTMX
+        document.body.addEventListener('showToast', function (evt) {
+            showToast(evt.detail.value, 'success');
+        });
+
+        // Close modal on escape
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeOrderModal();
+            }
+        });
+    </script>
 </body>
 
 </html>

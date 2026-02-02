@@ -1,0 +1,66 @@
+<div id="order-panel-inner">
+    <div class="panel-header">
+        <h2>Current Order</h2>
+        {% if cart_items %}
+        <button id="clear-order-btn" class="btn-danger-small" hx-delete="/api/pos/cart/clear"
+            hx-confirm="Clear all items from order?" hx-target="#order-panel-inner" hx-swap="outerHTML">Clear</button>
+        {% endif %}
+    </div>
+
+    <div id="order-items" class="order-items">
+        {% for item in cart_items %}
+        <div class="order-item">
+            <div class="order-item-header">
+                <span class="order-item-name">{{ item.name }}</span>
+                <button class="order-item-remove" hx-delete="/api/pos/cart/remove/{{ item.product_id }}"
+                    hx-target="#order-panel-inner" hx-swap="outerHTML">
+                    Remove
+                </button>
+            </div>
+            <div class="order-item-controls">
+                <div class="quantity-controls">
+                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=-1"
+                        hx-target="#order-panel-inner" hx-swap="outerHTML">−</button>
+                    <span class="quantity-display">{{ item.quantity }}</span>
+                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=1"
+                        hx-target="#order-panel-inner" hx-swap="outerHTML">+</button>
+                </div>
+                <span class="order-item-total">₽{{ "{:,.2f}".format(item.total) }}</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-order">
+            <p>No items in order</p>
+            <p class="empty-order-hint">Click on products to add them</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="order-summary">
+        <div class="summary-row">
+            <span class="summary-label">Subtotal:</span>
+            <span id="order-subtotal" class="summary-value">₽{{ "{:,.2f}".format(subtotal) }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">Discount (%):</span>
+            <input type="number" id="cart-discount-input" name="discount" class="summary-input" value="{{ discount }}"
+                min="0" max="100" hx-post="/api/pos/cart/discount" hx-trigger="change, keyup delay:500ms"
+                hx-target="#order-panel-inner" hx-swap="outerHTML">
+        </div>
+        <div class="summary-row total-row">
+            <span class="summary-label">Total:</span>
+            <span id="order-total" class="summary-value">₽{{ "{:,.2f}".format(total) }}</span>
+        </div>
+    </div>
+
+    <div class="order-actions">
+        <button id="complete-now-btn" class="btn-submit btn-complete" {% if not cart_items %}disabled{% endif %}
+            hx-post="/api/pos/checkout" hx-vals='{"complete_now": "true"}' hx-target="#order-panel-inner">
+            ✓ Complete Now
+        </button>
+        <button id="create-order-btn" class="btn-submit btn-create" {% if not cart_items %}disabled{% endif %}
+            onclick="openOrderModal()">
+            📋 Create Order
+        </button>
+    </div>
+</div>

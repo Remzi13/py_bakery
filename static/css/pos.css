@@ -1,19 +1,23 @@
-/* POS Panel Specific Styles */
+* {
+    box-sizing: border-box;
+}
 
 .pos-body {
     margin: 0;
     padding: 0;
     background: #f5f7fa;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     font-family: 'Inter', sans-serif;
 }
 
 .pos-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     max-width: 1800px;
     margin: 0 auto;
+    overflow: hidden;
 }
 
 /* Header */
@@ -41,10 +45,12 @@
 .pos-main {
     display: grid;
     grid-template-columns: 1fr 400px;
+    grid-template-rows: 1fr;
     gap: 1.5rem;
-    padding: 1.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
     flex: 1;
     overflow: hidden;
+    min-height: 0;
 }
 
 /* Panels */
@@ -56,15 +62,20 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100%;
+    /* Fill grid cell */
+    min-height: 0;
 }
 
 .panel-header {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 2px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: linear-gradient(to right, #f7fafc, #edf2f7);
+    flex-shrink: 0;
+    /* Don't shrink header */
 }
 
 .panel-header h2 {
@@ -154,10 +165,42 @@
 }
 
 /* Order Panel */
+#order-panel-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
 .order-items {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto !important;
+    overflow-x: hidden;
     padding: 1rem;
+    min-height: 0;
+    display: block;
+}
+
+/* Custom Scrollbar for visibility */
+.order-items::-webkit-scrollbar {
+    width: 10px;
+    display: block !important;
+}
+
+.order-items::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 4px;
+}
+
+.order-items::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+    border: 2px solid #f7fafc;
+}
+
+.order-items::-webkit-scrollbar-thumb:hover {
+    background: #2d3748;
 }
 
 .empty-order {
@@ -271,9 +314,11 @@
 
 /* Order Summary */
 .order-summary {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-top: 2px solid #e2e8f0;
     background: #f7fafc;
+    flex-shrink: 0;
+    /* Don't shrink summary */
 }
 
 .summary-row {
@@ -324,11 +369,13 @@
 
 /* Order Actions */
 .order-actions {
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-top: 2px solid #e2e8f0;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+    flex-shrink: 0;
+    /* Don't shrink actions */
 }
 
 .btn-submit {
@@ -441,6 +488,7 @@
         font-size: 1.1rem;
     }
 }
+
 /* Modal Styles */
 .modal {
     display: none;

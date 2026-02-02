@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard, reports
+from api.routers import products, stock, sales, expenses, suppliers, writeoffs, orders, dashboard, reports, pos
 from sql_model.database import init_db, SessionLocal
 from sql_model.entities import SystemSettings
 from api.version import APP_VERSION
@@ -45,6 +45,7 @@ app.include_router(writeoffs.router)
 app.include_router(orders.router)
 app.include_router(dashboard.router)
 app.include_router(reports.router)
+app.include_router(pos.router)
 
 # Mount Static Files
 app.mount("/static", StaticFiles(directory=get_resource_path("static")), name="static")
