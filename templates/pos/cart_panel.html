@@ -19,11 +19,9 @@
             </div>
             <div class="order-item-controls">
                 <div class="quantity-controls">
-                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=-1"
-                        hx-target="#order-panel-inner" hx-swap="outerHTML">−</button>
-                    <span class="quantity-display">{{ item.quantity }}</span>
-                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=1"
-                        hx-target="#order-panel-inner" hx-swap="outerHTML">+</button>
+                    <input type="number" class="quantity-input" name="quantity" value="{{ item.quantity }}" min="0"
+                        hx-post="/api/pos/cart/update/{{ item.product_id }}" hx-trigger="change, keyup delay:500ms"
+                        hx-target="#order-panel-inner" hx-swap="outerHTML">
                 </div>
                 <span class="order-item-total">₽{{ "{:,.2f}".format(item.total) }}</span>
             </div>

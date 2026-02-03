@@ -77,7 +77,8 @@ async def add_to_cart(
 async def update_cart_item(
     request: Request,
     product_id: int,
-    change: int,
+    change: Optional[int] = None,
+    quantity: Optional[str] = Form(None),
     model: SQLAlchemyModel = Depends(get_model)
 ):
     cart_id, is_new = get_cart_id(request)
@@ -85,7 +86,14 @@ async def update_cart_item(
     
     product_id_str = str(product_id)
     if product_id_str in cart["items"]:
-        cart["items"][product_id_str] += change
+        if quantity is not None and quantity.strip() != "":
+            try:
+                cart["items"][product_id_str] = int(quantity)
+            except ValueError:
+                pass
+        elif change is not None:
+            cart["items"][product_id_str] += change
+            
         if cart["items"][product_id_str] <= 0:
             del cart["items"][product_id_str]
             

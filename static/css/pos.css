@@ -306,6 +306,30 @@
     text-align: center;
 }
 
+.quantity-input {
+    width: 50px;
+    padding: 0.25rem;
+    border: 2px solid #cbd5e0;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-align: center;
+    font-family: inherit;
+    font-weight: 600;
+    color: #2d3748;
+    transition: border-color 0.2s;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #3182ce;
+}
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .order-item-total {
     font-weight: 700;
     color: #2d3748;
