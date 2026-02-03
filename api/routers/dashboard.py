@@ -3,6 +3,7 @@ from fastapi.templating import Jinja2Templates
 from api.dependencies import get_model
 from sql_model.model import SQLAlchemyModel
 from datetime import datetime, timedelta
+from sql_model.entities import ExpenseDocument, ExpenseItem
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 from api.templates_config import templates
@@ -18,7 +19,9 @@ async def get_dashboard_stats(request: Request, model: SQLAlchemyModel = Depends
     sales = model.sales().data()    
     monthly_revenue = sum(s.price * s.quantity * (1 - s.discount / 100) for s in sales if s.date.startswith(today[:7]))
     
-    monthly_expenses = sum(e.total_amount for e in model.expense_documents().data() if e.date.startswith(today[:7]))
+    from sqlalchemy import func
+    monthly_expenses = model.db.query(func.sum(ExpenseDocument.total_amount)).filter(ExpenseDocument.date.like(f"{today[:7]}%")).scalar() or 0
+    monthly_expenses = float(monthly_expenses)
     
     if monthly_revenue > 0:
         profit_margin = (monthly_revenue - monthly_expenses) / monthly_revenue * 100

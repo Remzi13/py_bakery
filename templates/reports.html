@@ -30,14 +30,14 @@
 
         <!-- Period Selection Tabs -->
         <nav class="period-tabs">
-            <a href="/reports/?period=day" class="tab-item {% if current_period == 'day' %}active{% endif %}"
+            <a href="/reports?period=day" class="tab-item {% if current_period == 'day' %}active{% endif %}"
                 data-i18n="periodDay">Day</a>
-            <a href="/reports/?period=week" class="tab-item {% if current_period == 'week' %}active{% endif %}"
+            <a href="/reports?period=week" class="tab-item {% if current_period == 'week' %}active{% endif %}"
                 data-i18n="periodWeek">Week</a>
-            <a href="/reports/?period=month"
+            <a href="/reports?period=month"
                 class="tab-item {% if current_period == 'month' or not current_period %}active{% endif %}"
                 data-i18n="periodMonth">Month</a>
-            <a href="/reports/?period=year" class="tab-item {% if current_period == 'year' %}active{% endif %}"
+            <a href="/reports?period=year" class="tab-item {% if current_period == 'year' %}active{% endif %}"
                 data-i18n="periodYear">Year</a>
         </nav>
 

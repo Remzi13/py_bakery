@@ -90,10 +90,10 @@ class SQLAlchemyModel:
 
     def calculate_expenses(self) -> float:
         """Calculate total expenses."""
-        from sql_model.entities import ExpenseDocument
+        from sql_model.entities import ExpenseItem
         from sqlalchemy import func
         
-        result = self.db.query(func.sum(ExpenseDocument.total_amount)).scalar()
+        result = self.db.query(func.sum(ExpenseItem.price)).scalar()
         return float(result) if result is not None else 0.0
 
     def calculate_profit(self) -> float:

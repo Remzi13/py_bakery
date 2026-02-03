@@ -10,7 +10,7 @@ from api.templates_config import templates
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("", response_class=HTMLResponse)
 async def get_reports_page(
     request: Request,
     period: str = "month",
@@ -69,10 +69,9 @@ async def get_reports_page(
         func.sum(Sale.price * Sale.quantity * (1 - func.cast(Sale.discount, Float) / 100)).label('revenue')
     ).filter(Sale.date >= start_date_str).group_by(Sale.product_name).order_by(func.sum(Sale.price * Sale.quantity * (1 - func.cast(Sale.discount, Float) / 100)).desc()).limit(10).all()
     
-    # Expenses by Category
     expenses_by_category = model.db.query(
         ExpenseCategory.name,
-        func.sum(ExpenseItem.price * ExpenseItem.quantity).label('total')
+        func.sum(ExpenseItem.price).label('total')
     ).join(ExpenseType, ExpenseType.category_id == ExpenseCategory.id)\
      .join(ExpenseItem, ExpenseItem.expense_type_id == ExpenseType.id)\
      .join(ExpenseDocument, ExpenseDocument.id == ExpenseItem.document_id)\
