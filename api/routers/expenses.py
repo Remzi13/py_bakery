@@ -11,10 +11,10 @@ from api.models import (
 from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/expenses", tags=["expenses"])
-from api.utils import get_resource_path
-templates = Jinja2Templates(directory=get_resource_path("templates"))
+from api.templates_config import templates
 
 # --- Documents API (New System) ---
+
 
 @router.get("/documents", response_model=List[ExpenseDocumentResponse])
 async def get_expense_documents(

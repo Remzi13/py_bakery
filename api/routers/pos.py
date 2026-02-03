@@ -9,7 +9,7 @@ from sql_model.model import SQLAlchemyModel
 from api.utils import get_resource_path
 
 router = APIRouter(prefix="/api/pos", tags=["pos"])
-templates = Jinja2Templates(directory=get_resource_path("templates"))
+from api.templates_config import templates
 
 # In-memory cart storage: {cart_id: {"items": {product_id: quantity}, "discount": 0}}
 CARTS: Dict[str, dict] = {}

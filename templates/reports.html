@@ -28,6 +28,19 @@
             </div>
         </header>
 
+        <!-- Period Selection Tabs -->
+        <nav class="period-tabs">
+            <a href="/reports/?period=day" class="tab-item {% if current_period == 'day' %}active{% endif %}"
+                data-i18n="periodDay">Day</a>
+            <a href="/reports/?period=week" class="tab-item {% if current_period == 'week' %}active{% endif %}"
+                data-i18n="periodWeek">Week</a>
+            <a href="/reports/?period=month"
+                class="tab-item {% if current_period == 'month' or not current_period %}active{% endif %}"
+                data-i18n="periodMonth">Month</a>
+            <a href="/reports/?period=year" class="tab-item {% if current_period == 'year' %}active{% endif %}"
+                data-i18n="periodYear">Year</a>
+        </nav>
+
         <!-- Summary Cards -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -154,7 +167,7 @@
 
     <script>
         // Data passed from backend
-        const salesData = {{ sales_by_day | tojson }};
+        const salesData = {{ sales_trend | tojson }};
         const topProductsData = {{ top_products | tojson }};
         const expensesData = {{ expenses_by_category | tojson }};
 
@@ -170,9 +183,9 @@
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: salesData.map(d => d.day),
+                    labels: salesData.map(d => d.label),
                     datasets: [{
-                        label: t('dailyRevenue'),
+                        label: t('totalRevenueReport'),
                         data: salesData.map(d => d.revenue),
                         borderColor: '#4299e1',
                         backgroundColor: 'rgba(66, 153, 225, 0.1)',
@@ -247,6 +260,39 @@
             background-color: var(--bg-color);
             margin: 0;
             min-height: 100vh;
+        }
+
+        /* Period Tabs Styles */
+        .period-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 5px;
+            border-radius: 12px;
+            width: fit-content;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-item {
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-color);
+        }
+
+        .tab-item.active {
+            background: white;
+            color: #4299e1;
+            box-shadow: var(--shadow-sm);
         }
 
         .reports-container {

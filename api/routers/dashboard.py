@@ -5,8 +5,7 @@ from sql_model.model import SQLAlchemyModel
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
-from api.utils import get_resource_path
-templates = Jinja2Templates(directory=get_resource_path("templates"))
+from api.templates_config import templates
 
 @router.get("/")
 async def get_dashboard(request: Request):

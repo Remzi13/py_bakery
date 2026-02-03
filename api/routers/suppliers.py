@@ -7,8 +7,7 @@ from api.models import Supplier
 from sql_model.model import SQLAlchemyModel
 
 router = APIRouter(prefix="/api/suppliers", tags=["suppliers"])
-from api.utils import get_resource_path
-templates = Jinja2Templates(directory=get_resource_path("templates"))
+from api.templates_config import templates
 
 @router.get("/", response_model=List[Supplier])
 async def get_suppliers(
