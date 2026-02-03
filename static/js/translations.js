@@ -116,6 +116,7 @@ const translations = {
         totalPrice: "Total Price",
         totalAmount: "Total Amount",
         noItems: "No items",
+        editExpenseType: "Edit Expense Type",
 
         // Suppliers
         addSupplier: "Add Supplier",
@@ -294,6 +295,7 @@ const translations = {
         totalPrice: "Общая цена",
         totalAmount: "Общая сумма",
         noItems: "Нет позиций",
+        editExpenseType: "Редактировать тип расхода",
 
         // Suppliers
         addSupplier: "Добавить поставщика",

@@ -1,0 +1,43 @@
+<section id="expense-types-view" class="view active">
+    <div class="table-container">
+        <div class="table-header-actions">
+            <div class="table-actions-group">
+                <div class="search-wrapper">
+                    <input type="text" name="search" placeholder="Search types..." data-i18n="searchExpenseTypes"
+                        hx-get="/api/expenses/types" hx-trigger="keyup changed delay:500ms, search"
+                        hx-target="#types-table-body" hx-include="[name='category']">
+                </div>
+                <div class="filter-wrapper">
+                    <select name="category" hx-get="/api/expenses/types" hx-target="#types-table-body"
+                        hx-trigger="change" hx-include="[name='search']" class="form-select-inline">
+                        <option value="" data-i18n="allCategories">All Categories</option>
+                        {% for c in categories %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button class="btn-primary" hx-get="/api/expenses/types/new" hx-target="#modal-container" hx-trigger="click"
+                data-i18n="addExpenseType">
+                Add Expense Type
+            </button>
+        </div>
+        <table class="data-table" id="types-table">
+            <thead>
+                <tr>
+                    <th data-i18n="productName">Name</th>
+                    <th data-i18n="expenseCategory">Category</th>
+                    <th data-i18n="price">Default Price</th>
+                    <th data-i18n="unit">Unit</th>
+                    <th data-i18n="stock">Stock</th>
+                    <th data-i18n="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="types-table-body">
+                {% for type in types %}
+                {% include "expenses/type_row.html" %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

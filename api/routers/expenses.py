@@ -203,6 +203,31 @@ async def get_new_type_form(request: Request, model: SQLAlchemyModel = Depends(g
     units = model.utils().get_units()
     return templates.TemplateResponse(request, "expenses/type_form.html", {"categories": categories, "units": units})
 
+@router.get("/types/{id}/edit", response_class=HTMLResponse)
+async def get_edit_type_form(id: int, request: Request, model: SQLAlchemyModel = Depends(get_model)):
+    et = model.expense_types().by_id(id)
+    if not et:
+        raise HTTPException(status_code=404, detail="Expense type not found")
+    
+    categories = model.utils().get_expense_category_names()
+    units = model.utils().get_units()
+    
+    type_data = {
+        "id": et.id,
+        "name": et.name,
+        "default_price": et.default_price,
+        "category_id": et.category_id,
+        "category_name": model.utils().get_expense_category_name_by_id(et.category_id),
+        "unit_id": et.unit_id,
+        "stock": et.stock
+    }
+    
+    return templates.TemplateResponse(request, "expenses/type_edit_form.html", {
+        "type": type_data, 
+        "categories": categories, 
+        "units": units
+    })
+
 @router.post("/categories")
 async def create_expense_category(
     request: Request,
@@ -235,13 +260,11 @@ async def create_expense_type(
         if request.headers.get("content-type") == "application/json":
             data = await request.json()
             type_data = ExpenseTypeCreate(**data)
-            model.expense_types().add(
-                name=type_data.name,
-                default_price=type_data.default_price,
-                category_name=type_data.category_name,
-                unit_id=type_data.unit_id,
-                stock=type_data.stock
-            )
+            name = type_data.name
+            default_price = type_data.default_price
+            category_name = type_data.category_name
+            unit_id = type_data.unit_id
+            stock = type_data.stock
         else:
             form = await request.form()
             name = form.get("name")
@@ -249,14 +272,28 @@ async def create_expense_type(
             category_name = form.get("category_name")
             unit_id = int(form.get("unit_id"))
             stock = form.get("stock") == "true"
-            
-            model.expense_types().add(
-                name=name,
-                default_price=default_price,
-                category_name=category_name,
-                unit_id=unit_id,
-                stock=stock
-            )
+
+        new_type_id = model.expense_types().add(
+            name=name,
+            default_price=default_price,
+            category_name=category_name,
+            unit_id=unit_id,
+            stock=stock
+        )
+        
+        if request.headers.get("HX-Request"):
+            et = model.expense_types().by_id(new_type_id)
+            type_data_dict = {
+                "id": et.id,
+                "name": et.name,
+                "default_price": et.default_price,
+                "category_id": et.category_id,
+                "category_name": model.utils().get_expense_category_name_by_id(et.category_id),
+                "unit_id": et.unit_id,
+                "unit_name": model.utils().get_unit_name_by_id(et.unit_id),
+                "stock": et.stock
+            }
+            return templates.TemplateResponse(request, "expenses/type_row.html", {"type": type_data_dict})
             
         return {"message": "Expense type created successfully"}
     except ValueError as e:
@@ -294,19 +331,105 @@ async def get_expense_type_options(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/types", response_model=List[ExpenseType])
-def get_expense_types(model: SQLAlchemyModel = Depends(get_model)):
+def get_expense_types(
+    request: Request, 
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    hx_request: Optional[str] = Header(None, alias="HX-Request"),
+    hx_target: Optional[str] = Header(None, alias="HX-Target"),
+    accept: Optional[str] = Header(None, alias="Accept"),
+    model: SQLAlchemyModel = Depends(get_model)
+):
     try:
         data = model.expense_types().data()
         results = []
         utils = model.utils()
         for et in data:
             cat_name = utils.get_expense_category_name_by_id(et.category_id)
-            et_dict = et.__dict__.copy()
-            et_dict['category_name'] = cat_name
-            results.append(et_dict)
+            results.append({
+                "id": et.id,
+                "name": et.name,
+                "default_price": et.default_price,
+                "category_id": et.category_id,
+                "category_name": cat_name,
+                "unit_id": et.unit_id,
+                "unit_name": utils.get_unit_name_by_id(et.unit_id),
+                "stock": et.stock
+            })
+        
+        if category and category != "":
+            results = [r for r in results if r['category_name'] == category]
+
+        if search:
+            s = search.lower()
+            results = [r for r in results if s in r['name'].lower()]
+
+        if hx_request or (accept and "text/html" in accept):
+            if hx_target == "types-table-body":
+                return templates.TemplateResponse(request, "expenses/types_table_rows.html", {"types": results})
+            
+            categories = utils.get_expense_category_names()
+            return templates.TemplateResponse(request, "expenses/types_list.html", {
+                "types": results,
+                "categories": categories,
+                "selected_category": category
+            })
+            
         return results
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/types/{id}", response_class=HTMLResponse)
+async def update_expense_type(
+    id: int,
+    request: Request,
+    model: SQLAlchemyModel = Depends(get_model)
+):
+    try:
+        form = await request.form()
+        name = form.get("name")
+        default_price = float(form.get("default_price"))
+        category_name = form.get("category_name")
+        unit_id = int(form.get("unit_id"))
+        stock = form.get("stock") == "true"
+        
+        updated_et = model.expense_types().full_update(
+            type_id=id,
+            name=name,
+            default_price=default_price,
+            category_name=category_name,
+            unit_id=unit_id,
+            stock=stock
+        )
+        
+        if not updated_et:
+            raise HTTPException(status_code=404, detail="Expense type not found")
+            
+        type_data = {
+            "id": updated_et.id,
+            "name": updated_et.name,
+            "default_price": updated_et.default_price,
+            "category_id": updated_et.category_id,
+            "category_name": model.utils().get_expense_category_name_by_id(updated_et.category_id),
+            "unit_id": updated_et.unit_id,
+            "unit_name": model.utils().get_unit_name_by_id(updated_et.unit_id),
+            "stock": updated_et.stock
+        }
+        
+        return templates.TemplateResponse(request, "expenses/type_row.html", {"type": type_data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/types/{id}", response_class=HTMLResponse)
+async def delete_expense_type(
+    id: int,
+    model: SQLAlchemyModel = Depends(get_model)
+):
+    try:
+        model.expense_types().delete_by_id(id)
+        return HTMLResponse(content="", status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/categories", response_model=List[str])
 def get_expense_categories(model: SQLAlchemyModel = Depends(get_model)):

@@ -37,11 +37,12 @@ class ExpenseTypesRepository:
             )
             self.db.add(expense_type)
             self.db.commit()
+            return expense_type.id
         except Exception as e:
             self.db.rollback()
             if 'UNIQUE' in str(e):
-                # Expense type already exists, silently pass
-                pass
+                existing = self.get(name)
+                return existing.id if existing else None
             else:
                 raise e
 
@@ -63,6 +64,27 @@ class ExpenseTypesRepository:
             except Exception as e:
                 self.db.rollback()
                 raise e
+
+    def full_update(self, type_id: int, name: str, default_price: float, category_name: str, unit_id: int, stock: bool):
+        """Update all fields of an expense type."""
+        exp_type = self.by_id(type_id)
+        if exp_type:
+            try:
+                category_id = self._get_category_id(category_name)
+                if category_id is None:
+                    raise ValueError(f"Expense category '{category_name}' not found.")
+                
+                exp_type.name = name
+                exp_type.default_price = default_price
+                exp_type.category_id = category_id
+                exp_type.unit_id = unit_id
+                exp_type.stock = stock
+                self.db.commit()
+                return exp_type
+            except Exception as e:
+                self.db.rollback()
+                raise e
+        return None
 
     def delete_by_id(self, type_id: int):
         """Delete expense type by ID."""

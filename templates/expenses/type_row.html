@@ -1,0 +1,26 @@
+<tr id="type-row-{{ type.id }}">
+    <td>{{ type.name }}</td>
+    <td>{{ type.category_name }}</td>
+    <td>₽{{ "{:,.2f}".format(type.default_price) }}</td>
+    <td>{{ type.unit_name }}</td>
+    <td>
+        {% if type.stock %}
+        <span class="badge badge-success">Yes</span>
+        {% else %}
+        <span class="badge">No</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="actions">
+            <button class="btn-icon" title="Edit" hx-get="/api/expenses/types/{{ type.id }}/edit"
+                hx-target="#modal-container" data-i18n="edit">
+                Edit
+            </button>
+            <button class="btn-icon btn-danger" title="Delete" hx-delete="/api/expenses/types/{{ type.id }}"
+                hx-confirm="Are you sure you want to delete this expense type?" hx-target="#type-row-{{ type.id }}"
+                hx-swap="outerHTML" data-i18n="delete">
+                Delete
+            </button>
+        </div>
+    </td>
+</tr>
