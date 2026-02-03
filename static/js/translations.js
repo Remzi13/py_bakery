@@ -72,6 +72,7 @@ const translations = {
         addMaterial: "Add",
         recipe: "Recipe (Materials)",
         saveProduct: "Save Product",
+        editProduct: "Edit Product",
 
         // Materials
         addMaterialButton: "Add Material",
@@ -250,6 +251,8 @@ const translations = {
         addMaterial: "Добавить",
         recipe: "Рецепт (Ингредиенты)",
         saveProduct: "Сохранить товар",
+        editProduct: "Редактировать товар",
+
 
         // Materials
         addMaterialButton: "Добавить материал",
