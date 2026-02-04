@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Mobile POS - Bakery Manager">
+    <title>Mobile POS - Bakery Manager</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/pos.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        /* Specific overrides for Mobile POS Page */
+        .pos-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .pos-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .pos-main {
+            display: block;
+            padding: 0;
+            gap: 0;
+            height: calc(100vh - 60px - 60px);
+            /* Adjust for header and nav */
+            position: relative;
+        }
+
+        .mobile-nav {
+            display: flex;
+            height: 60px;
+        }
+
+        .products-panel,
+        .order-panel {
+            display: none;
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            box-shadow: none;
+            flex-direction: column;
+        }
+
+        .mobile-visible {
+            display: flex !important;
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+            padding: 10px;
+            gap: 10px;
+            padding-bottom: 80px;
+        }
+
+        .product-card {
+            padding: 10px;
+        }
+
+        .search-wrapper {
+            max-width: none;
+            margin: 0;
+            width: 100%;
+        }
+
+        .panel-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .order-items {
+            padding-bottom: 80px;
+        }
+    </style>
+</head>
+
+<body class="pos-body">
+    <div class="pos-container">
+        <!-- Header -->
+        <header class="pos-header">
+            <div class="pos-header-content">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h1 id="page-title" data-i18n="posTitle">Mobile POS</h1>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/" class="btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.9rem;">←</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="pos-main">
+            <!-- Left Panel: Products -->
+            <div class="products-panel mobile-visible" id="products-panel">
+                <div class="panel-header">
+                    <h2>Products</h2>
+                    <div class="search-wrapper">
+                        <input type="text" name="search" placeholder="Search products..." class="search-input"
+                            hx-get="/api/pos/products-grid" hx-trigger="keyup changed delay:300ms, load"
+                            hx-target="#products-grid">
+                    </div>
+                </div>
+                <div id="products-grid" class="products-grid">
+                    <div class="loading-message">Loading products...</div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Current Order -->
+            <div class="order-panel" id="order-panel">
+                <div id="order-panel-inner" hx-get="/api/pos/cart" hx-trigger="load" hx-swap="outerHTML">
+                    <div class="loading-message">Loading cart...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal">
+        <div class="modal-content">
+            <button class="close" onclick="closeOrderModal()">×</button>
+            <h2>Create Order</h2>
+            <form id="order-form" hx-post="/api/pos/checkout" hx-target="#order-panel-inner"
+                hx-on::after-request="if(event.detail.successful) closeOrderModal()">
+                <div class="form-group">
+                    <label for="completion-date">Completion Date & Time</label>
+                    <input type="datetime-local" id="completion-date" name="completion_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-discount">Discount (%)</label>
+                    <!-- This will be pre-filled or handled by the server cart state -->
+                    <input type="number" id="modal-discount" name="discount" min="0" max="100" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="additional-info">Additional Information</label>
+                    <textarea id="additional-info" name="additional_info" rows="3"
+                        placeholder="Special instructions, customer name, etc."></textarea>
+                </div>
+
+                <div class="form-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeOrderModal()"
+                        style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">Create Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="mobile-nav">
+        <button class="mobile-nav-item active" onclick="switchMobileView('products')" id="nav-products">
+            <span class="icon">🥐</span>
+            <span>Products</span>
+        </button>
+        <button class="mobile-nav-item" onclick="switchMobileView('cart')" id="nav-cart">
+            <span class="icon">🛒</span>
+            <span>Order</span>
+        </button>
+    </div>
+
+    <script>
+        // Mobile view switching
+        function switchMobileView(view) {
+            const productsPanel = document.getElementById('products-panel');
+            const orderPanel = document.getElementById('order-panel');
+            const btnProducts = document.getElementById('nav-products');
+            const btnCart = document.getElementById('nav-cart');
+
+            if (view === 'products') {
+                productsPanel.classList.add('mobile-visible');
+                orderPanel.classList.remove('mobile-visible');
+                btnProducts.classList.add('active');
+                btnCart.classList.remove('active');
+            } else {
+                productsPanel.classList.remove('mobile-visible');
+                orderPanel.classList.add('mobile-visible');
+                btnProducts.classList.remove('active');
+                btnCart.classList.add('active');
+            }
+        }
+
+        // Modal functions
+        function openOrderModal() {
+            const modal = document.getElementById('order-modal');
+            modal.style.display = 'flex';
+
+            // Set minimum completion date to current time
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('completion-date').min = now.toISOString().slice(0, 16);
+
+            // Sync discount from main panel
+            const mainDiscount = document.getElementById('cart-discount-input');
+            if (mainDiscount) {
+                document.getElementById('modal-discount').value = mainDiscount.value;
+            }
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('order-modal');
+            modal.style.display = 'none';
+            document.getElementById('order-form').reset();
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Listen for custom events from HTMX
+        document.body.addEventListener('showToast', function (evt) {
+            showToast(evt.detail.value, 'success');
+        });
+
+        // Close modal on escape
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeOrderModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

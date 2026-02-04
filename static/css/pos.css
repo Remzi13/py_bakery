@@ -624,3 +624,152 @@
 .btn-secondary:hover {
     background: #cbd5e0;
 }
+/* Mobile Navigation */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-nav-item .icon {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.mobile-nav-item.active {
+    color: #3182ce;
+    background: #ebf8ff;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .pos-body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .pos-container {
+        height: 100vh;
+        width: 100vw;
+    }
+
+    .pos-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .pos-main {
+        display: block;
+        padding: 0;
+        gap: 0;
+        height: calc(100vh - 60px - 60px); /* Adjust for header and nav */
+        position: relative;
+    }
+    
+    .mobile-nav {
+        display: flex;
+        height: 60px;
+    }
+
+    .products-panel, 
+    .order-panel {
+        display: none;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        box-shadow: none;
+        flex-direction: column;
+    }
+
+    /* By default, or via JS */
+    .mobile-visible {
+        display: flex !important;
+    }
+
+    /* Force products visible if no logic yet (handled by JS, but useful fallback) */
+    .products-panel:not(.mobile-visible):not(#order-panel) {
+        /* This selector is tricky, rely on JS initialization or default class in HTML? 
+           Better to set default state in HTML or use first-of-type logic */
+    }
+    
+    /* Make products grid 2 columns */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 10px;
+        gap: 10px;
+        padding-bottom: 80px; /* Space for fab/nav if needed */
+    }
+
+    .product-card {
+        padding: 10px;
+    }
+
+    .search-wrapper {
+        max-width: none;
+        margin: 0;
+        width: 100%;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .order-items {
+        padding-bottom: 80px;
+    }
+}
+
+/* Enhanced touch targets for mobile */
+@media (max-width: 768px) {
+    .qty-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.5rem;
+    }
+    
+    .quantity-input {
+        width: 60px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+    
+    .order-item-remove {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 1.25rem;
+    }
+    
+    .product-card {
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+}

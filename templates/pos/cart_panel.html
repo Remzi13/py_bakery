@@ -13,15 +13,21 @@
             <div class="order-item-header">
                 <span class="order-item-name">{{ item.name }}</span>
                 <button class="order-item-remove" hx-delete="/api/pos/cart/remove/{{ item.product_id }}"
-                    hx-target="#order-panel-inner" hx-swap="outerHTML">
-                    Remove
+                    hx-target="#order-panel-inner" hx-swap="outerHTML" aria-label="Remove">
+                    ×
                 </button>
             </div>
             <div class="order-item-controls">
                 <div class="quantity-controls">
-                    <input type="number" class="quantity-input" name="quantity" value="{{ item.quantity }}" min="0"
-                        hx-post="/api/pos/cart/update/{{ item.product_id }}" hx-trigger="change, keyup delay:500ms"
-                        hx-target="#order-panel-inner" hx-swap="outerHTML">
+                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=-1"
+                        hx-target="#order-panel-inner" hx-swap="outerHTML">−</button>
+
+                    <input type="number" id="qty-{{ item.product_id }}" class="quantity-input" name="quantity"
+                        value="{{ item.quantity }}" min="0" hx-post="/api/pos/cart/update/{{ item.product_id }}"
+                        hx-trigger="change, keyup delay:500ms" hx-target="#order-panel-inner" hx-swap="outerHTML">
+
+                    <button class="qty-btn" hx-post="/api/pos/cart/update/{{ item.product_id }}?change=1"
+                        hx-target="#order-panel-inner" hx-swap="outerHTML">+</button>
                 </div>
                 <span class="order-item-total">₽{{ "{:,.2f}".format(item.total) }}</span>
             </div>

@@ -18,6 +18,10 @@ async def read_management(request: Request):
 async def read_pos(request: Request):
     return templates.TemplateResponse(request, "pos.html", {})
 
+@router.get("/pos-mobile")
+async def read_pos_mobile(request: Request):
+    return templates.TemplateResponse(request, "pos_mob.html", {})
+
 @router.get("/expenses")
 async def read_expenses_entry(request: Request, model: SQLAlchemyModel = Depends(get_model)):
     suppliers = model.suppliers().data()
