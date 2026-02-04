@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    container_name: bakery_app
+    restart: always
+    environment:
+      - DATABASE_URL=sqlite:////app/data/bakery_management.db
+    volumes:
+      - ./data:/app/data
+    networks:
+      - bakery_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: bakery_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - bakery_network
+
+networks:
+  bakery_network:
+    driver: bridge

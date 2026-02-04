@@ -58,6 +58,9 @@ def get_database_url() -> str:
     Get the database URL, ensuring it points to a file next to the executable
     when frozen.
     """
+    if os.environ.get("DATABASE_URL"):
+        return os.environ.get("DATABASE_URL")
+
     db_name = "bakery_management.db"
     if getattr(sys, 'frozen', False):
         base_path = Path(sys.executable).parent
